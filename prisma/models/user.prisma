@@ -1,0 +1,31 @@
+model User {
+    id       String  @id @default(uuid())
+    email    String  @unique
+    // * For manual registration
+    password String?
+    // * For Google registration
+    googleId String? @unique
+
+    // * Settings
+    role       UserRole @default(USER)
+    isVerified Boolean  @default(false)
+    isActive   Boolean  @default(true)
+    isDeleted  Boolean  @default(false)
+
+    // * Optional fields
+    profilePic String?
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt()
+    deletedAt  DateTime?
+
+    // * Relations
+    userProfile UserProfile?
+
+    @@map("users")
+}
+
+enum UserRole {
+    USER
+    ADMIN
+    SUPER_ADMIN
+}
