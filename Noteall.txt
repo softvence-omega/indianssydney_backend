@@ -1,2 +1,3 @@
 neon=fZQSFMcs2EX!r2e
 ngrok http --url=scarcely-amused-lizard.ngrok-free.app 80
+npx prisma migrate dev --name init

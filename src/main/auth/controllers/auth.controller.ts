@@ -5,16 +5,9 @@ import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import { AuthService } from '../services/auth.service';
 import { AuthGoogleService } from '../services/auth-google.service';
-import {
-  ForgotPasswordDto,
-  ResetPasswordDto,
-  VerifyEmailDto,
-} from '../dto/uer.dto';
+
 import { VerifyOtpAuthDto } from '../dto/varify-otp.dto';
-import {
-  ChangePasswordAuthDto,
-  UpdatePasswordDto,
-} from '../dto/chnage-password.dto';
+import { UpdatePasswordDto } from '../dto/chnage-password.dto';
 import { GetUser, ValidateUser } from 'src/common/jwt/jwt.decorator';
 import { ForgetPasswordAuthDto } from '../dto/forgot-password.dto';
 import { ResetPasswordAuthDto } from '../dto/reset-password';
@@ -73,21 +66,21 @@ export class AuthController {
     };
   }
 
-  @ApiBearerAuth()
-  @ValidateUser()
-  @Post('change-password')
-  async changePassword(
-    @GetUser('userId') userId: string,
-    @Body() payload: ChangePasswordAuthDto,
-  ) {
-    const result = await this.authService.changePassword(userId, payload);
-    return {
-      statusCode: HttpStatus.OK,
-      success: true,
-      message: 'Password updated successfully!',
-      data: result,
-    };
-  }
+  // @ApiBearerAuth()
+  // @ValidateUser()
+  // @Post('change-password')
+  // async changePassword(
+  //   @GetUser('id') userId: string,
+  //   @Body() payload: ChangePasswordAuthDto,
+  // ) {
+  //   const result = await this.authService.changePassword(userId, payload);
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     success: true,
+  //     message: 'Password updated successfully!',
+  //     data: result,
+  //   };
+  // }
 
   @Post('reset-password')
   async resetPassword(@Body() payload: ResetPasswordAuthDto) {
@@ -99,13 +92,16 @@ export class AuthController {
       data: result,
     };
   }
+  // -------------
+// @ApiOperation({ summary: 'Change & update user password' })
+// @ApiBearerAuth()
+// @ValidateUser()
+// @Post('me/update-password')
+// async updatePassword(
+//   @GetUser('sub') userId: string, // <-- Use 'sub' here
+//   @Body() body: UpdatePasswordDto,
+// ) {
+//   return this.authService.updatePassword(userId, body);
+// }
 
-  @ApiOperation({ summary: 'Update user password' })
-  @Post('me/update-password')
-  async getProfile(
-    @GetUser('userId') userId: string,
-    @Body() body: UpdatePasswordDto,
-  ) {
-    return this.authService.updatePassword(userId, body);
-  }
 }
