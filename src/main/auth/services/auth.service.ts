@@ -20,10 +20,7 @@ import {
 import { LoginDto } from '../dto/login.dto';
 import { VerifyOtpAuthDto } from '../dto/varify-otp.dto';
 import { ResetPasswordAuthDto } from '../dto/reset-password';
-import {
-  ChangePasswordAuthDto,
-  UpdatePasswordDto,
-} from '../dto/chnage-password.dto';
+import { UpdatePasswordDto } from '../dto/chnage-password.dto';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 
 @Injectable()
@@ -275,7 +272,7 @@ export class AuthService {
 
     return { resetToken };
   }
-  // -------------------
+
   // -----Reset password using a valid reset token--------------
   async resetPassword(payload: ResetPasswordAuthDto) {
     // Verify token
@@ -307,93 +304,93 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  //------------- Change password when user is logged in----------------------------
-  async changePassword(userId: string, payload: ChangePasswordAuthDto) {
-    try {
-      // Fetch current user data
-      const userData = await this.prisma.user.findUnique({
-        where: { id: userId },
-      });
+  // //------------- Change password when user is logged in----------------------------
+  // // async changePassword(userId: string, payload: ChangePasswordAuthDto) {
+  // //   try {
+  // //     // Fetch current user data
+  // //     const userData = await this.prisma.user.findUnique({
+  // //       where: { id: userId },
+  // //     });
 
-      if (!userData) {
-        throw new NotFoundException('User not found!');
-      }
+  // //     if (!userData) {
+  // //       throw new NotFoundException('User not found!');
+  // //     }
 
-      // Ensure user has a password set
-      if (!userData.password) {
-        throw new ForbiddenException('User has no password set');
-      }
+  // //     // Ensure user has a password set
+  // //     if (!userData.password) {
+  // //       throw new ForbiddenException('User has no password set');
+  // //     }
 
-      // Verify old password
-      const matched = await this.utils.compare(
-        payload.oldPassword,
-        userData.password,
-      );
-      if (!matched) {
-        throw new ForbiddenException('Old password does not match!');
-      }
+  // //     // Verify old password
+  // //     const matched = await this.utils.compare(
+  // //       payload.oldPassword,
+  // //       userData.password,
+  // //     );
+  // //     if (!matched) {
+  // //       throw new ForbiddenException('Old password does not match!');
+  // //     }
 
-      // Hash new password
-      const hashedPassword = await this.utils.hash(payload.newpassword);
+  // //     // Hash new password
+  // //     const hashedPassword = await this.utils.hash(payload.newpassword);
 
-      // Update password
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { password: hashedPassword },
-      });
+  // //     // Update password
+  // //     await this.prisma.user.update({
+  // //       where: { id: userId },
+  // //       data: { password: hashedPassword },
+  // //     });
 
-      return { message: 'Password changed successfully' };
-    } catch (error) {
-      console.error('Change password error:', error);
-      throw error;
-    }
-  }
-  // ---------------update password---------------
-  @HandleError('Failed to update password', 'User')
-  async updatePassword(
-    userid: string,
-    dto: UpdatePasswordDto,
-  ): Promise<TResponse<any>> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userid },
-      select: { password: true, googleId: true },
-    });
+  // //     return { message: 'Password changed successfully' };
+  // //   } catch (error) {
+  // //     console.error('Change password error:', error);
+  // //     throw error;
+  // //   }
+  // // }
+  // // ---------------update password---------------
+  // @HandleError('Failed to change update password', 'User')
+  // async updatePassword(
+  //   userid: string,
+  //   dto: UpdatePasswordDto,
+  // ): Promise<TResponse<any>> {
+  //   try {
+  //     const user = await this.prisma.user.findUnique({
+  //       where: { id: userid },
+  //       select: { password: true, googleId: true },
+  //     });
 
-    if (!user) {
-      throw new AppError(404, 'User not found');
-    }
+  //     if (!user) throw new AppError(404, 'User not found');
 
-    // If user registered via Google only (no password set yet)
-    if (!user.password) {
-      const hashedPassword = await this.utils.hash(dto.newPassword);
-      await this.prisma.user.update({
-        where: { id: userid },
-        data: { password: hashedPassword },
-      });
-      return successResponse(null, 'Password set successfully');
-    }
+  //     // If user registered via Google only
+  //     if (!user.password) {
+  //       const hashedPassword = await this.utils.hash(dto.newPassword);
+  //       await this.prisma.user.update({
+  //         where: { id: userid },
+  //         data: { password: hashedPassword },
+  //       });
+  //       return successResponse(null, 'Password set successfully');
+  //     }
 
-    // For normal email/password users — require current password check
-    if (!dto.currentPassword) {
-      throw new AppError(400, 'Current password is required');
-    }
+  //     // Require current password for normal users
+  //     if (!dto.currentPassword)
+  //       throw new AppError(400, 'Current password is required');
 
-    const isPasswordValid = await this.utils.compare(
-      dto.currentPassword,
-      user.password,
-    );
-    if (!isPasswordValid) {
-      throw new AppError(400, 'Invalid current password');
-    }
+  //     const isPasswordValid = await this.utils.compare(
+  //       dto.currentPassword,
+  //       user.password,
+  //     );
+  //     if (!isPasswordValid) throw new AppError(400, 'Invalid current password');
 
-    const hashedPassword = await this.utils.hash(dto.newPassword);
-    await this.prisma.user.update({
-      where: { id: userid },
-      data: { password: hashedPassword },
-    });
+  //     const hashedPassword = await this.utils.hash(dto.newPassword);
+  //     await this.prisma.user.update({
+  //       where: { id: userid },
+  //       data: { password: hashedPassword },
+  //     });
 
-    return successResponse(null, 'Password updated successfully');
-  }
+  //     return successResponse(null, 'Password updated successfully');
+  //   } catch (err) {
+  //     console.error('Error updating password:', err);
+  //     throw err;
+  //   }
+  // }
 
   // async verifyOtp(payload: VerifyEmailDto) {
   //   const isVerified = await this.jwt.verifyAsync(payload.resetToken);

@@ -43,5 +43,5 @@ export function ValidateAdmin() {
 }
 
 export function ValidateUser() {
-  return ValidateAuth(UserEnum.USER, UserEnum.SUPER_ADMIN);
+  return ValidateAuth(UserEnum.USER, UserEnum.SUPER_ADMIN, UserEnum.MEMBER);
 }

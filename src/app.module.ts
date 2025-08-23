@@ -4,17 +4,18 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LibModule } from './lib/lib.module';
 import { MainModule } from './main/main.module';
-import { PassportModule } from '@nestjs/passport';
+
 import { JwtModule } from '@nestjs/jwt';
-import { ENVEnum } from './common/enum/env.enum';
+
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { CacheModule } from '@nestjs/cache-manager';
+
 import { join } from 'path';
-import { UtilsModule } from './lib/utils/utils.module';
+
 @Module({
   imports: [
     MainModule,
-    UtilsModule,
+    LibModule,
+
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
