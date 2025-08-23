@@ -79,15 +79,11 @@ export class UtilsService {
     return token;
   }
 
+  // ---------otp generate---------------
   generateOtpAndExpiry(): { otp: number; expiryTime: Date } {
-    const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit code
+    const otp = Math.floor(100000 + Math.random() * 900000);
     const expiryTime = new Date();
     expiryTime.setMinutes(expiryTime.getMinutes() + 10);
     return { otp, expiryTime };
-  }
-
-  calculateTotalCoins(volume: number, extraBonus: number) {
-    const bonus = Math.floor((volume * extraBonus) / 100);
-    return volume + bonus;
   }
 }
