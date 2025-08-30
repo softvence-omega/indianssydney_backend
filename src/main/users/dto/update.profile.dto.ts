@@ -19,11 +19,9 @@ export class UpdateProfileDto {
   @IsString()
   fullName?: string;
 
-
-
   @ApiProperty({
     example: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry',
-    description: 'About',
+    description: 'bio or about',
     required: false,
   })
   @IsOptional()

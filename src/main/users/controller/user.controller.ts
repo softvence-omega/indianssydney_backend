@@ -1,37 +1,30 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Patch,
-  Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
-  BadRequestException,
+  Get,
 } from '@nestjs/common';
-import { UserService } from '../services/user.service';
 
-import {
-  ApiBearerAuth,
-  ApiConsumes,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
-import { GetUser, ValidateAuth } from 'src/common/jwt/jwt.decorator';
-import { UpdateProfileDto } from '../dto/update.profile.dto';
-import { UpdatePasswordDto } from 'src/main/auth/dto/chnage-password.dto';
 
-@Controller('user')
-@ApiTags('User')
-@ValidateAuth()
-@ApiBearerAuth()
+import { UpdateProfileDto } from '../dto/update.profile.dto';
+
+import { GetUser, ValidateAuth } from 'src/common/jwt/jwt.decorator';
+import { UpdatePasswordDto } from '../dto/updatepassword.dto';
+import { UserService } from '../service/user.service';
+
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
+  // ----------------------update profile----------------------
+  @ApiOperation({ summary: 'Update user profile' })
+  @ValidateAuth()
+  @ApiBearerAuth()
   @Patch('me/update')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
@@ -50,19 +43,25 @@ export class UserController {
     }
     return await this.userService.updateProfile(userId, dto);
   }
-
-  // ---------update pass--
-  @ApiOperation({ summary: 'Change & update user password' })
+  // ----------------update password--------------------
+  @ApiOperation({ summary: 'Update user password' })
+  @ValidateAuth()
+  @ApiBearerAuth()
   @Post('me/update-password')
-  async updatePassword(
+  async getProfile(
     @GetUser('userId') userId: string,
     @Body() body: UpdatePasswordDto,
   ) {
-    console.log('DEBUG: userId from JWT =', userId);
-    if (!userId) {
-      throw new BadRequestException('User ID not found in token');
-    }
-
+    console.log('use id', userId);
     return this.userService.updatePassword(userId, body);
+  }
+  // ----------------get profile--------------------
+
+  @ApiOperation({ summary: 'Get user data' })
+  @ValidateAuth()
+  @ApiBearerAuth()
+  @Get('me/profile')
+  async getUserData(@GetUser('userId') userId: string) {
+    return this.userService.getProfile(userId);
   }
 }

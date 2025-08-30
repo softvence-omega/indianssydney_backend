@@ -1,28 +1,37 @@
 model User {
-  id           String     @id @default(uuid())
-  email        String     @unique
-  fullName        String?
+  id           String   @id @default(uuid())
+  email        String   @unique
+  fullName     String?
   password     String?
-  role         UserRole   @default(USER)
+  role         UserRole @default(USER)
   profilePhoto String?
   bio          String?
-// --google -varify--
- // * For Google registration
-  googleId String? @unique
-  emailOtp     Int?      
-  otpExpiry    DateTime?
-  isVerified   Boolean    @default(false)
+  // ------------------google -varify------------------------------------
 
-  // Password reset OTP
-  resetOtp        Int?
-  resetOtpExpiry  DateTime?
+  googleId   String?   @unique
+  emailOtp   Int?
+  otpExpiry  DateTime?
+  isVerified Boolean   @default(false)
 
-  isActive     Boolean    @default(true)
-  isDeleted    Boolean    @default(false)
-  deletedAt    DateTime?
+  // ---------------Password reset OTP----------------------
+  resetOtp       Int?
+  resetOtpExpiry DateTime?
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  isActive  Boolean   @default(true)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  // ------ Relations----------------------
+  recommendations  Recommendation[]
+  notifications    Notification[]
+  constents        Contents[]
+  comments         Comment[]
+  sentMessages     ChatMessage[]     @relation("Sender")
+  receivedMessages ChatMessage[]     @relation("Receiver")
+  postReactions    PostReaction[]
+  commentReactions CommentReaction[]
 
   @@map("users")
 }

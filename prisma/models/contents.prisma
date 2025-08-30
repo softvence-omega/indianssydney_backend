@@ -1,0 +1,81 @@
+model Contents {
+  id               String         @id @default(uuid())
+  contentType      ContentType
+  title            String
+  subTitle         String
+  about            String?
+  paragraph        String?
+  shortQuote       String?
+  image            String?
+  videoFile        String?
+  imageCaption     String?
+  audioFile        String?
+  tags             String[]
+  pragraph         String
+  additionalFields  AdditionalFiled[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  isApprove        Boolean        @default(false)
+  isDeleted        Boolean        @default(false)
+  //--------------- Relations---------------------
+  userId           String
+  user             User           @relation(fields: [userId], references: [id])
+  categories       Category[]     @relation("ContentCategories")
+  subCategories    SubCategory[]  @relation("ContentSubCategories")
+  contentImage     ContentImage[]
+
+  @@map("contents")
+}
+
+model AdditionalFiled{
+id  String @id @default(uuid())
+indexfiled  String
+filedtype  Filedtype
+contents      Contents[]
+}
+
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  description   String?
+  icon          String?
+  createdAt     String
+  updatedAt     String
+  isDeleted     Boolean       @default(false)
+  //--------- Relations-----------
+  subCategories SubCategory[]
+  contents      Contents[]    @relation("ContentCategories")
+
+  @@map("categories")
+}
+
+model SubCategory {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  // -----------Relations------------
+  contents    Contents[] @relation("ContentSubCategories")
+
+  @@map("sub_categories")
+}
+
+model ContentImage {
+  id         String   @id @default(uuid())
+  contentsId String
+  contents   Contents @relation(fields: [contentsId], references: [id], onDelete: Cascade)
+  imageUrl   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("content_images")
+}
+enum Filedtype {
+IMAGE
+TEXT 
+VIDEO
+QUOTE 
+AUDIO
+}

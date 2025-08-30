@@ -13,12 +13,12 @@ export class UserResponseDto {
 
   @Expose()
   profilePhoto?: string;
+  
+  @Expose()
+  fullName?: string;
 
   @Expose()
   role: UserRole;
-
-  // @Expose()
-  // totalCoins: string;
 
   @Expose()
   isVerified: boolean;

@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
-    example: 'blackhelsa@powerscrews.com',
+    example: '68urgent@powerscrews.com',
     description: 'Valid email address',
   })
   @IsEmail()

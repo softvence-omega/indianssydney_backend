@@ -12,15 +12,10 @@ import { successResponse, TResponse } from 'src/common/utils/response.util';
 import { UserResponseDto } from 'src/common/dto/user-response.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from '../dto/register.dto';
-import {
-  ForgotPasswordDto,
-  ResetPasswordDto,
-  VerifyEmailDto,
-} from '../dto/uer.dto';
+import { ForgotPasswordDto } from '../dto/uer.dto';
 import { LoginDto } from '../dto/login.dto';
 import { VerifyOtpAuthDto } from '../dto/varify-otp.dto';
 import { ResetPasswordAuthDto } from '../dto/reset-password';
-import { UpdatePasswordDto } from '../dto/chnage-password.dto';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 
 @Injectable()
@@ -70,6 +65,7 @@ export class AuthService {
   //   );
   // }
 
+  @HandleError('Failed to Register profile', 'Register ')
   async register(payload: RegisterDto) {
     const { email, password, confirmPassword } = payload;
 
@@ -158,6 +154,7 @@ export class AuthService {
   // }
 
   // ---------- LOGIN (require verified) ----------
+  @HandleError('Failed to Login profile', 'Login ')
   async login(dto: LoginDto): Promise<TResponse<any>> {
     const { email, password } = dto;
 
@@ -230,8 +227,62 @@ export class AuthService {
 
     return { resetToken };
   }
-  // --------varify otp--------------
+  // ---------------------------------------------varify otp signup----------------------------------
   async verifyOtp(payload: VerifyOtpAuthDto) {
+    // Verify the JWT token
+    let decoded: any;
+    try {
+      decoded = await this.jwt.verifyAsync(payload.resetToken);
+    } catch (err) {
+      throw new ForbiddenException('Invalid or expired token!');
+    }
+
+    // Find user by ID from the token
+    const user = await this.prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found!');
+    }
+
+    // Check OTP match
+    if (user.emailOtp !== parseInt(payload.emailOtp)) {
+      throw new ForbiddenException('OTP does not match!');
+    }
+
+    // Clear OTP and expiry, mark as verified
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailOtp: null,
+        otpExpiry: null,
+        isVerified: true,
+      },
+    });
+
+    // Generate a new JWT token
+    const jwtPayload = {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      roles: updatedUser.role,
+    };
+    const token = await this.jwt.signAsync(jwtPayload, {
+      expiresIn: '77d', // same as signup token expiry
+    });
+
+    return {
+      success: true,
+      message: 'OTP verified successfully',
+      data: {
+        token,
+        user: updatedUser,
+      },
+    };
+  }
+
+  // -----------------------reset varify otp------------------
+  async resetverifyOtp(payload: VerifyOtpAuthDto) {
     // Verify the JWT token
     let decoded: any;
     try {
@@ -260,7 +311,7 @@ export class AuthService {
       data: {
         emailOtp: null,
         otpExpiry: null,
-        isVerified: true, // Optional: mark user as verified
+        isVerified: true,
       },
     });
 
@@ -303,135 +354,4 @@ export class AuthService {
 
     return { message: 'Password reset successfully' };
   }
-
-  // //------------- Change password when user is logged in----------------------------
-  // // async changePassword(userId: string, payload: ChangePasswordAuthDto) {
-  // //   try {
-  // //     // Fetch current user data
-  // //     const userData = await this.prisma.user.findUnique({
-  // //       where: { id: userId },
-  // //     });
-
-  // //     if (!userData) {
-  // //       throw new NotFoundException('User not found!');
-  // //     }
-
-  // //     // Ensure user has a password set
-  // //     if (!userData.password) {
-  // //       throw new ForbiddenException('User has no password set');
-  // //     }
-
-  // //     // Verify old password
-  // //     const matched = await this.utils.compare(
-  // //       payload.oldPassword,
-  // //       userData.password,
-  // //     );
-  // //     if (!matched) {
-  // //       throw new ForbiddenException('Old password does not match!');
-  // //     }
-
-  // //     // Hash new password
-  // //     const hashedPassword = await this.utils.hash(payload.newpassword);
-
-  // //     // Update password
-  // //     await this.prisma.user.update({
-  // //       where: { id: userId },
-  // //       data: { password: hashedPassword },
-  // //     });
-
-  // //     return { message: 'Password changed successfully' };
-  // //   } catch (error) {
-  // //     console.error('Change password error:', error);
-  // //     throw error;
-  // //   }
-  // // }
-  // // ---------------update password---------------
-  // @HandleError('Failed to change update password', 'User')
-  // async updatePassword(
-  //   userid: string,
-  //   dto: UpdatePasswordDto,
-  // ): Promise<TResponse<any>> {
-  //   try {
-  //     const user = await this.prisma.user.findUnique({
-  //       where: { id: userid },
-  //       select: { password: true, googleId: true },
-  //     });
-
-  //     if (!user) throw new AppError(404, 'User not found');
-
-  //     // If user registered via Google only
-  //     if (!user.password) {
-  //       const hashedPassword = await this.utils.hash(dto.newPassword);
-  //       await this.prisma.user.update({
-  //         where: { id: userid },
-  //         data: { password: hashedPassword },
-  //       });
-  //       return successResponse(null, 'Password set successfully');
-  //     }
-
-  //     // Require current password for normal users
-  //     if (!dto.currentPassword)
-  //       throw new AppError(400, 'Current password is required');
-
-  //     const isPasswordValid = await this.utils.compare(
-  //       dto.currentPassword,
-  //       user.password,
-  //     );
-  //     if (!isPasswordValid) throw new AppError(400, 'Invalid current password');
-
-  //     const hashedPassword = await this.utils.hash(dto.newPassword);
-  //     await this.prisma.user.update({
-  //       where: { id: userid },
-  //       data: { password: hashedPassword },
-  //     });
-
-  //     return successResponse(null, 'Password updated successfully');
-  //   } catch (err) {
-  //     console.error('Error updating password:', err);
-  //     throw err;
-  //   }
-  // }
-
-  // async verifyOtp(payload: VerifyEmailDto) {
-  //   const isVerified = await this.jwt.verifyAsync(payload.resetToken);
-
-  //   if (!isVerified) {
-  //     throw new ForbiddenException('Invalid token!');
-  //   }
-
-  //   const decode = await this.jwt.decode(payload.resetToken);
-  //   const user = await this.prisma.user.findUnique({
-  //     where: {
-  //       id: decode.id,
-  //     },
-  //   });
-
-  //   if (!user) {
-  //     throw new ForbiddenException('Something went wrong, try again!');
-  //   }
-
-  //   if (user.otp !== payload.otp) {
-  //     throw new ForbiddenException('OTP not matched!');
-  //   }
-
-  //   await this.prisma.user.update({
-  //     where: { id: user.id },
-  //     data: {
-  //       otp: null,
-  //     },
-  //   });
-
-  //   const jwtPayload = {
-  //     id: user.id,
-  //   };
-
-  //   // generate token
-  //   const resetToken = await this.jwt.signAsync(jwtPayload, {
-  //     expiresIn: this.Config.getOrThrow('RESET_TOKEN_EXPIRES_IN'),
-  //   });
-
-  //   return {
-  //     resetToken,
-  //   };
-  // }
 }
