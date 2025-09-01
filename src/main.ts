@@ -25,7 +25,6 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      // forbidNonWhitelisted: true,
       transform: true,
     }),
   );
@@ -39,5 +38,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? '5000', 10);
   await app.listen(port);
+  console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(`📑 Swagger docs available at http://localhost:${port}/docs`);
 }
 bootstrap();

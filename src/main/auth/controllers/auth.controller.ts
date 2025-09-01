@@ -7,8 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { AuthGoogleService } from '../services/auth-google.service';
 
 import { VerifyOtpAuthDto } from '../dto/varify-otp.dto';
-import { UpdatePasswordDto } from '../dto/chnage-password.dto';
-import { GetUser, ValidateUser } from 'src/common/jwt/jwt.decorator';
+
 import { ForgetPasswordAuthDto } from '../dto/forgot-password.dto';
 import { ResetPasswordAuthDto } from '../dto/reset-password';
 
@@ -43,13 +42,24 @@ export class AuthController {
   //   return this.authService.verifyEmail(dto);
   // }
 
-  @Post('verify-otp')
+  @Post('signup-verify-otp')
   async verifyOtp(@Body() payload: VerifyOtpAuthDto) {
     const result = await this.authService.verifyOtp(payload);
     return {
       statusCode: HttpStatus.OK,
       success: true,
       message: 'OTP verified successfully!',
+      data: result,
+    };
+  }
+
+  @Post('reset-verify-otp')
+  async resetverifyOtp(@Body() payload: VerifyOtpAuthDto) {
+    const result = await this.authService.verifyOtp(payload);
+    return {
+      statusCode: HttpStatus.OK,
+      success: true,
+      message: ' reset OTP verified successfully!',
       data: result,
     };
   }
@@ -66,22 +76,6 @@ export class AuthController {
     };
   }
 
-  // @ApiBearerAuth()
-  // @ValidateUser()
-  // @Post('change-password')
-  // async changePassword(
-  //   @GetUser('id') userId: string,
-  //   @Body() payload: ChangePasswordAuthDto,
-  // ) {
-  //   const result = await this.authService.changePassword(userId, payload);
-  //   return {
-  //     statusCode: HttpStatus.OK,
-  //     success: true,
-  //     message: 'Password updated successfully!',
-  //     data: result,
-  //   };
-  // }
-
   @Post('reset-password')
   async resetPassword(@Body() payload: ResetPasswordAuthDto) {
     const result = await this.authService.resetPassword(payload);
@@ -92,16 +86,4 @@ export class AuthController {
       data: result,
     };
   }
-  // -------------
-// @ApiOperation({ summary: 'Change & update user password' })
-// @ApiBearerAuth()
-// @ValidateUser()
-// @Post('me/update-password')
-// async updatePassword(
-//   @GetUser('sub') userId: string, // <-- Use 'sub' here
-//   @Body() body: UpdatePasswordDto,
-// ) {
-//   return this.authService.updatePassword(userId, body);
-// }
-
 }

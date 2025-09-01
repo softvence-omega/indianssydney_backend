@@ -33,6 +33,7 @@ export class LoggerMiddleware implements NestMiddleware {
     // 💡 Handle multipart/form-data differently
     if (contentType.includes('multipart/form-data')) {
       console.info(
+        
         `${chalk.blue('📦 Body (form-data):')} ${chalk.gray(safeStringify(body))}`,
       );
 

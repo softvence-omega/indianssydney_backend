@@ -10,6 +10,7 @@ import { AppError } from 'src/common/error/handle-error.app';
 import { PaginationDto } from 'src/common/dto/pagination';
 import { UpdateSubscribeDto } from '../dto/update-subscribe.dto';
 
+
 @Injectable()
 export class SubscribeService {
   private readonly logger = new Logger(SubscribeService.name);
@@ -18,6 +19,7 @@ export class SubscribeService {
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
+    
   ) {}
 
   @HandleError('Failed to create subscribe', 'subscribe')
@@ -53,6 +55,10 @@ export class SubscribeService {
     `;
 
     await this.mailService.sendEmail(payload.email, userSubject, userMessage);
+
+    // ---------notofication---------
+
+
 
     return successResponse(subscribe, 'subscribe created successfully');
   }
@@ -97,7 +103,7 @@ export class SubscribeService {
   async remove(id: string): Promise<TResponse<any>> {
     await this.ensureExists(id);
     const subscribe = await this.prisma.subscribe.delete({ where: { id } });
-
+  
     return successResponse(subscribe, 'subscribe deleted successfully');
   }
 

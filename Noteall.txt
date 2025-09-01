@@ -1,3 +1,77 @@
+
+superadmin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNmEwMjQ2ZC0zNjdmLTQzZWItOWE1Yy01Y2Q0M2Y0YmEzNGMiLCJlbWFpbCI6ImNvZGluZ3g0M0BnbWFpbC5jb20iLCJyb2xlcyI6IlNVUEVSX0FETUlOIiwiaWF0IjoxNzU2NjE0MjM4LCJleHAiOjE3NjQzOTAyMzh9.jVaQfNCUT9qObBlK8KiI9sf-_iGuM4IiHtDPEgYF50k
 neon=fZQSFMcs2EX!r2e
 ngrok http --url=scarcely-amused-lizard.ngrok-free.app 80
 npx prisma migrate dev --name init
+ npx nest g resource main/recommendation
+
+ Prisma CLI Commands
+🔹 Project Setup
+npx prisma init
+
+
+Setup Prisma in your app (schema.prisma, .env, etc.)
+
+🔹Code Generation
+prisma generate
+
+
+Generate Prisma Client (query builder for DB)
+
+🔹 Migrations
+prisma migrate dev --name <migration_name>
+
+
+🔹Create & apply migrations during development
+
+npx prisma migrate deploy
+
+
+🔹Apply pending migrations in production
+
+npx prisma migrate reset
+
+
+Drop DB, reapply migrations & seed (⚠️ deletes data)
+
+🔹 Database Commands
+prisma db push
+
+
+🔹🔹Push schema state to DB without migrations
+
+prisma db pull
+
+
+🔹Introspect DB → update schema.prisma
+
+prisma db seed
+
+
+Run the seeding script (e.g., prisma/seed.ts)
+
+🔹 Tools
+prisma studio
+
+
+🔹Open Prisma Studio (GUI for DB)
+
+npx prisma format
+
+
+🔹Format schema.prisma
+
+npx prisma validate
+
+
+🔹Validate schema for errors
+
+prisma version
+
+
+🔹Show Prisma CLI & Engine versions
+
+prisma --help
+
+
+Show help menu (list of all

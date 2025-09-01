@@ -6,6 +6,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserEnum } from '../enum/user.enum';
+
 import { RequestWithUser } from './jwt.interface';
 import { JwtAuthGuard, RolesGuard } from './jwt.gurd';
 
@@ -40,6 +41,9 @@ export function ValidateSuperAdmin() {
 
 export function ValidateAdmin() {
   return ValidateAuth(UserEnum.ADMIN, UserEnum.SUPER_ADMIN);
+}
+export function ValidateMember() {
+  return ValidateAuth(UserEnum.MEMBER, UserEnum.SUPER_ADMIN);
 }
 
 export function ValidateUser() {
