@@ -90,15 +90,82 @@ export class RecommendationService {
   }
 
   // ----------find all ------------------
-  findAll() {
-    return `This action returns all recommendation`;
+  @HandleError(
+    'Failed to find all recommendations',
+    'Recommendation  see all users & slected it',
+  )
+  async findAll() {
+    const recommendations = await this.prisma.recommendation.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            profilePhoto: true,
+          },
+        },
+      },
+    });
+    return successResponse(
+      recommendations,
+      'sucesssfully get all recommendation',
+    );
   }
 
-  findOne(id) {
-    return `This action returns a #${id} recommendation`;
+  async findOne(id: string) {
+    const recommendationfindwithid =
+      await this.prisma.recommendation.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              profilePhoto: true,
+            },
+          },
+        },
+      });
+    return successResponse(
+      recommendationfindwithid,
+      'sucesssfully get all recommendation',
+    );
   }
 
-  remove(id) {
-    return `This action removes a #${id} recommendation`;
+  // recommendation.service.ts remove it
+
+  @HandleError('Failed to remove recommendation', 'Recommendation only admin')
+  async remove(id: string) {
+    const removeRecommandation = await this.prisma.recommendation.delete({
+      where: { id },
+    });
+    return successResponse(
+      removeRecommandation,
+      'sucesssfully get all recommendation',
+    );
+  }
+
+  // ---------------update recommendation ------------------------
+
+  async update(id: string, payload: CreateRecommendationDto) {
+    let fileUrl: string | undefined;
+
+    if (payload.file) {
+      const fileInstance = await this.fileService.processUploadedFile(
+        payload.file,
+      );
+      fileUrl = fileInstance.url;
+    }
+
+    const updated = await this.prisma.recommendation.update({
+      where: { id },
+      data: {
+        name: payload.name,
+        description: payload.description,
+        ...(fileUrl ? { icon: fileUrl } : {}),
+      },
+    });
+
+    return successResponse(updated, 'Recommendation updated successfully');
   }
 }

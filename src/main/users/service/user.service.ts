@@ -119,4 +119,21 @@ export class UserService {
 
     return successResponse(user, 'User profile retrieved successfully');
   }
+
+  @HandleError('Failed to get all users', 'User')
+  async getAllUsers() {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        role: true,
+        fullName: true,
+        profilePhoto: true,
+        bio: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    return successResponse(users, 'All users retrieved successfully');
+  }
 }

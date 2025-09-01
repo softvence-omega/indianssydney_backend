@@ -1,63 +1,82 @@
+/**
+ * One Content → belongs to one Category
+ * One Content → belongs to one SubCategory
+ * One Content → belongs to one AdditionalFiled
+ * One Category → has many SubCategories
+ * One SubCategory → belongs to one Category
+ */
 model Contents {
-  id               String         @id @default(uuid())
-  contentType      ContentType
-  title            String
-  subTitle         String
-  about            String?
-  paragraph        String?
-  shortQuote       String?
-  image            String?
-  videoFile        String?
-  imageCaption     String?
-  audioFile        String?
-  tags             String[]
-  pragraph         String
-  additionalFields  AdditionalFiled[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  isApprove        Boolean        @default(false)
-  isDeleted        Boolean        @default(false)
-  //--------------- Relations---------------------
-  userId           String
-  user             User           @relation(fields: [userId], references: [id])
-  categories       Category[]     @relation("ContentCategories")
-  subCategories    SubCategory[]  @relation("ContentSubCategories")
-  contentImage     ContentImage[]
+  id           String      @id @default(uuid())
+  contentType  ContentType
+  title        String
+  subTitle     String
+  about        String?
+  paragraph    String?
+  shortQuote   String?
+  image        String?
+  videoFile    String?
+  imageCaption String?
+  audioFile    String?
+  tags         String[]
+  videothamble String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  status       Status      @default(PENDING)
+  isDeleted    Boolean     @default(false)
+
+  //--------------- Relations ---------------------
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  subCategoryId String
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+
+  additionalFiledId String
+  additionalFiled   AdditionalFiled @relation(fields: [additionalFiledId], references: [id])
+
+  contentImages ContentImage[]
 
   @@map("contents")
 }
 
-model AdditionalFiled{
-id  String @id @default(uuid())
-indexfiled  String
-filedtype  Filedtype
-contents      Contents[]
+model AdditionalFiled {
+  id                 String     @id @default(uuid())
+  indexfiled         String
+  filedtype          Filedtype
+  thumbailadditional String?
+  contents           Contents[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 }
 
-
 model Category {
-  id            String        @id @default(uuid())
-  name          String        @unique
-  description   String?
-  icon          String?
-  createdAt     String
-  updatedAt     String
-  isDeleted     Boolean       @default(false)
-  //--------- Relations-----------
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  icon        String?
+  createdAt   String
+  updatedAt   String
+  isDeleted   Boolean @default(false)
+
+  // Relations
   subCategories SubCategory[]
-  contents      Contents[]    @relation("ContentCategories")
+  contents      Contents[]
 
   @@map("categories")
 }
 
 model SubCategory {
-  id          String     @id @default(uuid())
-  name        String     @unique
+  id          String   @id @default(uuid())
+  name        String   @unique
   description String?
   categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id])
-  // -----------Relations------------
-  contents    Contents[] @relation("ContentSubCategories")
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  // Relations
+  contents  Contents[]
 
   @@map("sub_categories")
 }
@@ -72,10 +91,16 @@ model ContentImage {
 
   @@map("content_images")
 }
+
 enum Filedtype {
-IMAGE
-TEXT 
-VIDEO
-QUOTE 
-AUDIO
+  IMAGE
+  TEXT
+  VIDEO
+  QUOTE
+  AUDIO
+}
+
+enum Status {
+  PENDING
+  APPROVE
 }

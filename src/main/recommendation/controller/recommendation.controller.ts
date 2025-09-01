@@ -71,7 +71,6 @@ export class RecommendationController {
 
   // -------- Get all ----------
   @ApiOperation({ summary: 'Get all recommendations' })
-  @ValidateAuth()
   @Get()
   findAll() {
     return this.recommendationService.findAll();
@@ -83,13 +82,37 @@ export class RecommendationController {
   findOne(@Param('id') id: string) {
     return this.recommendationService.findOne(id);
   }
-
- 
+  // ---------------- deleted use admin
   @ApiOperation({ summary: 'Delete recommendation by ID' })
-  @ValidateAdmin()
+  @ApiBearerAuth()
   @ValidateAdmin()
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.recommendationService.remove(id);
+  }
+  // ---------------- update use admin
+  // ---------------- update use admin ----------------
+  @ApiOperation({ summary: 'Update recommendation by ID' })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Post('update/:id')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor(
+      'file',
+      new MulterService().createMulterOptions(
+        './temp',
+        'recommendations',
+        FileType.IMAGE,
+      ),
+    ),
+  )
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateRecommendationDto: CreateRecommendationDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (file) updateRecommendationDto.file = file; // optional file handling
+    return this.recommendationService.update(id, updateRecommendationDto);
   }
 }

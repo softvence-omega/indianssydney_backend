@@ -44,16 +44,6 @@ export class subscribeController {
     return this.subscribeService.findOne(id);
   }
 
-  // @ApiOperation({ summary: 'Update a subscribe by ID' })
-  // @ValidateAdmin()
-  // @ApiBearerAuth()
-  // @Patch('admin/:id')
-  // update(
-  //   @Param('id', ParseUUIDPipe) id: string,
-  //   @Body() updateContactDto: UpdatesubscribeDto,
-  // ) {
-  //   return this.subscribeService.update(id, updateContactDto);
-  // }
 
   @ApiOperation({ summary: 'Delete a subscribe by ID' })
   @ValidateAdmin()

@@ -2,33 +2,25 @@ model CommunityPost {
   id          String         @id @default(uuid())
   description String
   thamble     String?
-  video       String
+  video       String?
   comments    Comment[]
   reactions   PostReaction[]
-}
-
-model ChatMessage {
-  id         String   @id @default(uuid())
-  senderId   String
-  receiverId String
-  content    String
-  createdAt  DateTime @default(now())
-  sender     User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver   User     @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @default(now()) @updatedAt
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id              String           @id @default(uuid())
+  content         String
   userId          String
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   reactions       CommentReaction[]
-  CommunityPost   CommunityPost?    @relation(fields: [communityPostId], references: [id])
+  CommunityPost   CommunityPost?   @relation(fields: [communityPostId], references: [id])
   communityPostId String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
 }
 
 model PostReaction {
@@ -36,10 +28,10 @@ model PostReaction {
   type            ReactionType
   userId          String
   communityPostId String
-
-  // --------------Relations------------
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  communitypost CommunityPost @relation(fields: [communityPostId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communitypost   CommunityPost @relation(fields: [communityPostId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
 }
 
 model CommentReaction {
@@ -47,10 +39,10 @@ model CommentReaction {
   type      ReactionType
   userId    String
   commentId String
-
-  //--------- Relations-----------
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @default(now()) @updatedAt
 }
 
 enum ReactionType {

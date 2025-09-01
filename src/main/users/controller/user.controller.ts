@@ -8,16 +8,25 @@ import {
   Get,
 } from '@nestjs/common';
 
-import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
 
 import { UpdateProfileDto } from '../dto/update.profile.dto';
 
-import { GetUser, ValidateAuth } from 'src/common/jwt/jwt.decorator';
+import {
+  GetUser,
+  ValidateAdmin,
+  ValidateAuth,
+} from 'src/common/jwt/jwt.decorator';
 import { UpdatePasswordDto } from '../dto/updatepassword.dto';
 import { UserService } from '../service/user.service';
-
+@ApiTags('USER Profile Maintain')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -57,11 +66,19 @@ export class UserController {
   }
   // ----------------get profile--------------------
 
-  @ApiOperation({ summary: 'Get user data' })
+  @ApiOperation({ summary: 'Get user there owner  data ' })
   @ValidateAuth()
   @ApiBearerAuth()
   @Get('me/profile')
   async getUserData(@GetUser('userId') userId: string) {
     return this.userService.getProfile(userId);
+  }
+  // ------------get all user for admin------------
+  @ApiOperation({ summary: 'Get all users only admin or super admin access' })
+  @ValidateAdmin()
+  @ApiBearerAuth()
+  @Get('all')
+  async getAllUsers() {
+    return this.userService.getAllUsers();
   }
 }

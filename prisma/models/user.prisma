@@ -28,10 +28,14 @@ model User {
   notifications    Notification[]
   constents        Contents[]
   comments         Comment[]
-  sentMessages     ChatMessage[]     @relation("Sender")
-  receivedMessages ChatMessage[]     @relation("Receiver")
+  // sentMessages     ChatMessage[]     @relation("Sender")
+  // receivedMessages ChatMessage[]     @relation("Receiver")
   postReactions    PostReaction[]
   commentReactions CommentReaction[]
+  CommunityPost    CommunityPost[]
+  DeviceToken      DeviceToken[]
+
+  NotificationRecipient NotificationRecipient[]
 
   @@map("users")
 }
