@@ -33,7 +33,7 @@ model User {
   commentReactions   CommentReaction[]
   CommunityPost      CommunityPost[]
   NotificationToggle NotificationToggle[]
-
+  PaypalPayment      PaypalPayment[]
   @@map("users")
 }
 

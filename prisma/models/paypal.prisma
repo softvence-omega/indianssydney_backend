@@ -1,0 +1,16 @@
+model PaypalPayment {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  planName      String
+  planAmount    Float    // amount charged in USD
+  billingCycle  String   // e.g., "weekly", "monthly", "yearly"
+  startDate     DateTime @default(now())
+  endDate       DateTime?
+  status        String   @default("PENDING") // "COMPLETED", "CANCELLED", etc.
+  transactionId String?  // PayPal transaction ID
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("paypal_payments")
+}
