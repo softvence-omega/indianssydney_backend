@@ -11,5 +11,4 @@ enum ContentType {
   ARTICLE
   PODCAST
   VIDEO
-  LIVE_EVENT
 }

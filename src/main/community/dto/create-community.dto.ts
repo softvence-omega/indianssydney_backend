@@ -82,3 +82,6 @@ export class CreateCommentDto {
   @IsUUID()
   communityPostId: string;
 }
+
+
+

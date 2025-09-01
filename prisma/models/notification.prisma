@@ -1,44 +1,35 @@
 model Notification {
-  id          String  @id @default(uuid())
-  title       String
-  body        String?
-  imageUrl    String?
-  deepLink    String?
-  contentType String?
-  contentId   String?
-  sentToTopic String? // e.g., 'all-users'
-
-  status String?
-
-  // For in-app feed / per-user read state
-
-  recipients NotificationRecipient[]
-
-  User User[]
+  id String @id @default(uuid())
+  type    NotificationType?
+  title   String?
+  message String?
+  meta    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  users UserNotification[]
 }
 
-model NotificationRecipient {
-  id             String    @id @default(uuid())
-  userId         String
-  notificationId String
-  readAt         DateTime?
+enum NotificationType {
+  TimeOff
+  Announcement
+  Task
+  Recognition
+  
+}
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+model UserNotification {
+  id String @id @default(uuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  notificationId String
+
+  read Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([userId, notificationId])
-}
-
-model DeviceToken {
-  id        String   @id @default(uuid())
-  userId    String?
-  token     String   @unique
-  platform  String // 'ios' | 'android' | 'web'
-  locale    String? // optional
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

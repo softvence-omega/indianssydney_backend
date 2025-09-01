@@ -237,14 +237,14 @@ export class CommunityService {
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     user: post.user,
-    postReactions: post.reactions, // renamed PostReaction
+    postReactions: post.reactions, 
     comments: post.comments.map(comment => ({
       id: comment.id,
       content: comment.content,
       user: comment.user,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      commentReactions: comment.reactions, // renamed CommentReaction
+      commentReactions: comment.reactions, 
     })),
   };
 

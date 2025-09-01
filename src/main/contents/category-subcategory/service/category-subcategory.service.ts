@@ -36,9 +36,8 @@ export class CategorySubcategoryService {
       data: {
         name: payload.name,
         description: payload.description,
-        icon: fileUrl, // null if not uploaded
+        icon: fileUrl,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       },
     });
 
@@ -75,7 +74,6 @@ export class CategorySubcategoryService {
         ...(dto.name && { name: dto.name }),
         ...(dto.description && { description: dto.description }),
         ...(fileUrl && { icon: fileUrl }), // only update if file uploaded
-        updatedAt: new Date().toISOString(),
       },
     });
 

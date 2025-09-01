@@ -9,7 +9,7 @@ import { ENVEnum } from 'src/common/enum/env.enum';
 import { AppError } from 'src/common/error/handle-error.app';
 import { PaginationDto } from 'src/common/dto/pagination';
 import { UpdateSubscribeDto } from '../dto/update-subscribe.dto';
-import { NotificationService } from 'src/main/notification/service/notification.service';
+
 
 @Injectable()
 export class SubscribeService {
@@ -19,7 +19,7 @@ export class SubscribeService {
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
-    private notificationService: NotificationService,
+    
   ) {}
 
   @HandleError('Failed to create subscribe', 'subscribe')
@@ -58,12 +58,7 @@ export class SubscribeService {
 
     // ---------notofication---------
 
-    await this.notificationService.broadcastToAll({
-      title: 'New Course Available!',
-      body: `${payload.email} has been added. Check it out now!`,
-      contentType: 'subcribe',
-      contentId: payload.email,
-    });
+
 
     return successResponse(subscribe, 'subscribe created successfully');
   }
@@ -108,12 +103,7 @@ export class SubscribeService {
   async remove(id: string): Promise<TResponse<any>> {
     await this.ensureExists(id);
     const subscribe = await this.prisma.subscribe.delete({ where: { id } });
-    await this.notificationService.broadcastToAll({
-      title: 'Subscription Removed',
-      body: `${subscribe.email} has been removed from subscriptions.`,
-      contentType: 'subcribe',
-      contentId: subscribe.id,
-    });
+  
     return successResponse(subscribe, 'subscribe deleted successfully');
   }
 

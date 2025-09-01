@@ -1,12 +1,11 @@
 model Recommendation {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   name        String
   title       String
   description String
   icon        String
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-
+  user        User   @relation(fields: [userId], references: [id])
 
   @@map("recommendation")
 }

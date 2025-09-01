@@ -21,21 +21,18 @@ model User {
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
 
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   // ------ Relations----------------------
-  recommendations  Recommendation[]
-  notifications    Notification[]
-  constents        Contents[]
-  comments         Comment[]
-  // sentMessages     ChatMessage[]     @relation("Sender")
-  // receivedMessages ChatMessage[]     @relation("Receiver")
-  postReactions    PostReaction[]
-  commentReactions CommentReaction[]
-  CommunityPost    CommunityPost[]
-  DeviceToken      DeviceToken[]
+  recommendations Recommendation[]
 
-  NotificationRecipient NotificationRecipient[]
+  constents          Content[]
+  comments           Comment[]
+  UserNotification   UserNotification[]
+  postReactions      PostReaction[]
+  commentReactions   CommentReaction[]
+  CommunityPost      CommunityPost[]
+  NotificationToggle NotificationToggle[]
 
   @@map("users")
 }

@@ -6,10 +6,12 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { UsermanageModule } from './superadmin/usermanage/usermanage.module';
 import { ContentmanageModule } from './superadmin/contentmanage/contentmanage.module';
-import { NotificationModule } from './notification/notification.module';
 import { CategorySubcategoryModule } from './contents/category-subcategory/category-subcategory.module';
-import { ContentsmanageModule } from './contents/contentsmanage/contentsmanage.module';
+
 import { CommunityModule } from './community/community.module';
+import { ContentModule } from './contents/content/content.module';
+
+import { OverviewDashboardModule } from './superadmin/overview-dashboard/overview-dashboard.module';
 
 @Module({
   imports: [
@@ -19,10 +21,10 @@ import { CommunityModule } from './community/community.module';
     UsersModule,
     UsermanageModule,
     ContentmanageModule,
-    NotificationModule,
     CategorySubcategoryModule,
-    ContentsmanageModule,
     CommunityModule,
+    ContentModule,
+    OverviewDashboardModule,
   ],
   controllers: [],
   providers: [],
