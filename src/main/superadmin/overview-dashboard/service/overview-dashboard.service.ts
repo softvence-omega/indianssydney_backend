@@ -33,23 +33,70 @@ export class OverviewDashboardService {
   // Get total view with +15% of last month
   @HandleError('super admin can total get view user')
   async getTotalWithBonus() {
+    const now = new Date();
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+    );
+
+    // Get last month's page view count
+    const lastMonthViews = await this.prisma.totalPageview.aggregate({
+      _sum: {
+        count: true,
+      },
+      where: {
+        createdAt: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth,
+        },
+      },
+    });
+
+    const lastMonthCount = lastMonthViews._sum.count ?? 0;
+
+    // Get current total
     const total = await this.prisma.totalPageview.findFirst();
     const baseCount = total?.count ?? 1;
 
-    // Add 15% bonus
-    const bonusCount = Math.ceil(baseCount * 0.15);
+    // Add 15% of last month's count as bonus
+    const bonusCount = Math.ceil(lastMonthCount * 0.15);
     const totalWithBonus = baseCount + bonusCount;
 
-    return { baseCount, bonusCount, totalWithBonus };
+    return { baseCount, lastMonthCount, bonusCount, totalWithBonus };
   }
 
   // ----------------------total user----------------
 
-  @HandleError('super admin can total get view user')
-  async getTotalUser() {
-    const totalUser = await this.prisma.user.count();
-    return { totalUser };
+  @HandleError('super admin can total get last month users')
+  async getTotalUserLastMonth() {
+    const now = new Date();
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const totalLastMonth = await this.prisma.user.count({
+      where: {
+        createdAt: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth,
+        },
+      },
+    });
+
+    return { totalLastMonth };
   }
+
   // ---------total user acitvity------------
 
   @HandleError('super admin can total get view user role')

@@ -42,7 +42,7 @@ export class OverviewDashboardController {
   @Get('totaluser')
   @ApiOperation({ summary: 'Get total page views +15% bonus' })
   async getTotaluser() {
-    const result = await this.overviewDashboardService.getTotalUser();
+    const result = await this.overviewDashboardService.getTotalUserLastMonth();
     return { success: true, data: result };
   }
   // ------------get admin user role & active overview----------
