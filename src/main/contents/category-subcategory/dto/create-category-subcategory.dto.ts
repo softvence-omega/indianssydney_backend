@@ -1,54 +1,31 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCategoryDto {
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Optional category icon file',
+  @ApiProperty({
+    description: 'Title of the content',
+    example: 'How to Build with NestJS',
+  })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiProperty({
+    description: 'the template of the category',
+    example: 'string',
+  })
+  @IsString()
+  @IsNotEmpty()
+  tamplate: string;
+
+  @ApiProperty({
+    description: 'List of subcategories under this category',
+    example: ['Industry & Finance', 'Politics', 'Education'],
+    type: [String],
+    required: false,
   })
   @IsOptional()
-  file?: Express.Multer.File;
-
-  @ApiProperty({
-    description: 'Name of the category',
-    example: 'News & Current Affairs',
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
-    description: 'Description of the category',
-    example: 'Education & Career description now',
-  })
-  @IsString()
-  @IsNotEmpty()
-  description: string;
-}
-
-export class CreateSubcategoryDto {
-  @ApiProperty({
-    description: 'Name of the subcategory',
-    example: 'Industry & Finance',
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
-    description: 'Description of the subcategory',
-    example: 'Subcategory description goes here',
-  })
-  @IsString()
-  @IsNotEmpty()
-  description: string;
-
-  @ApiProperty({
-    description: 'Parent Category ID',
-    example: 'uuid-of-category',
-  })
-  @IsString()
-  @IsNotEmpty()
-  categoryId: string;
+  @IsArray()
+  @IsString({ each: true })
+  subnames?: string[];
 }

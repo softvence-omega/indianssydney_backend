@@ -17,10 +17,5 @@ export class LoginDto {
   @MinLength(6)
   password: string;
 
-  @ApiProperty({
-    example: '12345678',
-    description: 'Confirm password (checked in service)',
-  })
-  @IsNotEmpty()
-  confirmPassword: string;
+
 }

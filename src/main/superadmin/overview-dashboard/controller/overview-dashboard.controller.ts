@@ -8,39 +8,55 @@ import {
   Delete,
 } from '@nestjs/common';
 import { OverviewDashboardService } from '../service/overview-dashboard.service';
-import { CreateOverviewDashboardDto } from '../dto/create-overview-dashboard.dto';
 import { UpdateOverviewDashboardDto } from '../dto/update-overview-dashboard.dto';
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateTotalPageViewDto } from '../dto/create-page-view.dto';
 import { ValidateAuth, ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 
+@ApiTags('Super Admin Overview Dashboard')
 @Controller('overview-dashboard')
 export class OverviewDashboardController {
   constructor(
     private readonly overviewDashboardService: OverviewDashboardService,
   ) {}
-  // ------------page view----------------
+  @ApiOperation({
+    summary:
+      'Dshboard  only super Admin increment total page view for user only',
+  })
+  // -----------get admin total page view + 15% bonus-------
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('pageview')
+  @ApiOperation({
+    summary:
+      'Get total page views last month how to increase or dicrease  with pesentance ',
+  })
+  async getTotal() {
+    const result = await this.overviewDashboardService.getTotalWithBonus();
+    return { success: true, data: result };
+  }
+  // ------------    page view    ----------------
 
   @Post('pageview')
-  @ApiOperation({ summary: 'Increment total page view' })
+  @ApiOperation({ summary: 'Increment total page view for user only' })
   @ApiBody({ type: CreateTotalPageViewDto })
   async increment(@Body() dto: CreateTotalPageViewDto) {
     const total = await this.overviewDashboardService.increment(dto);
     return { success: true, count: total.count };
   }
-  @ApiBearerAuth()
-  @ValidateSuperAdmin()
-  @Get('pageview')
-  @ApiOperation({ summary: 'Get total page views +15% bonus' })
-  async getTotal() {
-    const result = await this.overviewDashboardService.getTotalWithBonus();
-    return { success: true, data: result };
-  }
+
+  @ApiOperation({
+    summary: 'Create new content with files and additional data',
+  })
+
   // -----------get admin total user-------
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Get('totaluser')
-  @ApiOperation({ summary: 'Get total page views +15% bonus' })
+  @ApiOperation({
+    summary:
+      'Get total users crated views last month how to increase or dicrease  with pesentance',
+  })
   async getTotaluser() {
     const result = await this.overviewDashboardService.getTotalUserLastMonth();
     return { success: true, data: result };
@@ -56,42 +72,17 @@ export class OverviewDashboardController {
     return { success: true, data: result };
   }
 
-  // Traffic & Engagement Overview (Admin)
-  @ValidateAuth()
+  // -----------Traffic & Engagement Overview (Admin)--------------------
+  @ApiBearerAuth()
   @ValidateSuperAdmin()
-  @Get('overview')
+  @Get('traffic-engagement')
   @ApiOperation({ summary: 'Get traffic & engagement overview' })
   async getOverview() {
     const result = await this.overviewDashboardService.getOverview();
     return { success: true, data: result };
   }
-
-  // @Post()
-  // create(@Body() createOverviewDashboardDto: CreateOverviewDashboardDto) {
-  //   return this.overviewDashboardService.create(createOverviewDashboardDto);
-  // }
-
-  @Get()
-  findAll() {
-    return this.overviewDashboardService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.overviewDashboardService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateOverviewDashboardDto: UpdateOverviewDashboardDto,
-  ) {
-    return this.overviewDashboardService.update(
-      +id,
-      updateOverviewDashboardDto,
-    );
-  }
-
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.overviewDashboardService.remove(+id);

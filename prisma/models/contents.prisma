@@ -7,7 +7,7 @@
  */
 
 model Content {
-  id             String          @id @default(uuid())
+  id             String      @id @default(uuid())
   contentType    ContentType
   title          String
   subTitle       String
@@ -20,52 +20,35 @@ model Content {
   tags           String[]
   videoThumbnail String?
 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  status         Status          @default(PENDING)
-  isDeleted      Boolean         @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status    Status   @default(PENDING)
+  isDeleted Boolean  @default(false)
 
   //-------------- Relations-----------------
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  categoryId     String
-  category       Category        @relation(fields: [categoryId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  subCategoryId  String
-  subCategory    SubCategory     @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
 
-  additionalFieldId String? @unique
-  additionalField   AdditionalField? @relation(fields: [additionalFieldId], references: [id])
+  additionalField Json?
 
   @@map("contents")
 }
 
-model AdditionalField {
-  id                  String   @id @default(uuid())
-  additionalImages    String[] @default([])
-  additionalAudios    String[] @default([])
-  additionalQuotes    String[] @default([])
-  additionalThumbnails String[] @default([])
-  additionalParagraphs String[] @default([])
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // One-to-one relation
-  content Content?
-
-  @@map("additional_fields")
-}
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  icon        String?
-  createdAt   DateTime @default(now())
-  isDeleted   Boolean  @default(false)
-
-  // Relations
+  id            String        @id @default(uuid())
+  tamplate      String
+  name          String        @unique
+  slug          String?       @unique
+  createdAt     DateTime      @default(now())
+  isDeleted     Boolean       @default(false)
+  // --------------Relations-------------
   subCategories SubCategory[]
   contents      Content[]
 
@@ -73,14 +56,13 @@ model Category {
 }
 
 model SubCategory {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-
+  id         String    @id @default(uuid())
+  subname    String?   @unique
+  subslug    String?   @unique
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id])
   // Relations
-  contents Content[]
+  contents   Content[]
 
   @@map("sub_categories")
 }

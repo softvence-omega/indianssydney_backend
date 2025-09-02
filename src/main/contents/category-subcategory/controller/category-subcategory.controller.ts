@@ -10,24 +10,10 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { CategorySubcategoryService } from '../service/category-subcategory.service';
-import {
-  CreateCategoryDto,
-  CreateSubcategoryDto,
-} from '../dto/create-category-subcategory.dto';
-import {
-  UpdateCategoryDto,
-  UpdateSubcategoryDto,
-} from '../dto/update-category-subcategory.dto';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { CreateCategoryDto } from '../dto/create-category-subcategory.dto';
+import { UpdateCategoryDto } from '../dto/update-category-subcategory.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ValidateAdmin } from 'src/common/jwt/jwt.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { FileType, MulterService } from 'src/lib/multer/multer.service';
 
 @ApiTags('Category & Subcategory Management')
 @Controller('category-subcategory')
@@ -40,24 +26,11 @@ export class CategorySubcategoryController {
   @ApiOperation({ summary: 'Create a new category (Admin only)' })
   @ApiBearerAuth()
   @ValidateAdmin()
-  @Post('category/create')
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(
-    FileInterceptor(
-      'file',
-      new MulterService().createMulterOptions(
-        './temp',
-        'categories',
-        FileType.IMAGE,
-      ),
-    ),
-  )
-  async createCategory(
-    @Body() createCategoryDto: CreateCategoryDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    if (file) createCategoryDto.file = file;
-    return this.categorySubcategoryService.createCategory(createCategoryDto);
+  @Post('create')
+  async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categorySubcategoryService.createCategoryWithSubcategories(
+      createCategoryDto,
+    );
   }
 
   @Get('category')
@@ -72,15 +45,13 @@ export class CategorySubcategoryController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: UpdateCategoryDto })
-  @UseInterceptors(FileInterceptor('file'))
+  @ValidateAdmin()
   async updateCategory(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+
     @Body() dto: UpdateCategoryDto,
   ) {
-    return this.categorySubcategoryService.updateCategory(id, { ...dto, file });
+    return this.categorySubcategoryService.updateCategory(id, { ...dto });
   }
 
   @Delete('category/:id')
@@ -89,15 +60,6 @@ export class CategorySubcategoryController {
   }
 
   // -------------------- SUBCATEGORY -------------------
-  @ApiOperation({ summary: 'Create a new subcategory (Admin only)' })
-  @ApiBearerAuth()
-  @ValidateAdmin()
-  @Post('subcategory/create')
-  async createSubcategory(@Body() createSubcategoryDto: CreateSubcategoryDto) {
-    return this.categorySubcategoryService.createSubcategory(
-      createSubcategoryDto,
-    );
-  }
 
   @Get('subcategory')
   findAllSubcategories() {
@@ -107,21 +69,5 @@ export class CategorySubcategoryController {
   @Get('subcategory/:id')
   findOneSubcategory(@Param('id') id: string) {
     return this.categorySubcategoryService.findOneSubcategory(id);
-  }
-
-  @Patch('subcategory/:id')
-  updateSubcategory(
-    @Param('id') id: string,
-    @Body() updateSubcategoryDto: UpdateSubcategoryDto,
-  ) {
-    return this.categorySubcategoryService.updateSubcategory(
-      id,
-      updateSubcategoryDto,
-    );
-  }
-
-  @Delete('subcategory/:id')
-  removeSubcategory(@Param('id') id: string) {
-    return this.categorySubcategoryService.removeSubcategory(id);
   }
 }

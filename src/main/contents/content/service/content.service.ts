@@ -81,42 +81,26 @@ export class ContentService {
           additionalImages.length ||
           additionalAudios.length ||
           additionalThumbnails.length
-        ) {
-          const additionalField = await tx.additionalField.create({
+        )
+          // 2️ Create Content and connect AdditionalField
+          return tx.content.create({
             data: {
-              additionalImages,
-              additionalAudios,
-              additionalThumbnails,
-              additionalQuotes: [],
-              additionalParagraphs: [],
+              title: payload.title,
+              subTitle: payload.subTitle,
+              paragraph: payload.paragraph,
+              shortQuote: payload.shortQuote,
+              image: imageUrl ?? undefined,
+              videoFile: videoUrl ?? undefined,
+              videoThumbnail: videoThumbUrl ?? undefined,
+              audioFile: audioUrl ?? undefined,
+              imageCaption: payload.imageCaption,
+              tags: payload.tags ?? [],
+              contentType: payload.contentType,
+              userId,
+              categoryId: payload.categoryId,
+              subCategoryId: payload.subCategoryId,
             },
           });
-          additionalFieldId = additionalField.id;
-        }
-
-        // 2️ Create Content and connect AdditionalField
-        return tx.content.create({
-          data: {
-            title: payload.title,
-            subTitle: payload.subTitle,
-            paragraph: payload.paragraph,
-            shortQuote: payload.shortQuote,
-            image: imageUrl ?? undefined,
-            videoFile: videoUrl ?? undefined,
-            videoThumbnail: videoThumbUrl ?? undefined,
-            audioFile: audioUrl ?? undefined,
-            imageCaption: payload.imageCaption,
-            tags: payload.tags ?? [],
-            contentType: payload.contentType,
-            userId,
-            categoryId: payload.categoryId,
-            subCategoryId: payload.subCategoryId,
-            additionalFieldId: additionalFieldId ?? undefined,
-          },
-          include: {
-            additionalField: true,
-          },
-        });
       });
 
       return successResponse(content, 'Content created successfully');
@@ -134,7 +118,6 @@ export class ContentService {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
         },
-        additionalField: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -150,7 +133,6 @@ export class ContentService {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
         },
-        additionalField: true,
       },
     });
 

@@ -48,7 +48,7 @@ export class CommunityService {
     };
 
     if (thumbnailUrl) {
-      data.thamble = thumbnailUrl;
+      data.image = thumbnailUrl;
     }
 
     if (videoUrl) {
@@ -178,7 +178,7 @@ export class CommunityService {
     const formattedPosts = posts.map((post) => ({
       id: post.id,
       description: post.description,
-      thamble: post.thamble,
+      image: post.image,
       video: post.video,
       userId: post.userId,
       createdAt: post.createdAt,
@@ -232,7 +232,7 @@ export class CommunityService {
   const formattedPost = {
     id: post.id,
     description: post.description,
-    thamble: post.thamble,
+    image: post.image,
     video: post.video,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
@@ -262,7 +262,7 @@ export class CommunityService {
       const processedFile = await this.fileService.processUploadedFile(
         updateCommunityDto.file,
       );
-      data.thamble = processedFile.url;
+      data.image = processedFile.url;
     }
 
     if (updateCommunityDto.video) {

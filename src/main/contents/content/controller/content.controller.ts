@@ -17,23 +17,16 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import {
-  GetUser,
-  ValidateAdmin,
-  ValidateMember,
-  ValidateSuperAdmin,
-} from 'src/common/jwt/jwt.decorator';
+import { GetUser, ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
-@ApiTags(' Contents and AdditionalFile management ')
+
+@ApiTags('Contents')
 @Controller('content')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
-  // -------- -----------------Create Content -----------
-  @ApiOperation({
-    summary: 'Create new content with files and additional data',
-  })
+  @ApiOperation({ summary: 'Create new content with files and additional data' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Post()
@@ -46,9 +39,9 @@ export class ContentController {
         { name: 'videoFile', maxCount: 1 },
         { name: 'videoThumbnail', maxCount: 1 },
         { name: 'audioFile', maxCount: 1 },
-        { name: 'additionalImages', maxCount: 5 },
-        { name: 'additionalAudios', maxCount: 5 },
-        { name: 'additionalThumbnails', maxCount: 5 },
+        { name: 'additionalImages', maxCount: 1 },
+        { name: 'additionalAudios', maxCount: 1 },
+        { name: 'additionalThumbnails', maxCount: 1 },
       ],
       new MulterService().createMulterOptions('./temp', 'temp', FileType.ANY),
     ),
@@ -67,23 +60,17 @@ export class ContentController {
       additionalThumbnails?: Express.Multer.File[];
     },
   ) {
-    console.log('the user', userId);
     return this.contentService.create(dto, userId, files);
   }
 
-  @Get()
-  findAll() {
-    return this.contentService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.contentService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.contentService.findOne(id);
-  }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateContentDto: UpdateContentDto) {
-  //   return this.contentService.update(+id, updateContentDto);
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.contentService.findOne(id);
   // }
 
   @Delete(':id')

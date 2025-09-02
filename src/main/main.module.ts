@@ -12,6 +12,8 @@ import { CommunityModule } from './community/community.module';
 import { ContentModule } from './contents/content/content.module';
 
 import { OverviewDashboardModule } from './superadmin/overview-dashboard/overview-dashboard.module';
+import { NotificationSettingModule } from './shared/notification-setting/notification-setting.module';
+import { LiveEventModule } from './shared/live-event/live-event.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { OverviewDashboardModule } from './superadmin/overview-dashboard/overvie
     CommunityModule,
     ContentModule,
     OverviewDashboardModule,
+    NotificationSettingModule,
+    LiveEventModule,
   ],
   controllers: [],
   providers: [],

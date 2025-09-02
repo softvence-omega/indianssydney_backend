@@ -57,6 +57,7 @@ export class CreateContentDto {
     return value;
   })
   tags?: string[];
+
   @ApiProperty({
     description: 'Type of content',
     enum: ContentType,
@@ -105,65 +106,54 @@ export class CreateContentDto {
   // -------- Relations ----------
   @ApiProperty({
     description: 'Category ID (UUID)',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: 'b014564b-4712-4832-b600-8fe33f8d5b40',
   })
   @IsUUID()
   categoryId: string;
 
   @ApiProperty({
     description: 'SubCategory ID (UUID)',
-    example: '550e8400-e29b-41d4-a716-446655440001',
+    example: '304032b0-dc03-4e77-a2e3-3b5b37eeafac',
   })
   @IsUUID()
   subCategoryId: string;
 
-  // -------- Nested Additional Fields ----------
-  //   @ApiPropertyOptional({
-  //     description: 'Additional multimedia & texts',
-  //     type: () => AdditionalFieldDto,
-  //   })
-  //   @IsOptional()
-  //   additionalFields?: AdditionalFieldDto;
+  // -------- Additional Fields ----------
 
   @ApiPropertyOptional({
-    description: 'Upload multiple images',
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    example: ['image1.jpg', 'image2.png'],
+    description: 'Upload a main image',
+    type: 'string',
+    format: 'binary',
+    example: 'main.jpg',
   })
   @IsOptional()
   additionalImages?: Express.Multer.File[];
 
   @ApiPropertyOptional({
-    description: 'Upload multiple audio files',
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    example: ['audio1.mp3', 'audio2.wav'],
+    description: 'Upload a addtional audio file',
+    type: 'string',
+    format: 'binary',
+    example: 'background.mp3',
   })
   @IsOptional()
   additionalAudios?: Express.Multer.File[];
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.split('|').map((v) => v.trim());
-    }
-    return value;
+  @ApiPropertyOptional({
+    description: 'Short quote for highlight',
+    example: 'Code once, scale forever.',
   })
-  additionalQuotes?: string[];
+  @IsOptional()
+  @IsString()
+  additionalQuotes?: string;
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.split('|').map((v) => v.trim());
-    }
-    return value;
+
+  @ApiPropertyOptional({
+    description: 'Main paragraph text',
+    example: 'This post explains how to build scalable apps...',
   })
-  additionalParagraphs?: string[];
+  @IsOptional()
+  @IsString()
+  additionalParagraphs?: string;
 
   @ApiPropertyOptional({
     description: 'Upload multiple thumbnail images',
