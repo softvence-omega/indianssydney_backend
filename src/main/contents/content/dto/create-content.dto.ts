@@ -1,13 +1,11 @@
+// dtos/create-content.dto.ts
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, IsEnum, IsArray } from 'class-validator';
-
 import { ContentType } from '@prisma/client';
 import { Transform } from 'class-transformer';
+import { AdditionalFieldDto } from './additional-field.dto';
 
-// ---------------- Additional Field DTO ----------------
-export class AdditionalFieldDto {}
-
-// ---------------- Main Content DTO ----------------
 export class CreateContentDto {
   @ApiProperty({
     description: 'Title of the content',
@@ -47,12 +45,20 @@ export class CreateContentDto {
   @IsString()
   imageCaption?: string;
 
+  @ApiPropertyOptional({
+    description: 'Tags for the content',
+    example: ['React', 'JavaScript', 'NestJS'],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      return value.split(',').map((v) => v.trim());
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map((v: string) => v.trim());
+      }
     }
     return value;
   })
@@ -66,7 +72,6 @@ export class CreateContentDto {
   @IsEnum(ContentType)
   contentType: ContentType;
 
-  // -------- File Uploads ----------
   @ApiPropertyOptional({
     description: 'Upload a main image',
     type: 'string',
@@ -103,7 +108,6 @@ export class CreateContentDto {
   @IsOptional()
   audioFile?: Express.Multer.File;
 
-  // -------- Relations ----------
   @ApiProperty({
     description: 'Category ID (UUID)',
     example: 'b014564b-4712-4832-b600-8fe33f8d5b40',
@@ -118,49 +122,19 @@ export class CreateContentDto {
   @IsUUID()
   subCategoryId: string;
 
-  // -------- Additional Fields ----------
+  // @ApiProperty({
+  //   description: 'User ID (UUID)',
+  //   example: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+  // })
+  // @IsUUID()
+  // userId: string;
 
   @ApiPropertyOptional({
-    description: 'Upload a main image',
-    type: 'string',
-    format: 'binary',
-    example: 'main.jpg',
+    description:
+      'Array of additional fields (paragraphs, images, quotes, audio, video)',
+    type: [AdditionalFieldDto],
   })
   @IsOptional()
-  additionalImages?: Express.Multer.File[];
-
-  @ApiPropertyOptional({
-    description: 'Upload a addtional audio file',
-    type: 'string',
-    format: 'binary',
-    example: 'background.mp3',
-  })
-  @IsOptional()
-  additionalAudios?: Express.Multer.File[];
-
-  @ApiPropertyOptional({
-    description: 'Short quote for highlight',
-    example: 'Code once, scale forever.',
-  })
-  @IsOptional()
-  @IsString()
-  additionalQuotes?: string;
-
-
-  @ApiPropertyOptional({
-    description: 'Main paragraph text',
-    example: 'This post explains how to build scalable apps...',
-  })
-  @IsOptional()
-  @IsString()
-  additionalParagraphs?: string;
-
-  @ApiPropertyOptional({
-    description: 'Upload multiple thumbnail images',
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    example: ['thumb1.jpg', 'thumb2.png'],
-  })
-  @IsOptional()
-  additionalThumbnails?: Express.Multer.File[];
+  @IsArray()
+  additionalFields?: AdditionalFieldDto[];
 }

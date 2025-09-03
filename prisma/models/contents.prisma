@@ -19,6 +19,7 @@ model Content {
   audioFile      String?
   tags           String[]
   videoThumbnail String?
+  
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -34,12 +35,21 @@ model Content {
   subCategoryId String
   subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
 
-  additionalField Json?
+  additionalContents AdditionalContent[]
 
   @@map("contents")
 }
 
+model AdditionalContent {
+  id        String  @id @default(uuid())
+  contentId String
+  type      String?
+  value     String?
+  order     Int
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
+  @@map("additional_contents")
+}
 
 model Category {
   id            String        @id @default(uuid())
@@ -70,4 +80,5 @@ model SubCategory {
 enum Status {
   PENDING
   APPROVE
+  Declined
 }
