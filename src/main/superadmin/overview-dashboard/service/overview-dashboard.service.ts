@@ -168,22 +168,22 @@ export class OverviewDashboardService {
 
     // Map role counts to desired keys
     const roleCounts = {
-      userCount: 0,
+      visitorCount: 0,
       adminCount: 0,
-      superAdminCount: 0,
+      contibutorCount: 0,
       memberCount: 0,
     };
 
     userRoles.forEach((r) => {
       switch (r.role) {
         case 'USER':
-          roleCounts.userCount = r._count.role;
+          roleCounts.visitorCount = r._count.role;
           break;
         case 'ADMIN':
           roleCounts.adminCount = r._count.role;
           break;
-        case 'SUPER_ADMIN':
-          roleCounts.superAdminCount = r._count.role;
+        case 'CONTIBUTOR':
+          roleCounts.contibutorCount = r._count.role;
           break;
         case 'MEMBER':
           roleCounts.memberCount = r._count.role;
@@ -197,70 +197,81 @@ export class OverviewDashboardService {
       ...roleCounts,
     };
   }
+
   //----------------- traffic & engagement overview  ----------------------------
   @HandleError('Failed to get traffic & engagement overview')
-  async getOverview() {
-    // ----------------- Total page views -----------------
-    const pageView = await this.prisma.totalPageview.findFirst();
-    const totalPageViews = pageView?.count ?? 0;
+  async trafficEngagement() {
+    // ----------------- Total post created -----------------
+    const totalPosts = await this.prisma.content.count();
 
-    // ----------------- User counts grouped by role -----------------
-    const roleCountsRaw = await this.prisma.user.groupBy({
-      by: ['role'],
-      _count: { role: true },
-    });
-
-    const roleCounts: Record<string, number> = {};
-    roleCountsRaw.forEach((r) => {
-      roleCounts[r.role] = r._count.role;
-    });
-
-    // ----------------- Total user activities -----------------
-    const totalActivities = await this.prisma.userActivity.count();
-
-    // ----------------- Monthly breakdowns -----------------
-    const usersByMonth = await this.prisma.user.groupBy({
+    // ----------------- Monthly posts created -----------------
+    const postCreateByMonth = await this.prisma.content.groupBy({
       by: ['createdAt'],
       _count: { id: true },
       orderBy: { createdAt: 'asc' },
     });
 
-    const activitiesByMonth = await this.prisma.userActivity.groupBy({
-      by: ['createdAt'],
-      _count: { id: true },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    const pageViewsByMonth = await this.prisma.totalPageview.groupBy({
-      by: ['createdAt'],
-      _count: { id: true },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    // Format monthly data (YYYY-MM)
+    // ----------------- Format monthly data -----------------
     function formatMonthly(
       data: { createdAt: Date; _count: { id: number } }[],
     ) {
       return data.reduce<Record<string, number>>((acc, item) => {
-        const month = item.createdAt.toISOString().slice(0, 7); // "YYYY-MM"
-        acc[month] = (acc[month] ?? 0) + item._count.id;
+        const monthName = item.createdAt.toLocaleString('en-US', {
+          month: 'long',
+          year: 'numeric',
+        });
+        acc[monthName] = (acc[monthName] ?? 0) + item._count.id;
         return acc;
       }, {});
     }
 
     return {
-      totalPageViews,
-      totalActivities,
-      roles: roleCounts,
+      overviewEngagement: {
+        totalPosts,
+      },
       monthly: {
-        users: formatMonthly(usersByMonth),
-        activities: formatMonthly(activitiesByMonth),
-        pageViews: formatMonthly(pageViewsByMonth),
+        posts: formatMonthly(postCreateByMonth),
       },
     };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} overviewDashboard`;
-  }
+  // ----------------- Recent Activity -----------------------
+ @HandleError('Failed to get recent activity overview')
+async recentActivity(): Promise<TResponse<any>> {
+  const activities = await this.prisma.content.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    include: {
+      user: {
+        select: { fullName: true, email: true },
+      },
+    },
+  });
+
+  const formatted = activities.map((activity) => {
+    const userName =
+      activity.user?.fullName && activity.user.fullName.trim() !== ''
+        ? activity.user.fullName
+        : 'Unknown User';
+
+    return {
+      message: `${userName} submitted "${activity.title}"`,
+      time: new Date(activity.createdAt).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+  });
+
+  return {
+    success: true,
+    message: 'Recent activities fetched successfully',
+    data: formatted,
+  };
+}
+
+
 }

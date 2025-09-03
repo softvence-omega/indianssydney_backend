@@ -8,10 +8,9 @@ import {
   Delete,
 } from '@nestjs/common';
 import { OverviewDashboardService } from '../service/overview-dashboard.service';
-import { UpdateOverviewDashboardDto } from '../dto/update-overview-dashboard.dto';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateTotalPageViewDto } from '../dto/create-page-view.dto';
-import { ValidateAuth, ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
+import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 
 @ApiTags('Super Admin Overview Dashboard')
 @Controller('overview-dashboard')
@@ -66,7 +65,9 @@ export class OverviewDashboardController {
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Get('totaluser-activity')
-  @ApiOperation({ summary: 'Get total users activity for admin overview' })
+  @ApiOperation({
+    summary: 'Get total users activity for super admin overview',
+  })
   async getTotalUserActivity() {
     const result = await this.overviewDashboardService.getTotalUserActivity();
     return { success: true, data: result };
@@ -76,15 +77,19 @@ export class OverviewDashboardController {
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Get('traffic-engagement')
-  @ApiOperation({ summary: 'Get traffic & engagement overview' })
+  @ApiOperation({ summary: 'Get traffic & engagement overview superadmin' })
   async getOverview() {
-    const result = await this.overviewDashboardService.getOverview();
+    const result = await this.overviewDashboardService.trafficEngagement();
     return { success: true, data: result };
   }
+
+  // -----------------Recent Activity-----------------------
   @ApiBearerAuth()
   @ValidateSuperAdmin()
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.overviewDashboardService.remove(+id);
+  @Get('recent-activity')
+  @ApiOperation({ summary: 'Get Recent activity overview superadmin' })
+  async getRecentActivity() {
+    const result = await this.overviewDashboardService.recentActivity();
+    return { success: true, data: result };
   }
 }

@@ -48,7 +48,6 @@ export class CommunityController {
     @GetUser('userId') userId: string,
     @Body() createCommunityDto: CreateCommunityDto,
   ) {
-   
     if (files.file) {
       createCommunityDto.file = files.file[0];
     }
@@ -103,7 +102,7 @@ export class CommunityController {
   @ValidateAuth()
   @Get('community-post')
   findAll() {
-    return this.communityService.findAll();
+    return this.communityService.findAll({});
   }
 
   @Get(':id')

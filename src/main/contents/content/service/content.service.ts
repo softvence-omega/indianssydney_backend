@@ -49,7 +49,9 @@ export class ContentService {
         where: { id: userId },
       });
       if (!userExists) {
-        throw new BadRequestException(`Invalid userId: ${userId} does not exist`);
+        throw new BadRequestException(
+          `Invalid userId: ${userId} does not exist`,
+        );
       }
 
       // Validate categoryId and subCategoryId
@@ -78,19 +80,27 @@ export class ContentService {
       let audioUrl: string | undefined;
 
       if (payload.mainImage) {
-        const processedFile = await this.fileService.processUploadedFile(payload.mainImage);
+        const processedFile = await this.fileService.processUploadedFile(
+          payload.mainImage,
+        );
         imageUrl = processedFile?.url;
       }
       if (payload.videoFile) {
-        const processedVideo = await this.fileService.processUploadedFile(payload.videoFile);
+        const processedVideo = await this.fileService.processUploadedFile(
+          payload.videoFile,
+        );
         videoUrl = processedVideo?.url;
       }
       if (payload.videoThumbnail) {
-        const processedThumb = await this.fileService.processUploadedFile(payload.videoThumbnail);
+        const processedThumb = await this.fileService.processUploadedFile(
+          payload.videoThumbnail,
+        );
         videoThumbUrl = processedThumb?.url;
       }
       if (payload.audioFile) {
-        const processedAudio = await this.fileService.processUploadedFile(payload.audioFile);
+        const processedAudio = await this.fileService.processUploadedFile(
+          payload.audioFile,
+        );
         audioUrl = processedAudio?.url;
       }
 
@@ -119,13 +129,25 @@ export class ContentService {
         if (payload.additionalFields && payload.additionalFields.length > 0) {
           let order = 1;
           for (const field of payload.additionalFields) {
-            if (!field.type || (!field.value && !field.file && !['image', 'audio', 'video'].includes(field.type))) {
-              console.warn(`Skipping invalid additional field: ${JSON.stringify(field)}`);
+            if (
+              !field.type ||
+              (!field.value &&
+                !field.file &&
+                !['image', 'audio', 'video'].includes(field.type))
+            ) {
+              console.warn(
+                `Skipping invalid additional field: ${JSON.stringify(field)}`,
+              );
               continue;
             }
             let fileUrl: string | undefined;
-            if (field.file && ['image', 'audio', 'video'].includes(field.type)) {
-              const processedFile = await this.fileService.processUploadedFile(field.file);
+            if (
+              field.file &&
+              ['image', 'audio', 'video'].includes(field.type)
+            ) {
+              const processedFile = await this.fileService.processUploadedFile(
+                field.file,
+              );
               fileUrl = processedFile?.url;
             } else {
               fileUrl = field.value;
@@ -149,7 +171,12 @@ export class ContentService {
         where: { id: content.id },
         include: {
           user: {
-            select: { id: true, fullName: true, email: true, profilePhoto: true },
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profilePhoto: true,
+            },
           },
           category: true,
           subCategory: true,
@@ -160,10 +187,13 @@ export class ContentService {
       return successResponse(result, 'Content created successfully');
     } catch (error) {
       console.error('Create content error:', error);
-      throw new BadRequestException(error.message || 'Failed to create content');
+      throw new BadRequestException(
+        error.message || 'Failed to create content',
+      );
     }
   }
 
+  @HandleError('Failed to fetch all contents', 'content')
   async findAll(): Promise<TResponse<any>> {
     const contents = await this.prisma.content.findMany({
       where: { isDeleted: false },
@@ -181,6 +211,7 @@ export class ContentService {
     return successResponse(contents, 'All contents fetched successfully');
   }
 
+  @HandleError('Failed to fetch user contents', 'content')
   async findOne(id: string): Promise<TResponse<any>> {
     const content = await this.prisma.content.findUnique({
       where: { id },
@@ -197,5 +228,21 @@ export class ContentService {
     if (!content) throw new BadRequestException('Content not found');
 
     return successResponse(content, 'Content fetched successfully');
+  }
+
+  // ----------- Get contents by userId ------------
+  @HandleError('Failed to fetch user contents', 'content')
+  async getContentByUser(userId: string): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: { userId, isDeleted: false },
+      include: {
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'User contents fetched successfully');
   }
 }

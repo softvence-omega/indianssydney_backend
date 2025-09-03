@@ -6,6 +6,8 @@ import {
   UploadedFiles,
   UseInterceptors,
   BadRequestException,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { ContentService } from '../service/content.service';
 import { CreateContentDto } from '../dto/create-content.dto';
@@ -186,4 +188,30 @@ export class ContentController {
 
     return this.contentService.create(dto, userId, files);
   }
+
+  
+  // Get all contents of authenticated user
+  @ApiOperation({ summary: 'Get all contents of the logged-in user' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Get('by-user')
+  async getContentByUser(@GetUser('userId') userId: string) {
+    return this.contentService.getContentByUser(userId);
+  }
+
+  // Get all contents
+  @ApiOperation({ summary: 'Get all contents' })
+  @Get()
+  async findAll() {
+    return this.contentService.findAll();
+  }
+
+  // Get single content by id
+  @ApiOperation({ summary: 'Get a single content by ID' })
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.contentService.findOne(id);
+  }
+
+
 }
