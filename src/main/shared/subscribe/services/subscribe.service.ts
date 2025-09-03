@@ -106,6 +106,7 @@ export class SubscribeService {
   
     return successResponse(subscribe, 'subscribe deleted successfully');
   }
+  // -----------
 
   private async ensureExists(id: string) {
     const exists = await this.prisma.subscribe.findUnique({ where: { id } });

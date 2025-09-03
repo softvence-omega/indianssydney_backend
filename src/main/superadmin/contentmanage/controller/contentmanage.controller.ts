@@ -1,45 +1,68 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Post } from '@nestjs/common';
 import { ContentmanageService } from '../service/contentmanage.service';
-import { CreateContentmanageDto } from '../dto/create-contentmanage.dto';
-import { UpdateContentmanageDto } from '../dto/update-contentmanage.dto';
 
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
+import { ContentStatusChangeDto } from '../dto/superadmin-contentmanage.dto';
+import { PaymentPlanDto } from '../dto/payment-plane.dto';
+
+@ApiTags('Super Admin content Manage & plane Mange')
 @Controller('contentmanage')
 export class ContentmanageController {
   constructor(private readonly contentmanageService: ContentmanageService) {}
-
-  @Post()
-  create(@Body() createContentmanageDto: CreateContentmanageDto) {
-    return this.contentmanageService.create(createContentmanageDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.contentmanageService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.contentmanageService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
+  // -----------super admin change content status ------------
+  @ApiOperation({ summary: 'Super Admin change content status' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Patch(':id/content-status')
+  async changeContentStatus(
     @Param('id') id: string,
-    @Body() updateContentmanageDto: UpdateContentmanageDto,
+    @Body() dto: ContentStatusChangeDto,
   ) {
-    return this.contentmanageService.update(+id, updateContentmanageDto);
+    return this.contentmanageService.updateContentStatus(id, dto.status);
+  }
+  // -----------super admin get recent  ------------
+  @ApiOperation({ summary: 'Super Admin get recent  status-pentding' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('recent-contents')
+  async getRecentContent() {
+    return this.contentmanageService.getRecentContent();
+  }
+  // -----------super admin get all content with status pending ------------
+  @ApiOperation({ summary: 'Super Admin get all status-pentding' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('all-contents-pending')
+  async getAllContentPending() {
+    return this.contentmanageService.getPendingContents();
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.contentmanageService.remove(+id);
+  // ------------------sttus Approve----
+  @ApiOperation({ summary: 'Super Admin get all status-pentding' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('all-contents-approve')
+  async getAllContentApprove() {
+    return this.contentmanageService.getApprovedContents();
   }
+
+  // ------------------status Reject----
+  @ApiOperation({ summary: 'Super Admin get all status-pentding' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('all-contents-Decline')
+  async getAllContentDecline() {
+    return this.contentmanageService.getDeclinedContents();
+  }
+
+  // ------------------payment plane create----------
+@ApiOperation({ summary: 'Super Admin create payment plan' })
+@ApiBearerAuth()
+@ValidateSuperAdmin()
+@Post('create-plan')
+async createPlan(@Body() dto: PaymentPlanDto) {
+  return this.contentmanageService.createPlan(dto);
+}
+
 }

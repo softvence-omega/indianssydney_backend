@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { SubscribeModule } from './subscribe/subscribe.module';
-import { RecommendationModule } from './recommendation/recommendation.module';
+import { SubscribeModule } from './shared/subscribe/subscribe.module';
+import { RecommendationModule } from './shared/recommendation/recommendation.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { UsermanageModule } from './superadmin/usermanage/usermanage.module';
@@ -12,6 +12,9 @@ import { CommunityModule } from './community/community.module';
 import { ContentModule } from './contents/content/content.module';
 
 import { OverviewDashboardModule } from './superadmin/overview-dashboard/overview-dashboard.module';
+import { NotificationSettingModule } from './shared/notification-setting/notification-setting.module';
+import { LiveEventModule } from './shared/live-event/live-event.module';
+import { AdminDashboardModule } from './admin/admin-dashboard/admin-dashboard.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { OverviewDashboardModule } from './superadmin/overview-dashboard/overvie
     CommunityModule,
     ContentModule,
     OverviewDashboardModule,
+    NotificationSettingModule,
+    LiveEventModule,
+    AdminDashboardModule,
   ],
   controllers: [],
   providers: [],

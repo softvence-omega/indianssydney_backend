@@ -26,14 +26,18 @@ model User {
   // ------ Relations----------------------
   recommendations Recommendation[]
 
-  constents          Content[]
-  comments           Comment[]
+  constents Content[]
+  comments  Comment[]
+
   UserNotification   UserNotification[]
-  postReactions      PostReaction[]
-  commentReactions   CommentReaction[]
-  CommunityPost      CommunityPost[]
-  NotificationToggle NotificationToggle[]
-  PaypalPayment      PaypalPayment[]
+  notificationToggle NotificationToggle?
+
+  postReactions    PostReaction[]
+  commentReactions CommentReaction[]
+  CommunityPost    CommunityPost[]
+
+  PaypalPayment Payment[]
+
   @@map("users")
 }
 
@@ -42,4 +46,5 @@ enum UserRole {
   ADMIN
   SUPER_ADMIN
   MEMBER
+  CONTIBUTOR
 }

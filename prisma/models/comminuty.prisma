@@ -1,7 +1,7 @@
 model CommunityPost {
   id          String         @id @default(uuid())
   description String
-  thamble     String?
+  image     String?
   video       String?
   comments    Comment[]
   reactions   PostReaction[]

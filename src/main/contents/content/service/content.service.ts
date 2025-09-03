@@ -1,3 +1,4 @@
+// content/content.service.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateContentDto } from '../dto/create-content.dto';
 import { FileService } from 'src/lib/file/file.service';
@@ -12,129 +13,197 @@ export class ContentService {
     private readonly prisma: PrismaService,
   ) {}
 
-  // ---------- Create Content ------------------------------
   @HandleError('Failed to create content', 'content')
   async create(
     payload: CreateContentDto,
     userId: string,
-    files: {
-      image?: Express.Multer.File[];
-      videoFile?: Express.Multer.File[];
-      videothamble?: Express.Multer.File[];
-      audioFile?: Express.Multer.File[];
-      additionalImage?: Express.Multer.File[];
-      additionalAudio?: Express.Multer.File[];
-      additionalThumbail?: Express.Multer.File[];
-    },
+    files: Express.Multer.File[],
   ): Promise<TResponse<any>> {
     try {
-      // ---------------- Main file uploads ----------------
-      const imageUrl = files?.image?.[0]
-        ? (await this.fileService.processUploadedFile(files.image[0])).url
-        : null;
-      const videoUrl = files?.videoFile?.[0]
-        ? (await this.fileService.processUploadedFile(files.videoFile[0])).url
-        : null;
-      const videoThumbUrl = files?.videothamble?.[0]
-        ? (await this.fileService.processUploadedFile(files.videothamble[0]))
-            .url
-        : null;
-      const audioUrl = files?.audioFile?.[0]
-        ? (await this.fileService.processUploadedFile(files.audioFile[0])).url
-        : null;
-
-      // ---------------- Additional field uploads ----------------
-      const additionalImages: string[] = [];
-      const additionalAudios: string[] = [];
-      const additionalThumbnails: string[] = [];
-
-      if (files?.additionalImage) {
-        for (const f of files.additionalImage) {
-          additionalImages.push(
-            (await this.fileService.processUploadedFile(f)).url,
-          );
-        }
+      // Validate required fields
+      if (
+        !payload.title ||
+        !payload.contentType ||
+        !payload.categoryId ||
+        !payload.subCategoryId
+      ) {
+        throw new BadRequestException(
+          `Missing required fields: ${[
+            !payload.title && 'title',
+            !payload.contentType && 'contentType',
+            !payload.categoryId && 'categoryId',
+            !payload.subCategoryId && 'subCategoryId',
+          ]
+            .filter(Boolean)
+            .join(', ')}`,
+        );
       }
 
-      if (files?.additionalAudio) {
-        for (const f of files.additionalAudio) {
-          additionalAudios.push(
-            (await this.fileService.processUploadedFile(f)).url,
-          );
-        }
+      // Validate userId is provided
+      if (!userId) {
+        throw new BadRequestException('Missing userId from authentication');
       }
 
-      if (files?.additionalThumbail) {
-        for (const f of files.additionalThumbail) {
-          additionalThumbnails.push(
-            (await this.fileService.processUploadedFile(f)).url,
-          );
-        }
+      // Validate userId exists
+      const userExists = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (!userExists) {
+        throw new BadRequestException(
+          `Invalid userId: ${userId} does not exist`,
+        );
       }
 
-      // ---------------- Transaction: create Content + AdditionalField ----------------
+      // Validate categoryId and subCategoryId
+      const categoryExists = await this.prisma.category.findUnique({
+        where: { id: payload.categoryId },
+      });
+      if (!categoryExists) {
+        throw new BadRequestException(
+          `Invalid categoryId: ${payload.categoryId} does not exist`,
+        );
+      }
+
+      const subCategoryExists = await this.prisma.subCategory.findUnique({
+        where: { id: payload.subCategoryId },
+      });
+      if (!subCategoryExists) {
+        throw new BadRequestException(
+          `Invalid subCategoryId: ${payload.subCategoryId} does not exist`,
+        );
+      }
+
+      // Process main file uploads
+      let imageUrl: string | undefined;
+      let videoUrl: string | undefined;
+      let videoThumbUrl: string | undefined;
+      let audioUrl: string | undefined;
+
+      if (payload.mainImage) {
+        const processedFile = await this.fileService.processUploadedFile(
+          payload.mainImage,
+        );
+        imageUrl = processedFile?.url;
+      }
+      if (payload.videoFile) {
+        const processedVideo = await this.fileService.processUploadedFile(
+          payload.videoFile,
+        );
+        videoUrl = processedVideo?.url;
+      }
+      if (payload.videoThumbnail) {
+        const processedThumb = await this.fileService.processUploadedFile(
+          payload.videoThumbnail,
+        );
+        videoThumbUrl = processedThumb?.url;
+      }
+      if (payload.audioFile) {
+        const processedAudio = await this.fileService.processUploadedFile(
+          payload.audioFile,
+        );
+        audioUrl = processedAudio?.url;
+      }
+
+      // Transaction: create Content + AdditionalContent
       const content = await this.prisma.$transaction(async (tx) => {
-        let additionalFieldId: string | null = null;
-
-        // ---------------Create AdditionalField if provided-----------------
-        if (
-          additionalImages.length ||
-          additionalAudios.length ||
-          additionalThumbnails.length
-        ) {
-          const additionalField = await tx.additionalField.create({
-            data: {
-              additionalImages,
-              additionalAudios,
-              additionalThumbnails,
-              additionalQuotes: [],
-              additionalParagraphs: [],
-            },
-          });
-          additionalFieldId = additionalField.id;
-        }
-
-        // 2️ Create Content and connect AdditionalField
-        return tx.content.create({
+        const newContent = await tx.content.create({
           data: {
             title: payload.title,
             subTitle: payload.subTitle,
             paragraph: payload.paragraph,
             shortQuote: payload.shortQuote,
-            image: imageUrl ?? undefined,
-            videoFile: videoUrl ?? undefined,
-            videoThumbnail: videoThumbUrl ?? undefined,
-            audioFile: audioUrl ?? undefined,
+            image: imageUrl,
+            videoFile: videoUrl,
+            videoThumbnail: videoThumbUrl,
+            audioFile: audioUrl,
             imageCaption: payload.imageCaption,
             tags: payload.tags ?? [],
             contentType: payload.contentType,
-            userId,
+            userId: userId,
             categoryId: payload.categoryId,
             subCategoryId: payload.subCategoryId,
-            additionalFieldId: additionalFieldId ?? undefined,
-          },
-          include: {
-            additionalField: true,
           },
         });
+
+        // Create AdditionalContent entries
+        if (payload.additionalFields && payload.additionalFields.length > 0) {
+          let order = 1;
+          for (const field of payload.additionalFields) {
+            if (
+              !field.type ||
+              (!field.value &&
+                !field.file &&
+                !['image', 'audio', 'video'].includes(field.type))
+            ) {
+              console.warn(
+                `Skipping invalid additional field: ${JSON.stringify(field)}`,
+              );
+              continue;
+            }
+            let fileUrl: string | undefined;
+            if (
+              field.file &&
+              ['image', 'audio', 'video'].includes(field.type)
+            ) {
+              const processedFile = await this.fileService.processUploadedFile(
+                field.file,
+              );
+              fileUrl = processedFile?.url;
+            } else {
+              fileUrl = field.value;
+            }
+            await tx.additionalContent.create({
+              data: {
+                contentId: newContent.id,
+                type: field.type,
+                value: fileUrl || '',
+                order: order++,
+              },
+            });
+          }
+        }
+
+        return newContent;
       });
 
-      return successResponse(content, 'Content created successfully');
+      // Fetch content with relations
+      const result = await this.prisma.content.findUnique({
+        where: { id: content.id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+          category: true,
+          subCategory: true,
+          additionalContents: { orderBy: { order: 'asc' } },
+        },
+      });
+
+      return successResponse(result, 'Content created successfully');
     } catch (error) {
+      console.error('Create content error:', error);
       throw new BadRequestException(
         error.message || 'Failed to create content',
       );
     }
   }
 
-  // ---------- Find All Contents ------------------------------
+  @HandleError('Failed to fetch all contents', 'content')
   async findAll(): Promise<TResponse<any>> {
     const contents = await this.prisma.content.findMany({
+      where: { isDeleted: false },
       include: {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
         },
-        additionalField: true,
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -142,7 +211,7 @@ export class ContentService {
     return successResponse(contents, 'All contents fetched successfully');
   }
 
-  // ---------- Find One Content ------------------------------
+  @HandleError('Failed to fetch user contents', 'content')
   async findOne(id: string): Promise<TResponse<any>> {
     const content = await this.prisma.content.findUnique({
       where: { id },
@@ -150,7 +219,9 @@ export class ContentService {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
         },
-        additionalField: true,
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
       },
     });
 
@@ -159,9 +230,19 @@ export class ContentService {
     return successResponse(content, 'Content fetched successfully');
   }
 
-  // ---------- Delete Content ------------------------------
-  async remove(id: string): Promise<TResponse<any>> {
-    await this.prisma.content.delete({ where: { id } });
-    return successResponse(null, 'Content deleted successfully');
+  // ----------- Get contents by userId ------------
+  @HandleError('Failed to fetch user contents', 'content')
+  async getContentByUser(userId: string): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: { userId, isDeleted: false },
+      include: {
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'User contents fetched successfully');
   }
 }

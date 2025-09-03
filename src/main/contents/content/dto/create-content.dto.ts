@@ -1,13 +1,11 @@
+// dtos/create-content.dto.ts
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, IsEnum, IsArray } from 'class-validator';
-
 import { ContentType } from '@prisma/client';
 import { Transform } from 'class-transformer';
+import { AdditionalFieldDto } from './additional-field.dto';
 
-// ---------------- Additional Field DTO ----------------
-export class AdditionalFieldDto {}
-
-// ---------------- Main Content DTO ----------------
 export class CreateContentDto {
   @ApiProperty({
     description: 'Title of the content',
@@ -47,16 +45,25 @@ export class CreateContentDto {
   @IsString()
   imageCaption?: string;
 
+  @ApiPropertyOptional({
+    description: 'Tags for the content',
+    example: ['React', 'JavaScript', 'NestJS'],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      return value.split(',').map((v) => v.trim());
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map((v: string) => v.trim());
+      }
     }
     return value;
   })
   tags?: string[];
+
   @ApiProperty({
     description: 'Type of content',
     enum: ContentType,
@@ -65,7 +72,6 @@ export class CreateContentDto {
   @IsEnum(ContentType)
   contentType: ContentType;
 
-  // -------- File Uploads ----------
   @ApiPropertyOptional({
     description: 'Upload a main image',
     type: 'string',
@@ -102,75 +108,33 @@ export class CreateContentDto {
   @IsOptional()
   audioFile?: Express.Multer.File;
 
-  // -------- Relations ----------
   @ApiProperty({
     description: 'Category ID (UUID)',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: 'b014564b-4712-4832-b600-8fe33f8d5b40',
   })
   @IsUUID()
   categoryId: string;
 
   @ApiProperty({
     description: 'SubCategory ID (UUID)',
-    example: '550e8400-e29b-41d4-a716-446655440001',
+    example: '304032b0-dc03-4e77-a2e3-3b5b37eeafac',
   })
   @IsUUID()
   subCategoryId: string;
 
-  // -------- Nested Additional Fields ----------
-  //   @ApiPropertyOptional({
-  //     description: 'Additional multimedia & texts',
-  //     type: () => AdditionalFieldDto,
-  //   })
-  //   @IsOptional()
-  //   additionalFields?: AdditionalFieldDto;
+  // @ApiProperty({
+  //   description: 'User ID (UUID)',
+  //   example: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+  // })
+  // @IsUUID()
+  // userId: string;
 
   @ApiPropertyOptional({
-    description: 'Upload multiple images',
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    example: ['image1.jpg', 'image2.png'],
+    description:
+      'Array of additional fields (paragraphs, images, quotes, audio, video)',
+    type: [AdditionalFieldDto],
   })
-  @IsOptional()
-  additionalImages?: Express.Multer.File[];
-
-  @ApiPropertyOptional({
-    description: 'Upload multiple audio files',
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    example: ['audio1.mp3', 'audio2.wav'],
-  })
-  @IsOptional()
-  additionalAudios?: Express.Multer.File[];
-
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.split('|').map((v) => v.trim());
-    }
-    return value;
-  })
-  additionalQuotes?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.split('|').map((v) => v.trim());
-    }
-    return value;
-  })
-  additionalParagraphs?: string[];
-
-  @ApiPropertyOptional({
-    description: 'Upload multiple thumbnail images',
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    example: ['thumb1.jpg', 'thumb2.png'],
-  })
-  @IsOptional()
-  additionalThumbnails?: Express.Multer.File[];
+  additionalFields?: AdditionalFieldDto[];
 }

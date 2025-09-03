@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOverviewDashboardDto } from '../dto/create-overview-dashboard.dto';
 import { UpdateOverviewDashboardDto } from '../dto/update-overview-dashboard.dto';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { CreateTotalPageViewDto } from '../dto/create-page-view.dto';
-import { ValidateAuth, ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 import { HandleError } from 'src/common/error/handle-error.decorator';
+import { TResponse } from 'src/common/utils/response.util';
 
 @Injectable()
 export class OverviewDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Increment total view
+  // ----------Increment total view------------------
   @HandleError('increament pageview error')
   async increment(dto: CreateTotalPageViewDto) {
     const incrementValue = dto.increment ?? 1;
@@ -30,26 +29,126 @@ export class OverviewDashboardService {
     return total;
   }
 
-  // Get total view with +15% of last month
+  // ----------------get total view with grotth--------------------------------------
+
   @HandleError('super admin can total get view user')
   async getTotalWithBonus() {
+    const now = new Date();
+
+    // Last month
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+    );
+
+    // Current month
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfCurrentMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    // -------------- Page views last month ----------------
+    const lastMonthViews = await this.prisma.totalPageview.aggregate({
+      _sum: { count: true },
+      where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+    });
+    const lastMonthCount = lastMonthViews._sum.count ?? 0;
+
+    //--------------- Page views current month-------------------
+    const currentMonthViews = await this.prisma.totalPageview.aggregate({
+      _sum: { count: true },
+      where: {
+        createdAt: { gte: startOfCurrentMonth, lte: endOfCurrentMonth },
+      },
+    });
+    const currentMonthCount = currentMonthViews._sum.count ?? 0;
+
+    // ---------pageGroth percentage-----------------
+    let pageGroth: number;
+
+    if (lastMonthCount === 0) {
+      pageGroth = currentMonthCount;
+    } else {
+      pageGroth = Math.round(
+        ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100,
+      );
+    }
+
+    // Current total
     const total = await this.prisma.totalPageview.findFirst();
     const baseCount = total?.count ?? 1;
 
-    // Add 15% bonus
-    const bonusCount = Math.ceil(baseCount * 0.15);
-    const totalWithBonus = baseCount + bonusCount;
-
-    return { baseCount, bonusCount, totalWithBonus };
+    return {
+      baseCount,
+      lastMonthCount,
+      currentMonthCount,
+      pageGroth,
+    };
   }
 
   // ----------------------total user----------------
 
-  @HandleError('super admin can total get view user')
-  async getTotalUser() {
-    const totalUser = await this.prisma.user.count();
-    return { totalUser };
+  @HandleError('super admin can total get last month users')
+  async getTotalUserLastMonth() {
+    const now = new Date();
+
+    // Last month
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+    );
+
+    //----------------- Current month------------
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfCurrentMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const totalLastMonth = await this.prisma.user.count({
+      where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+    });
+
+    const totalCurrentMonth = await this.prisma.user.count({
+      where: {
+        createdAt: { gte: startOfCurrentMonth, lte: endOfCurrentMonth },
+      },
+    });
+    // -----------get calculate pageGroth percentage-----------------
+    let userGrowth: number;
+
+    if (totalLastMonth === 0 && totalCurrentMonth === 0) {
+      userGrowth = 0;
+    } else if (totalLastMonth === 0) {
+      userGrowth = totalCurrentMonth;
+    } else {
+      userGrowth = Math.round(
+        ((totalCurrentMonth - totalLastMonth) / totalLastMonth) * 100,
+      );
+    }
+
+    return { totalLastMonth, totalCurrentMonth, userGrowth };
   }
+
   // ---------total user acitvity------------
 
   @HandleError('super admin can total get view user role')
@@ -69,22 +168,22 @@ export class OverviewDashboardService {
 
     // Map role counts to desired keys
     const roleCounts = {
-      userCount: 0,
+      visitorCount: 0,
       adminCount: 0,
-      superAdminCount: 0,
+      contibutorCount: 0,
       memberCount: 0,
     };
 
     userRoles.forEach((r) => {
       switch (r.role) {
         case 'USER':
-          roleCounts.userCount = r._count.role;
+          roleCounts.visitorCount = r._count.role;
           break;
         case 'ADMIN':
           roleCounts.adminCount = r._count.role;
           break;
-        case 'SUPER_ADMIN':
-          roleCounts.superAdminCount = r._count.role;
+        case 'CONTIBUTOR':
+          roleCounts.contibutorCount = r._count.role;
           break;
         case 'MEMBER':
           roleCounts.memberCount = r._count.role;
@@ -99,46 +198,80 @@ export class OverviewDashboardService {
     };
   }
 
+  //----------------- traffic & engagement overview  ----------------------------
   @HandleError('Failed to get traffic & engagement overview')
-  async getOverview() {
-    // Total page views
-    const pageView = await this.prisma.totalPageview.findFirst();
-    const totalPageViews = pageView?.count ?? 0;
+  async trafficEngagement() {
+    // ----------------- Total post created -----------------
+    const totalPosts = await this.prisma.content.count();
 
-    // User counts grouped by role dynamically
-    const roleCountsRaw = await this.prisma.user.groupBy({
-      by: ['role'],
-      _count: { role: true },
+    // ----------------- Monthly posts created -----------------
+    const postCreateByMonth = await this.prisma.content.groupBy({
+      by: ['createdAt'],
+      _count: { id: true },
+      orderBy: { createdAt: 'asc' },
     });
 
-    const roleCounts: Record<string, number> = {};
-    roleCountsRaw.forEach((r) => {
-      roleCounts[r.role] = r._count.role;
-    });
-
-    // Total user activities
-    const totalActivities = await this.prisma.userActivity.count();
+    // ----------------- Format monthly data -----------------
+    function formatMonthly(
+      data: { createdAt: Date; _count: { id: number } }[],
+    ) {
+      return data.reduce<Record<string, number>>((acc, item) => {
+        const monthName = item.createdAt.toLocaleString('en-US', {
+          month: 'long',
+          year: 'numeric',
+        });
+        acc[monthName] = (acc[monthName] ?? 0) + item._count.id;
+        return acc;
+      }, {});
+    }
 
     return {
-      totalPageViews,
-      totalActivities,
-      roles: roleCounts, // dynamic roles count
+      overviewEngagement: {
+        totalPosts,
+      },
+      monthly: {
+        posts: formatMonthly(postCreateByMonth),
+      },
     };
   }
 
-  findAll() {
-    return `This action returns all overviewDashboard`;
-  }
+  // ----------------- Recent Activity -----------------------
+ @HandleError('Failed to get recent activity overview')
+async recentActivity(): Promise<TResponse<any>> {
+  const activities = await this.prisma.content.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    include: {
+      user: {
+        select: { fullName: true, email: true },
+      },
+    },
+  });
 
-  findOne(id: number) {
-    return `This action returns a #${id} overviewDashboard`;
-  }
+  const formatted = activities.map((activity) => {
+    const userName =
+      activity.user?.fullName && activity.user.fullName.trim() !== ''
+        ? activity.user.fullName
+        : 'Unknown User';
 
-  update(id: number, updateOverviewDashboardDto: UpdateOverviewDashboardDto) {
-    return `This action updates a #${id} overviewDashboard`;
-  }
+    return {
+      message: `${userName} submitted "${activity.title}"`,
+      time: new Date(activity.createdAt).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+  });
 
-  remove(id: number) {
-    return `This action removes a #${id} overviewDashboard`;
-  }
+  return {
+    success: true,
+    message: 'Recent activities fetched successfully',
+    data: formatted,
+  };
+}
+
+
 }

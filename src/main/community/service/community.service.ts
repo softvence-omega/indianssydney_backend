@@ -9,6 +9,8 @@ import { UpdateCommunityDto } from '../dto/update-community.dto';
 import { successResponse, TResponse } from 'src/common/utils/response.util';
 import { FileService } from 'src/lib/file/file.service';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
+import { PaginationDto } from 'src/common/dto/pagination';
+import { HandleError } from 'src/common/error/handle-error.decorator';
 
 @Injectable()
 export class CommunityService {
@@ -18,6 +20,7 @@ export class CommunityService {
   ) {}
 
   // ----------- Create Community Post ------------
+  @HandleError('Failed to create community post', 'communityPost')
   async create(
     payload: CreateCommunityDto,
     userId: string,
@@ -48,7 +51,7 @@ export class CommunityService {
     };
 
     if (thumbnailUrl) {
-      data.thamble = thumbnailUrl;
+      data.image = thumbnailUrl;
     }
 
     if (videoUrl) {
@@ -77,6 +80,7 @@ export class CommunityService {
   }
 
   // --------------------------- Add Comment -----------------------------
+  @HandleError('Failed to add comment', 'Comment')
   async createComment(payload: CreateCommentDto & { userId: string }) {
     const comment = await this.prisma.comment.create({
       data: {
@@ -88,6 +92,7 @@ export class CommunityService {
     return successResponse(comment, 'Comment added successfully');
   }
   // --------------get comment-----------
+  @HandleError('Failed to fetch community comments', 'Comment')
 
   async findAllComments() {
     const comments = await this.prisma.comment.findMany({
@@ -130,6 +135,7 @@ export class CommunityService {
   }
 
   // ----------- Add Post Reaction ------------
+  @HandleError('Failed to add post reaction', 'PostReaction')
   async createPostReaction(
     payload: CreatePostReactionDto & { userId: string },
   ) {
@@ -144,6 +150,7 @@ export class CommunityService {
   }
 
   // ----------- Add Comment Reaction ------------
+  @HandleError('Failed to add comment reaction', 'CommentReaction')
   async createCommentReaction(
     payload: CreateCommentReactionDto & { userId: string },
   ) {
@@ -161,16 +168,24 @@ export class CommunityService {
   }
 
   // -----------  for Community ------------
-  async findAll() {
+  @HandleError('Failed to fetch community posts', 'communityPost')
+  async findAll(query: PaginationDto): Promise<TResponse<any>> {
+    const page = query.page || 1;
+    const limit = query.limit && query.limit >= 0 ? query.limit : 10;
     const posts = await this.prisma.communityPost.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
       include: {
+        // CommentReaction
         comments: {
           include: {
             user: true,
-            reactions: true, // CommentReaction
+            reactions: true,
           },
         },
-        reactions: true, // PostReaction
+        // PostReaction
+        reactions: true,
       },
     });
 
@@ -178,7 +193,7 @@ export class CommunityService {
     const formattedPosts = posts.map((post) => ({
       id: post.id,
       description: post.description,
-      thamble: post.thamble,
+      image: post.image,
       video: post.video,
       userId: post.userId,
       createdAt: post.createdAt,
@@ -199,58 +214,65 @@ export class CommunityService {
       'All community posts fetched successfully',
     );
   }
-// -------------post reaction find by id---------------------
+  // -------------post reaction find by id---------------------
+  @HandleError('Failed to fetch community post', 'communityPost')
   async findOne(id: string) {
-  const post = await this.prisma.communityPost.findUnique({
-    where: { id },
-    include: {
-      user: {
-        select: { id: true, fullName: true, email: true, profilePhoto: true },
-      },
-      comments: {
-        include: {
-          user: { select: { id: true, fullName: true, profilePhoto: true } },
-          reactions: {
-            include: {
-              user: { select: { id: true, fullName: true, profilePhoto: true } },
+    const post = await this.prisma.communityPost.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        comments: {
+          include: {
+            user: { select: { id: true, fullName: true, profilePhoto: true } },
+            reactions: {
+              include: {
+                user: {
+                  select: { id: true, fullName: true, profilePhoto: true },
+                },
+              },
             },
           },
         },
-      },
-      reactions: {
-        // Post reactions
-        include: {
-          user: { select: { id: true, fullName: true, profilePhoto: true } },
+        reactions: {
+          // Post reactions
+          include: {
+            user: { select: { id: true, fullName: true, profilePhoto: true } },
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!post) return null;
+    if (!post) return null;
 
-  // Map to rename nested arrays
-  const formattedPost = {
-    id: post.id,
-    description: post.description,
-    thamble: post.thamble,
-    video: post.video,
-    createdAt: post.createdAt,
-    updatedAt: post.updatedAt,
-    user: post.user,
-    postReactions: post.reactions, 
-    comments: post.comments.map(comment => ({
-      id: comment.id,
-      content: comment.content,
-      user: comment.user,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
-      commentReactions: comment.reactions, 
-    })),
-  };
+    // Map to rename nested arrays
+    const formattedPost = {
+      id: post.id,
+      description: post.description,
+      image: post.image,
+      video: post.video,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      user: post.user,
+      postReactions: post.reactions,
+      comments: post.comments.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        user: comment.user,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        commentReactions: comment.reactions,
+      })),
+    };
 
-  return successResponse(formattedPost, 'Community post fetched successfully');
-}
+    return successResponse(
+      formattedPost,
+      'Community post fetched successfully',
+    );
+  }
 
+  @HandleError('Failed to update community post', 'communityPost')
   async update(id: string, updateCommunityDto: UpdateCommunityDto) {
     const data: any = {};
 
@@ -262,7 +284,7 @@ export class CommunityService {
       const processedFile = await this.fileService.processUploadedFile(
         updateCommunityDto.file,
       );
-      data.thamble = processedFile.url;
+      data.image = processedFile.url;
     }
 
     if (updateCommunityDto.video) {
