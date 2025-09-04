@@ -11,6 +11,7 @@ model Content {
   contentType    ContentType
   title          String
   subTitle       String
+  contentviews    Int?       @default(0)
   paragraph      String?
   shortQuote     String?
   image          String?

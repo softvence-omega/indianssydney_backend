@@ -1,5 +1,9 @@
 // content/content.service.ts
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateContentDto } from '../dto/create-content.dto';
 import { FileService } from 'src/lib/file/file.service';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
@@ -244,5 +248,26 @@ export class ContentService {
     });
 
     return successResponse(contents, 'User contents fetched successfully');
+  }
+
+  // ------------------- increment content view count -------------------
+  @HandleError('Failed to increment content view count', 'content')
+  async incrementView(id: string) {
+    // check content exists
+    const existing = await this.prisma.content.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Content not found');
+    }
+
+    // increment contentviews by 1
+    return this.prisma.content.update({
+      where: { id },
+      data: {
+        contentviews: { increment: 1 },
+      },
+    });
   }
 }

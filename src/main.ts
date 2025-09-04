@@ -5,11 +5,11 @@ import { ENVEnum } from './common/enum/env.enum';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filter/http-exception.filter';
-
+import * as bodyParser from 'body-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Swagger config with Bearer Auth
+  // --------------Swagger config with Bearer Auth------------------
   const config = new DocumentBuilder()
     .setTitle('indianssydney backend')
     .setDescription('Team indianssudney API description')
@@ -17,7 +17,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   app.enableCors({
-    origin: '*', // allow any origin
+    origin: '*',
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
     credentials: true,
   });
@@ -34,7 +34,9 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
-
+  // ---------------webhook raw body parser----------------
+  // Stripe requires the raw body to construct the event.
+  app.use('/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
   const configService = app.get(ConfigService);
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? '5000', 10);
   await app.listen(port);

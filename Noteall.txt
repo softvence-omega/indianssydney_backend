@@ -1,7 +1,9 @@
 
 superadmin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0NDllMDMxNy05MjExLTRkMDktYTQ4ZS1lZGZjYmJlZDFhZDMiLCJlbWFpbCI6ImNvZGluZ3g0M0BnbWFpbC5jb20iLCJyb2xlcyI6IlNVUEVSX0FETUlOIiwiaWF0IjoxNzU2ODkwNTE2LCJleHAiOjE3NjQ2NjY1MTZ9.
 EcXb9g3FNSe4jSrwPBjIU5WfyeHrakzn6rXpnBcrxT4
-ngrok http --url=scarcely-amused-lizard.ngrok-free.app 80
+ngrok http --url=ruling-kitten-evolved.ngrok-free.app 5000
+https://ruling-kitten-evolved.ngrok-free.app/docs
+
 npx prisma migrate dev --name init
  npx nest g resource main/recommendation
 
