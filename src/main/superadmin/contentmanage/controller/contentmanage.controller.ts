@@ -71,7 +71,7 @@ export class ContentmanageController {
     return this.contentmanageService.getAllPlans();
   }
 
-  // update plan
+  // -------------update plan-------------------
   @ApiOperation({ summary: 'Super Admin update payment plan' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
@@ -79,13 +79,13 @@ export class ContentmanageController {
   async updatePlan(@Param('id') id: string, @Body() payload: PaymentPlanDto) {
     return this.contentmanageService.updatePlan(id, payload);
   }
-  // get single plan
+  // -------------get single plan-------------------
   @ApiOperation({ summary: 'Super Admin get single payment plan' })
   @Get('single-plan/:id')
   async getSinglePlan(@Param('id') id: string) {
     return this.contentmanageService.getSinglePlan(id);
   }
-  // delete plan
+  // --------------delete plan
   @ApiOperation({ summary: 'Super Admin delete payment plan' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
