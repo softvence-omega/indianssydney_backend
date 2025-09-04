@@ -8,6 +8,7 @@ import {
   BadRequestException,
   Get,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { ContentService } from '../service/content.service';
 import { CreateContentDto } from '../dto/create-content.dto';
@@ -199,6 +200,7 @@ export class ContentController {
     return this.contentService.getContentByUser(userId);
   }
 
+
   // Get all contents
   @ApiOperation({ summary: 'Get all contents' })
   @Get()
@@ -212,6 +214,11 @@ export class ContentController {
   async findOne(@Param('id') id: string) {
     return this.contentService.findOne(id);
   }
-
+// ------------------- increment content view count -------------------
+  @ApiOperation({ summary: 'Increment content view count by 1' })
+   @Patch(':id/views')
+  async incrementViews(@Param('id') id: string) {
+    return this.contentService.incrementView(id);
+  }
 
 }

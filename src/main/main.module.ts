@@ -15,9 +15,12 @@ import { OverviewDashboardModule } from './superadmin/overview-dashboard/overvie
 import { NotificationSettingModule } from './shared/notification-setting/notification-setting.module';
 import { LiveEventModule } from './shared/live-event/live-event.module';
 import { AdminDashboardModule } from './admin/admin-dashboard/admin-dashboard.module';
+import { PaymentModule } from './shared/payment/payment.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     AuthModule,
     SubscribeModule,
     RecommendationModule,
@@ -31,6 +34,7 @@ import { AdminDashboardModule } from './admin/admin-dashboard/admin-dashboard.mo
     NotificationSettingModule,
     LiveEventModule,
     AdminDashboardModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [],

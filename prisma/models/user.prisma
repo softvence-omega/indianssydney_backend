@@ -32,11 +32,13 @@ model User {
   UserNotification   UserNotification[]
   notificationToggle NotificationToggle?
 
-  postReactions    PostReaction[]
-  commentReactions CommentReaction[]
-  CommunityPost    CommunityPost[]
-
-  PaypalPayment Payment[]
+  postReactions     PostReaction[]
+  commentReactions  CommentReaction[]
+  CommunityPost     CommunityPost[]
+  // -----------------Membership----------------------
+  Payment           Payment[]
+  subscriptionEndsAt DateTime?
+  isMembership      Boolean           @default(false)
 
   @@map("users")
 }

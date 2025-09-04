@@ -56,13 +56,42 @@ export class ContentmanageController {
     return this.contentmanageService.getDeclinedContents();
   }
 
-  // ------------------payment plane create----------
-@ApiOperation({ summary: 'Super Admin create payment plan' })
-@ApiBearerAuth()
-@ValidateSuperAdmin()
-@Post('create-plan')
-async createPlan(@Body() dto: PaymentPlanDto) {
-  return this.contentmanageService.createPlan(dto);
-}
+  // -----------------------------------payment plane create---------------------------------
+  @ApiOperation({ summary: 'Super Admin create payment plan' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Post('create-plan')
+  async createPlan(@Body() payload: PaymentPlanDto) {
+    return this.contentmanageService.createPlan(payload);
+  }
+//      ------------------------------get all payment plane---------------------------------
+  @ApiOperation({ summary: 'Super Admin get all payment plan' })
+  @Get('all-plans')
+  async getAllPlans() {
+    return this.contentmanageService.getAllPlans();
+  }
 
+  // update plan
+  @ApiOperation({ summary: 'Super Admin update payment plan' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Patch('update-plan/:id')
+  async updatePlan(@Param('id') id: string, @Body() payload: PaymentPlanDto) {
+    return this.contentmanageService.updatePlan(id, payload);
+  }
+  // get single plan
+  @ApiOperation({ summary: 'Super Admin get single payment plan' })
+  @Get('single-plan/:id')
+  async getSinglePlan(@Param('id') id: string) {
+    return this.contentmanageService.getSinglePlan(id);
+  }
+  // delete plan
+  @ApiOperation({ summary: 'Super Admin delete payment plan' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Patch('delete-plan/:id')
+  async deletePlan(@Param('id') id: string) {
+    return this.contentmanageService.deletePlan(id);
+  }
+  
 }

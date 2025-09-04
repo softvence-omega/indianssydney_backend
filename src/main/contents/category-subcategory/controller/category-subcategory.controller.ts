@@ -6,8 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
 import { CategorySubcategoryService } from '../service/category-subcategory.service';
 import { CreateCategoryDto } from '../dto/create-category-subcategory.dto';
