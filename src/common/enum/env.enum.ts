@@ -26,7 +26,7 @@ export enum ENVEnum {
   PAYPAL_CLIENT_ID = 'PAYPAL_CLIENT_ID',
   PAYPAL_URL = 'PAYPAL_URL',
   PAYPAL_ENVIRONMENT = 'PAYPAL_ENVIRONMENT',
-// --------firebase ------------------
+  // -------------------firebase ------------------
   FIREBASE_PROJECT_ID = 'FIREBASE_PROJECT_ID',
   FIREBASE_CLIENT_EMAIL = 'FIREBASE_CLIENT_EMAIL',
   FIREBASE_PRIVATE_KEY = 'FIREBASE_PRIVATE_KEY',
