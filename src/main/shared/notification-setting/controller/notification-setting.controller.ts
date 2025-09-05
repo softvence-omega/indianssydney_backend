@@ -8,7 +8,7 @@ import { NotificationToggleDto } from '../dto/notification-toggle.dto';
 
 @ApiTags('Notification Setting')
 @ValidateAuth()
-@ApiBearerAuth()
+@ApiBearerAuth() 
 @Controller('notification-setting')
 export class NotificationSettingController {
   constructor(

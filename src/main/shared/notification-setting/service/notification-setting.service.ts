@@ -4,7 +4,6 @@ import { successResponse, TResponse } from 'src/common/utils/response.util';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { NotificationToggleDto } from '../dto/notification-toggle.dto';
 
-
 @Injectable()
 export class NotificationSettingService {
   constructor(private readonly prisma: PrismaService) {}
@@ -20,7 +19,7 @@ export class NotificationSettingService {
       },
     });
 
-  // --- If no setting found, create default setting ---
+    // --- If no setting found, create default setting ---
     if (!result) {
       const notificationToggle = await this.prisma.notificationToggle.create({
         data: {
@@ -48,8 +47,6 @@ export class NotificationSettingService {
       update: {
         email: dto.email,
         communication: dto.communication,
-        surveyAndPoll: dto.surveyAndPoll,
-        tasksAndProjects: dto.tasksAndProjects,
         scheduling: dto.scheduling,
         message: dto.message,
         userRegistration: dto.userRegistration,
@@ -58,8 +55,7 @@ export class NotificationSettingService {
         userId: userId,
         email: dto.email,
         communication: dto.communication,
-        surveyAndPoll: dto.surveyAndPoll,
-        tasksAndProjects: dto.tasksAndProjects,
+
         scheduling: dto.scheduling,
         message: dto.message,
         userRegistration: dto.userRegistration,

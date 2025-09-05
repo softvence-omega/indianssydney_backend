@@ -11,6 +11,7 @@ import { JwtStrategy } from './common/jwt/jwt.strategy';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { LibModule } from './lib/lib.module';
 import { MainModule } from './main/main.module';
+import { NotificationModule } from './lib/notificaton/notification.module';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { MainModule } from './main/main.module';
     }),
 
     PassportModule,
-
+    NotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -41,7 +42,6 @@ import { MainModule } from './main/main.module';
     }),
 
     MainModule,
-
     LibModule,
   ],
   controllers: [AppController],

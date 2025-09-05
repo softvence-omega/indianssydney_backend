@@ -16,13 +16,9 @@ model Notification {
 
 enum NotificationType {
  contentStatus
-  Communication
+  LiveEvent
   Shift
-  TimeOff
-  Announcement
-  Task
-  Recognition
-  UrgentShiftChanged
+  UserRolechange
 }
 
 model UserNotification {
@@ -39,5 +35,5 @@ model UserNotification {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  @@unique([userId, notificationId]) // Prevent duplicates
+  @@unique([userId, notificationId]) 
 }
