@@ -39,6 +39,10 @@ export function ValidateSuperAdmin() {
   return ValidateAuth(UserEnum.SUPER_ADMIN);
 }
 
+export function ValidateContibutor() {
+  return ValidateAuth(UserEnum.CONTIBUTOR, UserEnum.SUPER_ADMIN);
+}
+
 export function ValidateAdmin() {
   return ValidateAuth(UserEnum.ADMIN, UserEnum.SUPER_ADMIN);
 }
@@ -47,5 +51,11 @@ export function ValidateMember() {
 }
 
 export function ValidateUser() {
-  return ValidateAuth(UserEnum.USER, UserEnum.SUPER_ADMIN, UserEnum.MEMBER);
+  return ValidateAuth(
+    UserEnum.USER,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.MEMBER,
+    UserEnum.ADMIN,
+    UserEnum.CONTIBUTOR,
+  );
 }

@@ -13,11 +13,12 @@ import { ContentModule } from './contents/content/content.module';
 
 import { OverviewDashboardModule } from './superadmin/overview-dashboard/overview-dashboard.module';
 import { NotificationSettingModule } from './shared/notification-setting/notification-setting.module';
-import { LiveEventModule } from './shared/live-event/live-event.module';
+
 import { AdminDashboardModule } from './admin/admin-dashboard/admin-dashboard.module';
 import { PaymentModule } from './shared/payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdminManagementModule } from './admin/admin-management/admin-management.module';
+import { LiveEventModule } from './contents/live-event/live-event.module';
 
 @Module({
   imports: [

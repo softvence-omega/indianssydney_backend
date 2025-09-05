@@ -25,20 +25,20 @@ model User {
   updatedAt       DateTime         @updatedAt
   // ------ Relations----------------------
   recommendations Recommendation[]
-
-  constents Content[]
-  comments  Comment[]
+  LiveEven        LiveEvent[]
+  constents       Content[]
+  comments        Comment[]
 
   UserNotification   UserNotification[]
   notificationToggle NotificationToggle?
 
-  postReactions     PostReaction[]
-  commentReactions  CommentReaction[]
-  CommunityPost     CommunityPost[]
+  postReactions      PostReaction[]
+  commentReactions   CommentReaction[]
+  CommunityPost      CommunityPost[]
   // -----------------Membership----------------------
-  Payment           Payment[]
+  Payment            Payment[]
   subscriptionEndsAt DateTime?
-  isMembership      Boolean           @default(false)
+  isMembership       Boolean           @default(false)
 
   @@map("users")
 }
