@@ -5,10 +5,14 @@ import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { Status } from '@prisma/client';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { PaymentPlanDto } from '../dto/payment-plane.dto';
+import { NotificationGateway } from 'src/lib/notificaton/notification.gateway';
 
 @Injectable()
 export class ContentmanageService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationGateway: NotificationGateway,
+  ) {}
   @HandleError('Failed to update content status', 'contentmanage')
   async updateContentStatus(id: string, status: Status): Promise<any> {
     const updated = await this.prisma.content.update({
@@ -16,12 +20,76 @@ export class ContentmanageService {
       data: { status },
     });
 
+    // Create a notification in DB
+    const notification = await this.prisma.notification.create({
+      data: {
+        type: 'contentStatus',
+        title: 'Content Status Updated',
+        message: `Content status updated to ${status}`,
+        meta: {
+          contentId: id,
+          status,
+          date: new Date().toISOString(),
+        },
+      },
+    });
+
+    // If APPROVE → notify all users
+    if (status === Status.APPROVE) {
+      const users = await this.prisma.user.findMany({
+        select: { id: true },
+      });
+      const userIds = users.map((u) => u.id);
+
+      // Create UserNotification records
+      await this.prisma.userNotification.createMany({
+        data: userIds.map((userId) => ({
+          userId,
+          notificationId: notification.id,
+        })),
+        skipDuplicates: true,
+      });
+
+      // Push via WebSocket
+      await this.notificationGateway.notifyAllUsers('contentStatus', {
+        title: notification.title,
+        message: notification.message,
+        meta: notification.meta,
+      } as any);
+    } else {
+      // Else → only notify content owner
+      const content = await this.prisma.content.findUnique({
+        where: { id },
+        select: { userId: true },
+      });
+
+      if (content?.userId) {
+        await this.prisma.userNotification.create({
+          data: {
+            userId: content.userId,
+            notificationId: notification.id,
+          },
+        });
+
+        await this.notificationGateway.notifySingleUser(
+          content.userId,
+          'contentStatus',
+          {
+            title: notification.title,
+            body: notification.message,
+            meta: notification.meta,
+          } as any,
+        );
+      }
+    }
+
     return {
       success: true,
       message: `Content status updated to ${status}`,
       data: updated,
     };
   }
+
   // --------------- get recent content  --------------
   @HandleError('Failed to get recent contents', 'contentmanage')
   async getRecentContent(): Promise<any> {

@@ -4,7 +4,6 @@ export type PayloadForSocketClient = {
   emailToggle: boolean;
   userUpdates: boolean;
   scheduling: boolean;
-
   userRegistration: boolean;
   contentStatus: boolean;
 };

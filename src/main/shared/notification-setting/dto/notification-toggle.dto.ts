@@ -18,23 +18,11 @@ export class NotificationToggleDto {
   @IsBoolean()
   communication?: boolean = false;
 
-  @ApiPropertyOptional({
-    description: 'Receive survey and poll notifications',
-    default: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  surveyAndPoll?: boolean = false;
 
+
+  
   @ApiPropertyOptional({
-    description: 'Receive tasks and projects notifications',
-    default: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  tasksAndProjects?: boolean = false;
-  @ApiPropertyOptional({
-    description: 'Receive tasks and projects notifications',
+    description: 'Receive tasks and projects content status notifications',
     default: false,
   })
   @IsOptional()
