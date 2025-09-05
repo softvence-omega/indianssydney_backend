@@ -1,5 +1,5 @@
+import { UserRole } from '@prisma/client';
 import { Expose } from 'class-transformer';
-import { UserRole } from 'generated/prisma';
 
 export class UserResponseDto {
   @Expose()
@@ -13,7 +13,7 @@ export class UserResponseDto {
 
   @Expose()
   profilePhoto?: string;
-  
+
   @Expose()
   fullName?: string;
 
