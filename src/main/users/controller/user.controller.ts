@@ -6,6 +6,8 @@ import {
   UseInterceptors,
   UploadedFile,
   Get,
+  UploadedFiles,
+  Req,
 } from '@nestjs/common';
 
 import {
@@ -14,7 +16,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
 
 import { UpdateProfileDto } from '../dto/update.profile.dto';
@@ -26,11 +28,13 @@ import {
 } from 'src/common/jwt/jwt.decorator';
 import { UpdatePasswordDto } from '../dto/updatepassword.dto';
 import { UserService } from '../service/user.service';
+import { CreateApplyFoContibutorDto } from '../dto/apply-contibutor.dto';
+import { CreateReportDto } from '../dto/apply-Report.dto';
 @ApiTags('USER Profile Maintain')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  // ----------------------update profile----------------------
+  // ----------------------------- update profile  ----------------------
   @ApiOperation({ summary: 'Update user profile' })
   @ValidateAuth()
   @ApiBearerAuth()
@@ -80,5 +84,41 @@ export class UserController {
   @Get('all')
   async getAllUsers() {
     return this.userService.getAllUsers();
+  }
+  // ------------------------ user apply for contibutor--================----------
+  @ApiOperation({ summary: 'apply for contibutor' })
+  @ValidateAuth()
+  @ApiBearerAuth()
+  @Post('apply-contributor')
+  async applyForContributor(
+    @GetUser('userId') userId: string,
+    @Body() dto: CreateApplyFoContibutorDto,
+  ) {
+    return this.userService.applyForContributor(userId, dto);
+  }
+
+  // ---------------------user report Contents----------------
+  @ApiOperation({ summary: 'Create Report with multiple screenshots' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Post('create-report')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FilesInterceptor(
+      'files',
+      5,
+      new MulterService().createMulterOptions('./temp', 'temp', FileType.IMAGE),
+    ),
+  )
+  async create(
+    @Body() createReportDto: CreateReportDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @GetUser('userId') userId: string,
+  ) {
+    if (files && files.length) {
+      createReportDto.files = files;
+    }
+
+    return this.userService.createReport(createReportDto, userId);
   }
 }

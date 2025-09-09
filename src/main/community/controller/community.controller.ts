@@ -17,7 +17,7 @@ import {
   CreateCommentReactionDto,
 } from '../dto/create-community.dto';
 import { UpdateCommunityDto } from '../dto/update-community.dto';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { GetUser, ValidateAuth } from 'src/common/jwt/jwt.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
@@ -98,6 +98,7 @@ export class CommunityController {
     return this.communityService.createCommentReaction({ ...dto, userId });
   }
   // --------get community post------------
+  @ApiOperation({ summary: 'Get all community posts' })
   @ApiBearerAuth()
   @ValidateAuth()
   @Get('community-post')
@@ -110,6 +111,7 @@ export class CommunityController {
     return this.communityService.findOne(id);
   }
   // ------------update community post----------------
+  @ApiProperty()
   @ApiBearerAuth()
   @ValidateAuth()
   @ApiConsumes('multipart/form-data')

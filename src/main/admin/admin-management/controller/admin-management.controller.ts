@@ -2,9 +2,14 @@ import { Controller, Get, Body, Patch, Param } from '@nestjs/common';
 import { AdminManagementService } from '../service/admin-management.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { ContentStatusChangeDto } from '../dto/admin-contentstatus.dto';
+import {
+  ContentStatusChangeDto,
+  ContributorApplyStatusDto,
+} from '../dto/admin-contentstatus.dto';
 import { ValidateAdmin } from 'src/common/jwt/jwt.decorator';
-@ApiTags('Admin Management (manage admin content like approve,decline,pending)')
+@ApiTags(
+  'Admin Management (manage admin content & Contibute permission like approve,decline,pending)',
+)
 @Controller('admin-management')
 export class AdminManagementController {
   constructor(
@@ -39,7 +44,7 @@ export class AdminManagementController {
     return this.adminManagementService.getPendingContents();
   }
 
-  // ------------------sttus Approve----
+  // ------------------sttus Approve-----------------------
   @ApiOperation({ summary: 'Admin Admin get all status-pentding' })
   @ApiBearerAuth()
   @ValidateAdmin()
@@ -48,12 +53,33 @@ export class AdminManagementController {
     return this.adminManagementService.getApprovedContents();
   }
 
-  // ------------------status Reject----
+  // ------------------status Reject------------------
   @ApiOperation({ summary: 'Admin Admin get all status-pentding' })
   @ApiBearerAuth()
   @ValidateAdmin()
   @Get('all-contents-Decline')
   async getAllContentDecline() {
     return this.adminManagementService.getDeclinedContents();
+  }
+  // -------------------editor can be manage contibute user---------------
+  @ApiOperation({ summary: 'Admin updates contributor application status' })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Patch('contributor/:id/status')
+  async updateContributorStatus(
+    @Param('id') applicationId: string,
+    @Body() dto: ContributorApplyStatusDto,
+  ) {
+    return this.adminManagementService.updateContributorApplicationStatus(
+      applicationId,
+      dto.status,
+    );
+  }
+  @ApiOperation({ summary: 'Admin updates contributor application status' })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Get('contributor/all')
+  async getAllContributor() {
+    return this.adminManagementService.getAllContributor();
   }
 }

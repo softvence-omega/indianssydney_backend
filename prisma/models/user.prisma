@@ -17,9 +17,10 @@ model User {
   resetOtp       Int?
   resetOtpExpiry DateTime?
 
-  isActive  Boolean   @default(true)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
+  isActive    Boolean   @default(true)
+  isDeleted   Boolean   @default(false)
+  isContibute Boolean   @default(false)
+  deletedAt   DateTime?
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -32,13 +33,19 @@ model User {
   UserNotification   UserNotification[]
   notificationToggle NotificationToggle?
 
-  postReactions      PostReaction[]
-  commentReactions   CommentReaction[]
-  CommunityPost      CommunityPost[]
+  postReactions        PostReaction[]
+  commentReactions     CommentReaction[]
+  CommunityPost        CommunityPost[]
+  ReportContent        ReportContent[]
   // -----------------Membership----------------------
-  Payment            Payment[]
-  subscriptionEndsAt DateTime?
-  isMembership       Boolean           @default(false)
+  Payment              Payment[]
+  subscriptionEndsAt   DateTime?
+  isMembership         Boolean                  @default(false)
+  ApplytoContibute     ApplytoContibute?
+  // -------content reaction--------
+  contentComments      ContentComment[]
+  contentReactions     ContentReaction[]
+  contentCommentReacts ContentCommentReaction[]
 
   @@map("users")
 }

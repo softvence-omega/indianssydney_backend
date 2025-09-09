@@ -84,3 +84,5 @@ prisma --help
 
 
 Show help menu (list of all
+
+/uploads/nest_uploads/1757245807910_imgi_205_360_F_191891230_LRAZDEd8EZuG1SPmLMWGZfgVTRMP2zyD.jpg

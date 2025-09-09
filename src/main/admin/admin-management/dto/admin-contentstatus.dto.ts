@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Status } from '@prisma/client';
+import { ApplyStatus, Status } from '@prisma/client';
 import { IsEnum } from 'class-validator';
 
 export class ContentStatusChangeDto {
@@ -10,4 +10,16 @@ export class ContentStatusChangeDto {
   })
   @IsEnum(Status)
   status: Status;
+}
+
+export class ContributorApplyStatusDto {
+  @ApiProperty({
+    description: 'Set the application status',
+    enum: ApplyStatus,
+    example: ApplyStatus.APPROVED,
+  })
+  @IsEnum(ApplyStatus, {
+    message: 'Status must be one of the defined enum values',
+  })
+  status: ApplyStatus;
 }
