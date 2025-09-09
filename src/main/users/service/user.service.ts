@@ -1,4 +1,4 @@
-import { Body, Injectable } from '@nestjs/common';
+import { BadRequestException, Body, Injectable } from '@nestjs/common';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 
 import { FileService } from 'src/lib/file/file.service';
@@ -10,6 +10,8 @@ import { UpdatePasswordDto } from '../dto/updatepassword.dto';
 
 import { AppError } from 'src/common/error/handle-error.app';
 import { successResponse, TResponse } from 'src/common/utils/response.util';
+import { CreateApplyFoContibutorDto } from '../dto/apply-contibutor.dto';
+import { CreateReportDto } from '../dto/apply-Report.dto';
 
 @Injectable()
 export class UserService {
@@ -135,5 +137,66 @@ export class UserService {
       },
     });
     return successResponse(users, 'All users retrieved successfully');
+  }
+
+  // -----------apply for contibute ---------------
+
+  async applyForContributor(userId: string, dto: CreateApplyFoContibutorDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+
+    // Check if already applied
+    const existingApplication = await this.prisma.applytoContibute.findUnique({
+      where: { email: user.email },
+    });
+    if (existingApplication) {
+      throw new BadRequestException('You have already applied');
+    }
+
+    return this.prisma.applytoContibute.create({
+      data: {
+        about: dto.about,
+        email: user.email,
+        fullName: user.fullName || '',
+        userId: user.id,
+      },
+    });
+  }
+
+  // -------------create Report user-----------------
+  @HandleError('Failed to create report', 'Report')
+  async createReport(
+    createReportDto: CreateReportDto,
+    userId: string,
+  ): Promise<TResponse<any>> {
+    const { files, ...reportData } = createReportDto;
+
+    if (!files || !files.length) {
+      throw new AppError(400, 'At least one screenshot is required');
+    }
+
+    // process images
+    const fileInstances = await Promise.all(
+      files.map((file) => this.fileService.processUploadedFile(file)),
+    );
+
+    const report = await this.prisma.reportContent.create({
+      data: {
+        ...reportData,
+        user: {
+          connect: { id: userId },
+        },
+        images: {
+          create: fileInstances.map((file) => ({
+            imageUrl: file.url,
+          })),
+        },
+      },
+      include: {
+        images: true,
+      },
+    });
+
+    return successResponse(report, 'Report created successfully');
   }
 }

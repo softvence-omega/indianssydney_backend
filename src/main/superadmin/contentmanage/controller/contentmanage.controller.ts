@@ -1,4 +1,12 @@
-import { Controller, Get, Body, Patch, Param, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Post,
+  Delete,
+} from '@nestjs/common';
 import { ContentmanageService } from '../service/contentmanage.service';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -6,7 +14,7 @@ import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 import { ContentStatusChangeDto } from '../dto/superadmin-contentmanage.dto';
 import { PaymentPlanDto } from '../dto/payment-plane.dto';
 
-@ApiTags('Super Admin content Manage & plane Mange')
+@ApiTags('Super Admin content Manage & plane Mange & Report manage')
 @Controller('contentmanage')
 export class ContentmanageController {
   constructor(private readonly contentmanageService: ContentmanageService) {}
@@ -64,14 +72,14 @@ export class ContentmanageController {
   async createPlan(@Body() payload: PaymentPlanDto) {
     return this.contentmanageService.createPlan(payload);
   }
-//      ------------------------------get all payment plane---------------------------------
+  //      ------------------------------ get all payment plane ---------------------------------
   @ApiOperation({ summary: 'Super Admin get all payment plan' })
   @Get('all-plans')
   async getAllPlans() {
     return this.contentmanageService.getAllPlans();
   }
 
-  // -------------update plan-------------------
+  // ------------- update plan -------------------
   @ApiOperation({ summary: 'Super Admin update payment plan' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
@@ -79,19 +87,27 @@ export class ContentmanageController {
   async updatePlan(@Param('id') id: string, @Body() payload: PaymentPlanDto) {
     return this.contentmanageService.updatePlan(id, payload);
   }
-  // -------------get single plan-------------------
+  // ------------- get single plan -------------------
   @ApiOperation({ summary: 'Super Admin get single payment plan' })
   @Get('single-plan/:id')
   async getSinglePlan(@Param('id') id: string) {
     return this.contentmanageService.getSinglePlan(id);
   }
-  // --------------delete plan
+  // --------------delete plan--------------
   @ApiOperation({ summary: 'Super Admin delete payment plan' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
-  @Patch('delete-plan/:id')
+  @Delete('delete-plan/:id')
   async deletePlan(@Param('id') id: string) {
     return this.contentmanageService.deletePlan(id);
   }
-  
+
+  // ---------get all report super admin---------------------
+  @ApiOperation({ summary: 'Super Admin get all reports with user profiles' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('reports')
+  async getAllReports() {
+    return this.contentmanageService.getAllReports();
+  }
 }

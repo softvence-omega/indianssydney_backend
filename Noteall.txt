@@ -7,6 +7,13 @@ https://ruling-kitten-evolved.ngrok-free.app/docs
 npx prisma migrate dev --name init
  npx nest g resource main/recommendation
 
+
+#------------- agora --------------------
+Secret will not be stored or displayed on the console after download. Please keep it in a safe place.
+Key: 1477f33546b0489caf01e3c460ffc700
+Secret: ee5031a115364163a97fdca89b19b971
+
+
  Prisma CLI Commands
 🔹 Project Setup
 npx prisma init
@@ -77,3 +84,5 @@ prisma --help
 
 
 Show help menu (list of all
+
+/uploads/nest_uploads/1757245807910_imgi_205_360_F_191891230_LRAZDEd8EZuG1SPmLMWGZfgVTRMP2zyD.jpg

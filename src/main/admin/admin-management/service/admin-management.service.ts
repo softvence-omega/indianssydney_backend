@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { HandleError } from 'src/common/error/handle-error.decorator';
-import { Status } from '@prisma/client';
+import { ApplyStatus, Status } from '@prisma/client';
 
 @Injectable()
 export class AdminManagementService {
-constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
   @HandleError('Failed to update content status', 'contentmanage')
   async updateContentStatus(id: string, status: Status): Promise<any> {
     const updated = await this.prisma.content.update({
@@ -80,4 +80,53 @@ constructor(private readonly prisma: PrismaService) {}
       },
     });
   }
+  // ------------------------get all contibutor--------------------------------------------
+  @HandleError('Failed to get all contributor', 'contentmanage')
+  async getAllContributor() {
+    return this.prisma.applytoContibute.findMany({
+      where: {
+        status: { not: ApplyStatus.REJECTED },
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ----------manage contibute user -----------
+
+  @HandleError('Contributor manage failed')
+  async updateContributorApplicationStatus(
+    applicationId: string,
+    status: ApplyStatus,
+  ) {
+    const application = await this.prisma.applytoContibute.findUnique({
+      where: { id: applicationId },
+    });
+
+    if (!application) {
+      throw new BadRequestException('Application not found');
+    }
+
+    // If approved, update user role to CONTIBUTOR and isContibute = true
+    if (status === ApplyStatus.APPROVED) {
+      await this.prisma.user.update({
+        where: { id: application.userId },
+        data: {
+          role: 'CONTIBUTOR',
+          isContibute: true,
+        },
+      });
+    }
+
+    // Update application status (approved or rejected)
+    return this.prisma.applytoContibute.update({
+      where: { id: applicationId },
+      data: { status },
+    });
+  }
+  
 }

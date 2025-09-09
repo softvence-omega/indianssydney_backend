@@ -241,4 +241,25 @@ export class ContentmanageService {
     });
     return successResponse(subcategory, 'Payment plan deleted successfully');
   }
+
+  // -----------get all report super admin---------------------
+  @HandleError('Failed to get all reports', 'Report')
+  async getAllReports() {
+    const reports = await this.prisma.reportContent.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+            role: true,
+          },
+        },
+        images: true,
+      },
+    });
+
+    return successResponse(reports, 'All reports retrieved successfully');
+  }
 }

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { LiveEventService } from './live-event.service';
-import { LiveEventController } from './live-event.controller';
+import { LiveEventService } from './service/live-event.service';
+import { LiveEventController } from './controller/live-event.controller';
 
 @Module({
   controllers: [LiveEventController],

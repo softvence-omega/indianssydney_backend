@@ -20,21 +20,22 @@ export class NotificationSettingService {
     });
 
     // --- If no setting found, create default setting ---
-    if (!result) {
-      const notificationToggle = await this.prisma.notificationToggle.create({
-        data: {
-          userId: userId,
-        },
-      });
-      return successResponse(
-        notificationToggle,
-        'Notification setting created successfully',
-      );
-    }
+    // if (!result) {
+    //   const notificationToggle = await this.prisma.notificationToggle.create({
+    //     data: {
+    //       userId: userId,
+    //     },
+    //   });
+    //   return successResponse(
+    //     notificationToggle,
+    //     'Notification setting created successfully',
+    //   );
+    // }
 
     return successResponse(result, 'Notification setting found successfully');
   }
 
+  // -------------update notification setting --------------
   @HandleError('Failed to update notification setting')
   async updateNotificationSetting(
     userId: string,

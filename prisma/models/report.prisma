@@ -1,0 +1,21 @@
+model ReportContent {
+    id           String        @id @default(uuid())
+    contentTitle String
+    reason       String
+    userId       String
+    user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    images       ScreenShort[] // keep only this
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+}
+
+model ScreenShort {
+    id        String        @id @default(uuid())
+    reportId  String
+    report    ReportContent @relation(fields: [reportId], references: [id], onDelete: Cascade)
+    imageUrl  String
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    @@map("screenshort_images")
+}
