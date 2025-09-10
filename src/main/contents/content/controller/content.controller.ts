@@ -1,3 +1,8 @@
+import {
+  CreateContentComemnt,
+  CreateContentReactionDto,
+  CreateContentCommentReactionDto,
+} from './../dto/create-content-comment.dto';
 // content/content.controller.ts
 import {
   Controller,
@@ -24,7 +29,7 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
 import { AdditionalFieldDto } from '../dto/additional-field.dto';
 
-@ApiTags('Contents')
+@ApiTags('Contents ALL Here News,Article')
 @Controller('content')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
@@ -96,7 +101,7 @@ export class ContentController {
               console.warn(
                 `Invalid file for field type ${field.type}, timestamp: ${field.timestamp}. Ignoring file.`,
               );
-              field.file = undefined; 
+              field.file = undefined;
             }
             if (
               ['image', 'audio', 'video'].includes(field.type) &&
@@ -190,7 +195,6 @@ export class ContentController {
     return this.contentService.create(dto, userId, files);
   }
 
-  
   // Get all contents of authenticated user
   @ApiOperation({ summary: 'Get all contents of the logged-in user' })
   @ApiBearerAuth()
@@ -200,25 +204,67 @@ export class ContentController {
     return this.contentService.getContentByUser(userId);
   }
 
-
-  // Get all contents
+  // ---------------Get all contents every where----------
   @ApiOperation({ summary: 'Get all contents' })
   @Get()
   async findAll() {
     return this.contentService.findAll();
   }
 
-  // Get single content by id
+  // ------------Get single content by id-----------
   @ApiOperation({ summary: 'Get a single content by ID' })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.contentService.findOne(id);
   }
-// ------------------- increment content view count -------------------
+  // ------------------- increment content view count -------------------
   @ApiOperation({ summary: 'Increment content view count by 1' })
-   @Patch(':id/views')
+  @Patch(':id/views')
   async incrementViews(@Param('id') id: string) {
     return this.contentService.incrementView(id);
   }
 
+  // ----------------commnet content-----------------------
+  @Post('content-comment')
+  @ApiBearerAuth()
+  @ValidateAuth()
+  createContentComment(
+    @Body() payload: CreateContentComemnt,
+    @GetUser('userId') userId: string,
+  ) {
+    return this.contentService.createContentComment({ ...payload, userId });
+  }
+
+  // ----------- Add content  Reaction ------------
+  @ApiOperation({ summary: 'add conent reaction with  on a content' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Post('/content-reaction')
+  createContentReaction(
+    @GetUser('userId') userId: string,
+    @Body() dto: CreateContentReactionDto,
+  ) {
+    return this.contentService.createContentReaction({ ...dto, userId });
+  }
+
+  // -------get comment all comment content----------------
+  @ApiOperation({ summary: 'Get all content comments' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Get('content-comment-get')
+  findAllContentComments() {
+    return this.contentService.findAllContentComments();
+  }
+
+  // ----------- Add Comment Reaction ------------
+  @ApiOperation({ summary: 'add comment reaction with  on a content' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Post('/content-comment-reaction')
+  createContentCommentReaction(
+    @GetUser('userId') userId: string,
+    @Body() dto: CreateContentCommentReactionDto,
+  ) {
+    return this.contentService.createContentCommentReaction({ ...dto, userId });
+  }
 }

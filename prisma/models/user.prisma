@@ -43,9 +43,9 @@ model User {
   isMembership         Boolean                  @default(false)
   ApplytoContibute     ApplytoContibute?
   // -------content reaction--------
-  contentComments      ContentComment[]
-  contentReactions     ContentReaction[]
-  contentCommentReacts ContentCommentReaction[]
+  contentComment         ContentComment[]
+  contentReaction         ContentReaction[]
+  contentCommentReaction  ContentCommentReaction[]
 
   @@map("users")
 }

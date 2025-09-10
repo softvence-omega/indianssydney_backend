@@ -9,6 +9,12 @@ import { FileService } from 'src/lib/file/file.service';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { successResponse, TResponse } from 'src/common/utils/response.util';
 import { HandleError } from 'src/common/error/handle-error.decorator';
+import {
+  CreateContentComemnt,
+  CreateContentCommentReactionDto,
+  CreateContentReactionDto,
+} from '../dto/create-content-comment.dto';
+import { CreatePostReactionDto } from 'src/main/community/dto/create-community.dto';
 
 @Injectable()
 export class ContentService {
@@ -24,7 +30,7 @@ export class ContentService {
     files: Express.Multer.File[],
   ): Promise<TResponse<any>> {
     try {
-      // Validate required fields
+      // ---------------Validate required fields-------------------------
       if (
         !payload.title ||
         !payload.contentType ||
@@ -43,12 +49,12 @@ export class ContentService {
         );
       }
 
-      // Validate userId is provided
+      // ------------------Validate userId is provided-----------------------
       if (!userId) {
         throw new BadRequestException('Missing userId from authentication');
       }
 
-      // Validate userId exists
+      // -------------Validate userId exists---------------
       const userExists = await this.prisma.user.findUnique({
         where: { id: userId },
       });
@@ -214,7 +220,7 @@ export class ContentService {
 
     return successResponse(contents, 'All contents fetched successfully');
   }
-
+  // --------------------- user contents-----------------
   @HandleError('Failed to fetch user contents', 'content')
   async findOne(id: string): Promise<TResponse<any>> {
     const content = await this.prisma.content.findUnique({
@@ -262,12 +268,107 @@ export class ContentService {
       throw new NotFoundException('Content not found');
     }
 
-    // increment contentviews by 1
+    // increment contentviews by
     return this.prisma.content.update({
       where: { id },
       data: {
         contentviews: { increment: 1 },
       },
     });
+  }
+
+  // -------------------------------create content comment---------------
+
+  @HandleError('Failed to add comment', 'Comment')
+  async createContentComment(
+    payload: CreateContentComemnt & { userId: string },
+  ) {
+    const comment = await this.prisma.contentComment.create({
+      data: {
+        contentcomment: payload.contentcomment,
+        userId: payload.userId,
+        contentId: payload.contentId,
+      },
+    });
+
+    return successResponse(comment, 'Comment added successfully');
+  }
+
+  // --------------get comment-----------
+  async findAllContentComments() {
+    const comments = await this.prisma.contentComment.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+          },
+        },
+        reactions: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                profilePhoto: true,
+              },
+            },
+          },
+        },
+        content: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(
+      comments.map((c) => ({
+        ...c,
+        contentObj: c.content ?? null,
+      })),
+      'All content comments fetched successfully',
+    );
+  }
+
+  // ----------- Add Post Reaction ------------
+  @HandleError('Failed to add content reaction', 'PostReaction')
+  async createContentReaction(
+    payload: CreateContentReactionDto & { userId: string },
+  ) {
+    const postreaction = await this.prisma.contentReaction.create({
+      data: {
+        type: payload.type,
+        userId: payload.userId,
+        contentId: payload.contentId,
+      },
+    });
+    return successResponse(
+      postreaction,
+      ' content Post reaction added successfully',
+    );
+  }
+
+  // ----------- Add Comment Reaction ------------
+  @HandleError('Failed to add contenet comment reaction', 'CommentReaction')
+  async createContentCommentReaction(
+    payload: CreateContentCommentReactionDto & { userId: string },
+  ) {
+    const commentreaction = await this.prisma.contentCommentReaction.create({
+      data: {
+        type: payload.type,
+        userId: payload.userId,
+        commentId: payload.contentId,
+      },
+    });
+    return successResponse(
+      commentreaction,
+      'Content Comment reaction added successfully',
+    );
   }
 }

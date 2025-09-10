@@ -37,8 +37,9 @@ model Content {
 
   additionalContents AdditionalContent[]
 
-  comments           ContentComment[]
-  reactions          ContentReaction[]
+  ContentComments  ContentComment[]
+  ContentReactions ContentReaction[]
+
   @@map("contents")
 }
 
@@ -78,41 +79,41 @@ model SubCategory {
 
   @@map("sub_categories")
 }
+
 // ------------------comment section now---------------------------
 // ------------------ Comments ---------------------------
 model ContentComment {
-  id        String        @id @default(uuid())
-  content   String
-  userId    String
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contentId String
-  contentObj Content      @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  id             String  @id @default(uuid())
+  contentcomment String
+  userId         String
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId      String
+  content        Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   reactions ContentCommentReaction[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
 
 model ContentReaction {
-  id        String    @id @default(uuid())
+  id        String             @id @default(uuid())
   type      ContetReactionType
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   contentId String
-  content   Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  content   Content            @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
 
 model ContentCommentReaction {
-  id        String        @id @default(uuid())
+  id        String             @id @default(uuid())
   type      ContetReactionType
   userId    String
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   commentId String
-  comment   ContentComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  comment   ContentComment     @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -123,7 +124,6 @@ enum ContetReactionType {
   LIKE
   DISLIKE
 }
-
 
 enum Status {
   PENDING
