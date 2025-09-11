@@ -1,0 +1,132 @@
+/**
+ * One Content → belongs to one Category
+ * One Content → belongs to one SubCategory
+ * One Content → has one AdditionalField (optional)
+ * One Category → has many SubCategories
+ * One SubCategory → belongs to one Category
+ */
+
+model Content {
+  id             String      @id @default(uuid())
+  contentType    ContentType
+  title          String
+  subTitle       String
+  contentviews   Int?        @default(0)
+  paragraph      String?
+  shortQuote     String?
+  image          String?
+  videoFile      String?
+  imageCaption   String?
+  audioFile      String?
+  tags           String[]
+  videoThumbnail String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status    Status   @default(PENDING)
+  isDeleted Boolean  @default(false)
+
+  //-------------- Relations-----------------
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  subCategoryId String
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+
+  additionalContents AdditionalContent[]
+
+  ContentComments  ContentComment[]
+  ContentReactions ContentReaction[]
+
+  @@map("contents")
+}
+
+model AdditionalContent {
+  id        String  @id @default(uuid())
+  contentId String
+  type      String?
+  value     String?
+  order     Int
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("additional_contents")
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  tamplate      String
+  name          String        @unique
+  slug          String?       @unique
+  createdAt     DateTime      @default(now())
+  isDeleted     Boolean       @default(false)
+  // --------------Relations-------------
+  subCategories SubCategory[]
+  contents      Content[]
+
+  @@map("categories")
+}
+
+model SubCategory {
+  id         String    @id @default(uuid())
+  subname    String?   @unique
+  subslug    String?   @unique
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id])
+  // Relations
+  contents   Content[]
+
+  @@map("sub_categories")
+}
+
+
+// ------------------ Comments ---------------------------
+model ContentComment {
+  id             String  @id @default(uuid())
+  contentcomment String
+  userId         String
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId      String
+  content        Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  reactions ContentCommentReaction[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ContentReaction {
+  id        String             @id @default(uuid())
+  type      ContetReactionType
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentId String
+  content   Content            @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ContentCommentReaction {
+  id        String             @id @default(uuid())
+  type      ContetReactionType
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   ContentComment     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+// ------------------ ENUMS ---------------------------
+enum ContetReactionType {
+  LIKE
+  DISLIKE
+}
+
+enum Status {
+  PENDING
+  APPROVE
+  Declined
+}

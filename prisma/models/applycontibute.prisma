@@ -1,0 +1,19 @@
+model ApplytoContibute {
+    id        String      @id @default(uuid())
+    about     String
+    email     String      @unique
+    fullName  String
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    status    ApplyStatus @default(PENDING)
+
+    // relationship
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+}
+
+enum ApplyStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}

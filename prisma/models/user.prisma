@@ -1,31 +1,59 @@
 model User {
-    id       String  @id @default(uuid())
-    email    String  @unique
-    // * For manual registration
-    password String?
-    // * For Google registration
-    googleId String? @unique
+  id           String   @id @default(uuid())
+  email        String   @unique
+  fullName     String?
+  password     String?
+  role         UserRole @default(USER)
+  profilePhoto String?
+  bio          String?
+  // ------------------google -varify------------------------------------
 
-    // * Settings
-    role       UserRole @default(USER)
-    isVerified Boolean  @default(false)
-    isActive   Boolean  @default(true)
-    isDeleted  Boolean  @default(false)
+  googleId   String?   @unique
+  emailOtp   Int?
+  otpExpiry  DateTime?
+  isVerified Boolean   @default(false)
 
-    // * Optional fields
-    profilePic String?
-    createdAt  DateTime  @default(now())
-    updatedAt  DateTime  @updatedAt()
-    deletedAt  DateTime?
+  // ---------------Password reset OTP----------------------
+  resetOtp       Int?
+  resetOtpExpiry DateTime?
 
-    // * Relations
-    userProfile UserProfile?
+  isActive    Boolean   @default(true)
+  isDeleted   Boolean   @default(false)
+  isContibute Boolean   @default(false)
+  deletedAt   DateTime?
 
-    @@map("users")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  // ------ Relations----------------------
+  recommendations Recommendation[]
+  LiveEven        LiveEvent[]
+  constents       Content[]
+  comments        Comment[]
+
+  UserNotification   UserNotification[]
+  notificationToggle NotificationToggle?
+
+  postReactions        PostReaction[]
+  commentReactions     CommentReaction[]
+  CommunityPost        CommunityPost[]
+  ReportContent        ReportContent[]
+  // -----------------Membership----------------------
+  Payment              Payment[]
+  subscriptionEndsAt   DateTime?
+  isMembership         Boolean                  @default(false)
+  ApplytoContibute     ApplytoContibute?
+  // -------content reaction--------
+  contentComment         ContentComment[]
+  contentReaction         ContentReaction[]
+  contentCommentReaction  ContentCommentReaction[]
+
+  @@map("users")
 }
 
 enum UserRole {
-    USER
-    ADMIN
-    SUPER_ADMIN
+  USER
+  ADMIN
+  SUPER_ADMIN
+  MEMBER
+  CONTIBUTOR
 }
