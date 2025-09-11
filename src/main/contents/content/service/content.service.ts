@@ -14,7 +14,6 @@ import {
   CreateContentCommentReactionDto,
   CreateContentReactionDto,
 } from '../dto/create-content-comment.dto';
-import { CreatePostReactionDto } from 'src/main/community/dto/create-community.dto';
 
 @Injectable()
 export class ContentService {
@@ -22,7 +21,7 @@ export class ContentService {
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
   ) {}
-
+  // ---------------------content crate-----------------------
   @HandleError('Failed to create content', 'content')
   async create(
     payload: CreateContentDto,
@@ -114,7 +113,7 @@ export class ContentService {
         audioUrl = processedAudio?.url;
       }
 
-      // Transaction: create Content + AdditionalContent
+      // ---------- Transaction: create Content + AdditionalContent--------
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
           data: {
@@ -203,8 +202,9 @@ export class ContentService {
     }
   }
 
+  // -----------------fetch all content------------------
   @HandleError('Failed to fetch all contents', 'content')
-  async findAll(): Promise<TResponse<any>> {
+  async findAllContent(): Promise<TResponse<any>> {
     const contents = await this.prisma.content.findMany({
       where: { isDeleted: false },
       include: {
@@ -213,31 +213,167 @@ export class ContentService {
         },
         category: true,
         subCategory: true,
+        ContentComments: {
+          include: { reactions: true },
+        },
+        ContentReactions: true,
         additionalContents: { orderBy: { order: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return successResponse(contents, 'All contents fetched successfully');
+    // enrich each content with counts
+    const enrichedContents = contents.map((content) => {
+      const likeCount = content.ContentReactions.filter(
+        (r) => r.type === 'LIKE',
+      ).length;
+
+      const dislikeCount = content.ContentReactions.filter(
+        (r) => r.type === 'DISLIKE',
+      ).length;
+
+      const commentCount = content.ContentComments?.length || 0;
+
+      const commentReactionCount =
+        content.ContentComments?.reduce(
+          (total, comment) => total + (comment.reactions?.length || 0),
+          0,
+        ) || 0;
+
+      const commentLikeCount =
+        content.ContentComments?.reduce(
+          (total, comment) =>
+            total +
+            (comment.reactions?.filter((r) => r.type === 'LIKE').length || 0),
+          0,
+        ) || 0;
+
+      const commentDislikeCount =
+        content.ContentComments?.reduce(
+          (total, comment) =>
+            total +
+            (comment.reactions?.filter((r) => r.type === 'DISLIKE').length ||
+              0),
+          0,
+        ) || 0;
+
+      const totalCommentLength =
+        content.ContentComments?.reduce(
+          (total, comment) => total + (comment.contentcomment?.length || 0),
+          0,
+        ) || 0;
+
+      const avgCommentLength =
+        commentCount > 0 ? totalCommentLength / commentCount : 0;
+
+      return {
+        ...content,
+        likeCount,
+        dislikeCount,
+        reactionCount: content.ContentReactions?.length || 0,
+        commentCount,
+        commentReactionCount,
+        commentLikeCount,
+        commentDislikeCount,
+        totalCommentLength,
+        avgCommentLength,
+      };
+    });
+
+    return successResponse(
+      enrichedContents,
+      'All contents fetched successfully',
+    );
   }
-  // --------------------- user contents-----------------
+
+  // ---------------------single  contents-----------------
   @HandleError('Failed to fetch user contents', 'content')
   async findOne(id: string): Promise<TResponse<any>> {
     const content = await this.prisma.content.findUnique({
-      where: { id },
+      where: { id, isDeleted: false },
       include: {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
         },
         category: true,
         subCategory: true,
+        ContentComments: {
+          include: {
+            reactions: true,
+          },
+        },
+        ContentReactions: true,
         additionalContents: { orderBy: { order: 'asc' } },
       },
     });
 
     if (!content) throw new BadRequestException('Content not found');
 
-    return successResponse(content, 'Content fetched successfully');
+    // ---------- Content Reactions ----------
+    const likeCount = content.ContentReactions.filter(
+      (r) => r.type === 'LIKE',
+    ).length;
+
+    const dislikeCount = content.ContentReactions.filter(
+      (r) => r.type === 'DISLIKE',
+    ).length;
+
+    // ---------- Comments ----------
+    const commentCount = content.ContentComments?.length || 0;
+
+    // all reactions on all comments
+    const commentReactionCount =
+      content.ContentComments?.reduce(
+        (total, comment) => total + (comment.reactions?.length || 0),
+        0,
+      ) || 0;
+
+    const commentLikeCount =
+      content.ContentComments?.reduce(
+        (total, comment) =>
+          total +
+          (comment.reactions?.filter((r) => r.type === 'LIKE').length || 0),
+        0,
+      ) || 0;
+
+    const commentDislikeCount =
+      content.ContentComments?.reduce(
+        (total, comment) =>
+          total +
+          (comment.reactions?.filter((r) => r.type === 'DISLIKE').length || 0),
+        0,
+      ) || 0;
+
+    // ---------- Comment Length ----------
+    // total characters across all comments
+    const totalCommentLength =
+      content.ContentComments?.reduce(
+        (total, comment) => total + (comment.contentcomment?.length || 0),
+        0,
+      ) || 0;
+
+    // average comment length
+    const avgCommentLength =
+      commentCount > 0 ? totalCommentLength / commentCount : 0;
+
+    return successResponse(
+      {
+        ...content,
+        // content stats
+        likeCount,
+        dislikeCount,
+        reactionCount: content.ContentReactions?.length || 0,
+
+        // comment stats
+        commentCount,
+        commentReactionCount,
+        commentLikeCount,
+        commentDislikeCount,
+        totalCommentLength,
+        avgCommentLength,
+      },
+      'Content fetched successfully',
+    );
   }
 
   // ----------- Get contents by userId ------------
@@ -295,46 +431,37 @@ export class ContentService {
   }
 
   // --------------get comment-----------
-  async findAllContentComments() {
-    const comments = await this.prisma.contentComment.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            profilePhoto: true,
-          },
-        },
-        reactions: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                profilePhoto: true,
-              },
-            },
-          },
-        },
-        content: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  // async findAllContentComments() {
+  //   const comments = await this.prisma.contentComment.findMany({
+  //     include: {
+  //       user: {
+  //         select: {
+  //           id: true,
+  //           fullName: true,
+  //           email: true,
+  //           profilePhoto: true,
+  //         },
+  //       },
+  //       reactions: {
+  //         include: {
+  //           user: {
+  //             select: {
+  //               id: true,
+  //               fullName: true,
+  //               profilePhoto: true,
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //     orderBy: { createdAt: 'desc' },
+  //   });
 
-    return successResponse(
-      comments.map((c) => ({
-        ...c,
-        contentObj: c.content ?? null,
-      })),
-      'All content comments fetched successfully',
-    );
-  }
+  //   return successResponse(
+  //     comments,
+  //     'All content comments fetched successfully',
+  //   );
+  // }
 
   // ----------- Add Post Reaction ------------
   @HandleError('Failed to add content reaction', 'PostReaction')

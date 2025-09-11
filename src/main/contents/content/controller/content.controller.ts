@@ -24,7 +24,11 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { GetUser, ValidateAuth } from 'src/common/jwt/jwt.decorator';
+import {
+  GetUser,
+  ValidateAuth,
+  ValidateContibutor,
+} from 'src/common/jwt/jwt.decorator';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
 import { AdditionalFieldDto } from '../dto/additional-field.dto';
@@ -38,7 +42,7 @@ export class ContentController {
     summary: 'Create new content with files and additional data',
   })
   @ApiBearerAuth()
-  @ValidateAuth()
+  @ValidateContibutor()
   @Post()
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: CreateContentDto })
@@ -195,23 +199,25 @@ export class ContentController {
     return this.contentService.create(dto, userId, files);
   }
 
-  // Get all contents of authenticated user
+  //------------- Get all contents of authenticated user--------------
   @ApiOperation({ summary: 'Get all contents of the logged-in user' })
   @ApiBearerAuth()
-  @ValidateAuth()
+  @ValidateContibutor()
   @Get('by-user')
   async getContentByUser(@GetUser('userId') userId: string) {
+    console.log('user id content', userId);
     return this.contentService.getContentByUser(userId);
   }
 
   // ---------------Get all contents every where----------
-  @ApiOperation({ summary: 'Get all contents' })
-  @Get()
-  async findAll() {
-    return this.contentService.findAll();
+
+  @ApiOperation({ summary: 'Get all contents all user' })
+  @Get('contents-all')
+  async findAllContent() {
+    return this.contentService.findAllContent();
   }
 
-  // ------------Get single content by id-----------
+  // ------------Get single content by id-----------------------
   @ApiOperation({ summary: 'Get a single content by ID' })
   @Get(':id')
   async findOne(@Param('id') id: string) {
@@ -224,7 +230,7 @@ export class ContentController {
     return this.contentService.incrementView(id);
   }
 
-  // ----------------commnet content-----------------------
+  // ----------------  commnet content  -----------------------
   @Post('content-comment')
   @ApiBearerAuth()
   @ValidateAuth()
@@ -235,7 +241,7 @@ export class ContentController {
     return this.contentService.createContentComment({ ...payload, userId });
   }
 
-  // ----------- Add content  Reaction ------------
+  // -----------   Add content  Reaction   ------------
   @ApiOperation({ summary: 'add conent reaction with  on a content' })
   @ApiBearerAuth()
   @ValidateAuth()
@@ -247,17 +253,17 @@ export class ContentController {
     return this.contentService.createContentReaction({ ...dto, userId });
   }
 
-  // -------get comment all comment content----------------
-  @ApiOperation({ summary: 'Get all content comments' })
-  @ApiBearerAuth()
-  @ValidateAuth()
-  @Get('content-comment-get')
-  findAllContentComments() {
-    return this.contentService.findAllContentComments();
-  }
+  // ----------  get comment all comment content   ----------------
+  // @ApiOperation({ summary: 'Get all content comments' })
+  // @ApiBearerAuth()
+  // @ValidateAuth()
+  // @Get('content-comment-get')
+  // findAllContentComments() {
+  //   return this.contentService.findAllContentComments();
+  // }
 
-  // ----------- Add Comment Reaction ------------
-  @ApiOperation({ summary: 'add comment reaction with  on a content' })
+  // -----------   Add Comment Reaction   ------------
+  @ApiOperation({ summary: 'Add comment reaction with  on a content' })
   @ApiBearerAuth()
   @ValidateAuth()
   @Post('/content-comment-reaction')

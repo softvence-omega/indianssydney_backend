@@ -80,7 +80,7 @@ model SubCategory {
   @@map("sub_categories")
 }
 
-// ------------------comment section now---------------------------
+
 // ------------------ Comments ---------------------------
 model ContentComment {
   id             String  @id @default(uuid())

@@ -54,6 +54,7 @@ export class UserController {
     if (file) {
       dto.file = file;
     }
+    console.log('the user id is', userId);
     return await this.userService.updateProfile(userId, dto);
   }
   // ----------------update password--------------------
