@@ -275,8 +275,18 @@ async recentActivity(): Promise<TResponse<any>> {
 
 // ---------usr manage---
 
+@HandleError('Failed to get user manage overview')
+async editorContentActivity(): Promise<TResponse<any>> {
+  const EditorContentActivity = await this.prisma.contentStatusHistory.findMany({
+    orderBy: { changedAt: 'desc' },
+    take: 10,
+  });
 
-
-
+  return {
+    success: true,
+    message: 'Editor content activity fetched successfully',
+    data: EditorContentActivity,
+  };
+}
 
 }
