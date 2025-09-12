@@ -7,18 +7,77 @@ import { ApplyStatus, Status } from '@prisma/client';
 export class AdminManagementService {
   constructor(private readonly prisma: PrismaService) {}
   @HandleError('Failed to update content status', 'contentmanage')
-  async updateContentStatus(id: string, status: Status): Promise<any> {
+  async updateContentStatus(
+    contentId: string,
+    newStatus: Status,
+    userId: string,
+  ): Promise<any> {
+    const content = await this.prisma.content.findUnique({
+      where: { id: contentId },
+      include: {
+        user: {
+          //  show content owner
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
+        subCategory: { select: { id: true, subname: true, subslug: true } },
+      },
+    });
+
+    if (!content) {
+      throw new BadRequestException('Content not found');
+    }
+
+    // update content
     const updated = await this.prisma.content.update({
-      where: { id },
-      data: { status },
+      where: { id: contentId },
+      data: { status: newStatus },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
+        subCategory: { select: { id: true, subname: true, subslug: true } },
+      },
+    });
+
+    //  store history
+    const history = await this.prisma.contentStatusHistory.create({
+      data: {
+        contentId,
+        userId: userId,
+        oldStatus: content.status,
+        newStatus,
+      },
+    });
+
+    //  get admin info
+    const admin = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, fullName: true, email: true, profilePhoto: true },
+    });
+
+    //  get counts
+    const counts = await this.prisma.content.groupBy({
+      by: ['status'],
+      _count: { _all: true },
     });
 
     return {
       success: true,
-      message: `Content status updated to ${status}`,
+      message: `Content status updated to ${newStatus}`,
       data: updated,
+      changedBy: admin,
+      counts: counts.reduce(
+        (acc, cur) => ({
+          ...acc,
+          [cur.status.toLowerCase()]: cur._count._all,
+        }),
+        {},
+      ),
     };
   }
+
   // --------------- get recent content  --------------
   @HandleError('Failed to get recent contents', 'contentmanage')
   async getRecentContent(): Promise<any> {
@@ -35,7 +94,7 @@ export class AdminManagementService {
       },
     });
   }
-
+  // ------------------------- side management----------------------------
   @HandleError('Failed to get pending contents', 'contentmanage')
   async getPendingContents(): Promise<any> {
     return this.prisma.content.findMany({
@@ -50,6 +109,7 @@ export class AdminManagementService {
       },
     });
   }
+  // ------------------------- content manage----------------------
 
   @HandleError('Failed to get approved contents', 'contentmanage')
   async getApprovedContents(): Promise<any> {
@@ -128,5 +188,4 @@ export class AdminManagementService {
       data: { status },
     });
   }
-  
 }
