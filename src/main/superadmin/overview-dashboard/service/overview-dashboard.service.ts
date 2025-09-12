@@ -236,57 +236,55 @@ export class OverviewDashboardService {
   }
 
   // ----------------- Recent Activity -----------------------
- @HandleError('Failed to get recent activity overview')
-async recentActivity(): Promise<TResponse<any>> {
-  const activities = await this.prisma.content.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    include: {
-      user: {
-        select: { fullName: true, email: true },
+  @HandleError('Failed to get recent activity overview')
+  async recentActivity(): Promise<TResponse<any>> {
+    const activities = await this.prisma.content.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      include: {
+        user: {
+          select: { fullName: true, email: true },
+        },
       },
-    },
-  });
+    });
 
-  const formatted = activities.map((activity) => {
-    const userName =
-      activity.user?.fullName && activity.user.fullName.trim() !== ''
-        ? activity.user.fullName
-        : 'Unknown User';
+    const formatted = activities.map((activity) => {
+      const userName =
+        activity.user?.fullName && activity.user.fullName.trim() !== ''
+          ? activity.user.fullName
+          : 'Unknown User';
+
+      return {
+        message: `${userName} submitted "${activity.title}"`,
+        time: new Date(activity.createdAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+    });
 
     return {
-      message: `${userName} submitted "${activity.title}"`,
-      time: new Date(activity.createdAt).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      success: true,
+      message: 'Recent activities fetched successfully',
+      data: formatted,
     };
-  });
+  }
 
-  return {
-    success: true,
-    message: 'Recent activities fetched successfully',
-    data: formatted,
-  };
-}
+  @HandleError('Editor content activity  user manage overview')
+  async editorContentActivity(): Promise<TResponse<any>> {
+    const EditorContentActivity =
+      await this.prisma.contentStatusHistory.findMany({
+        orderBy: { changedAt: 'desc' },
+        take: 10,
+      });
 
-// ---------usr manage---
-
-@HandleError('Failed to get user manage overview')
-async editorContentActivity(): Promise<TResponse<any>> {
-  const EditorContentActivity = await this.prisma.contentStatusHistory.findMany({
-    orderBy: { changedAt: 'desc' },
-    take: 10,
-  });
-
-  return {
-    success: true,
-    message: 'Editor content activity fetched successfully',
-    data: EditorContentActivity,
-  };
-}
-
+    return {
+      success: true,
+      message: 'Editor content activity fetched successfully',
+      data: EditorContentActivity,
+    };
+  }
 }

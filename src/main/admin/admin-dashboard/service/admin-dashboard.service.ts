@@ -116,19 +116,5 @@ async recentActivity(): Promise<TResponse<any>> {
 }
 
 
-  findAll() {
-    return `This action returns all adminDashboard`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} adminDashboard`;
-  }
-
-  update(id: number, updateAdminDashboardDto: UpdateAdminDashboardDto) {
-    return `This action updates a #${id} adminDashboard`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} adminDashboard`;
-  }
+ 
 }
