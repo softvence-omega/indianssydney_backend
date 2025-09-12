@@ -39,8 +39,25 @@ model Content {
 
   ContentComments  ContentComment[]
   ContentReactions ContentReaction[]
+  statusHistories  ContentStatusHistory[]
 
   @@map("contents")
+}
+
+model ContentStatusHistory {
+  id        String @id @default(uuid())
+  contentId String
+
+  oldStatus Status
+  newStatus Status
+  changedAt DateTime @default(now())
+
+  // Relations
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("content_status_histories")
 }
 
 model AdditionalContent {
@@ -80,7 +97,6 @@ model SubCategory {
   @@map("sub_categories")
 }
 
-
 // ------------------ Comments ---------------------------
 model ContentComment {
   id             String  @id @default(uuid())
@@ -91,8 +107,8 @@ model ContentComment {
   content        Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   reactions ContentCommentReaction[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @default(now()) @updatedAt
 }
 
 model ContentReaction {

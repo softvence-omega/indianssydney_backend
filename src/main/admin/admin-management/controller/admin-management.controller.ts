@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Req } from '@nestjs/common';
 import { AdminManagementService } from '../service/admin-management.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -6,7 +6,7 @@ import {
   ContentStatusChangeDto,
   ContributorApplyStatusDto,
 } from '../dto/admin-contentstatus.dto';
-import { ValidateAdmin } from 'src/common/jwt/jwt.decorator';
+import { GetUser, ValidateAdmin } from 'src/common/jwt/jwt.decorator';
 @ApiTags(
   'Admin Management (manage admin content & Contibute permission like approve,decline,pending)',
 )
@@ -17,15 +17,21 @@ export class AdminManagementController {
   ) {}
 
   // -----------Admin admin change content status ------------
-  @ApiOperation({ summary: ' Admin change content status' })
+  @ApiOperation({ summary: 'Admin change content status' })
   @ApiBearerAuth()
   @ValidateAdmin()
   @Patch(':id/content-status')
   async changeContentStatus(
     @Param('id') id: string,
     @Body() dto: ContentStatusChangeDto,
+    @GetUser('userId') userId: string,
+    @Req() req: any,
   ) {
-    return this.adminManagementService.updateContentStatus(id, dto.status);
+    return this.adminManagementService.updateContentStatus(
+      id,
+      dto.status,
+      userId,
+    );
   }
   // -----------Admin admin get recent  ------------
   @ApiOperation({ summary: 'Admin Admin get recent  status-pentding' })
@@ -62,7 +68,10 @@ export class AdminManagementController {
     return this.adminManagementService.getDeclinedContents();
   }
   // -------------------editor can be manage contibute user---------------
-  @ApiOperation({ summary: 'Admin updates contributor application status' })
+  @ApiOperation({
+    summary:
+      'Admin updates contributor application status . contibutor can apply for content create',
+  })
   @ApiBearerAuth()
   @ValidateAdmin()
   @Patch('contributor/:id/status')
@@ -78,6 +87,7 @@ export class AdminManagementController {
   @ApiOperation({ summary: 'Admin updates contributor application status' })
   @ApiBearerAuth()
   @ValidateAdmin()
+  // --------------
   @Get('contributor/all')
   async getAllContributor() {
     return this.adminManagementService.getAllContributor();

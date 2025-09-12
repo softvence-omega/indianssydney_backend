@@ -12,6 +12,8 @@ export class LiveEventController {
   constructor(private readonly liveEventService: LiveEventService) {}
 
   @Post()
+  @ValidateAuth()
+  @ApiBearerAuth()
   async createLiveEvent(
     @GetUser('userId') userId: string,
     @Body() dto: CreateLiveEventDto,
