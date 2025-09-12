@@ -92,4 +92,18 @@ export class OverviewDashboardController {
     const result = await this.overviewDashboardService.recentActivity();
     return { success: true, data: result };
   }
+
+  // -------------admin status get activity edtor----------
+
+  @ApiOperation({
+    summary:
+      ' editor content activity .admin can be seen where contibute content status ',
+  })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('editor-content-activity')
+  async geteditorContentActivity() {
+    const result = await this.overviewDashboardService.editorContentActivity();
+    return { success: true, data: result };
+  }
 }

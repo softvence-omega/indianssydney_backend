@@ -33,19 +33,20 @@ model User {
   UserNotification   UserNotification[]
   notificationToggle NotificationToggle?
 
-  postReactions        PostReaction[]
-  commentReactions     CommentReaction[]
-  CommunityPost        CommunityPost[]
-  ReportContent        ReportContent[]
+  postReactions          PostReaction[]
+  commentReactions       CommentReaction[]
+  CommunityPost          CommunityPost[]
+  ReportContent          ReportContent[]
   // -----------------Membership----------------------
-  Payment              Payment[]
-  subscriptionEndsAt   DateTime?
-  isMembership         Boolean                  @default(false)
-  ApplytoContibute     ApplytoContibute?
+  Payment                Payment[]
+  subscriptionEndsAt     DateTime?
+  isMembership           Boolean                  @default(false)
+  ApplytoContibute       ApplytoContibute?
   // -------content reaction--------
-  contentComments      ContentComment[]
-  contentReactions     ContentReaction[]
-  contentCommentReacts ContentCommentReaction[]
+  contentComment         ContentComment[]
+  contentReaction        ContentReaction[]
+  contentCommentReaction ContentCommentReaction[]
+  statusChanges          ContentStatusHistory[]
 
   @@map("users")
 }

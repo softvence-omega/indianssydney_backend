@@ -29,7 +29,14 @@ export class UserService {
   ): Promise<TResponse<any>> {
     const user = await this.prisma.user.findUnique({
       where: { id: userid },
-      select: { password: true, googleId: true },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        profilePhoto: true,
+        password: true,
+        googleId: true,
+      },
     });
 
     if (!user) {
@@ -40,12 +47,13 @@ export class UserService {
     if (!user.password) {
       const hashedPassword = await this.utils.hash(dto.newPassword);
 
-      await this.prisma.user.update({
+      const updatedUser = await this.prisma.user.update({
         where: { id: userid },
         data: { password: hashedPassword },
+        select: { id: true, email: true, fullName: true, profilePhoto: true },
       });
 
-      return successResponse(null, 'Password set successfully');
+      return successResponse(updatedUser, 'Password set successfully');
     }
 
     // For normal email/password users — require current password check
@@ -64,12 +72,13 @@ export class UserService {
 
     const hashedPassword = await this.utils.hash(dto.newPassword);
 
-    await this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id: userid },
       data: { password: hashedPassword },
+      select: { id: true, email: true, fullName: true, profilePhoto: true },
     });
 
-    return successResponse(null, 'Password updated successfully');
+    return successResponse(updatedUser, 'Password updated successfully');
   }
 
   // ------------------------- Update Profile -----------------
@@ -78,11 +87,8 @@ export class UserService {
     userId: string,
     dto: UpdateProfileDto,
   ): Promise<TResponse<any>> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) throw new AppError(404, 'User not found');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError(401, 'User not found');
 
     let fileInstance: any;
     if (dto.file) {
