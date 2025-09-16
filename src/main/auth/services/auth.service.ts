@@ -227,7 +227,7 @@ export class AuthService {
 
     return { resetToken };
   }
-  // ---------------------------------------------varify otp signup----------------------------------
+  // ---------------------------------------------varify otp signup token ----------------------------------
   async verifyOtp(payload: VerifyOtpAuthDto) {
     // Verify the JWT token
     let decoded: any;
@@ -268,7 +268,7 @@ export class AuthService {
       roles: updatedUser.role,
     };
     const token = await this.jwt.signAsync(jwtPayload, {
-      expiresIn: '77d', // same as signup token expiry
+      expiresIn: '77d',
     });
 
     return {
