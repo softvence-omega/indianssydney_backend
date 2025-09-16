@@ -16,10 +16,27 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://indianssydney-backend.onrender.com',
+  ];
+
   app.enableCors({
-    origin: '*',
+    origin: (origin, callback) => {
+      if (!origin) {
+        // allow requests like Postman or curl
+        callback(null, true);
+        return;
+      }
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-    credentials: false,
+    credentials: true,
   });
 
   app.useGlobalPipes(
