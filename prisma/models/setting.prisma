@@ -1,0 +1,44 @@
+ model PrivacyPolicy{
+ id   String @id  @default(uuid())
+ title String @unique
+ subtext String
+  
+ } 
+model TermsConditions {
+  id      String @id @default(uuid())
+  title   String @unique
+  content String
+}
+
+// -----------------faq sections----------------------
+model FaqSection {
+  id           String @id @default(uuid())
+  sectionTitle String
+
+  faqs Faq[]
+}
+
+model Faq {
+  id        String @id @default(uuid())
+  question  String
+  answer    String
+  sectionId String
+  section   FaqSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
+
+
+ model Language{
+  id String @id @default(uuid())
+  language LanguageType
+ }
+
+model Ads{
+id String @id @default(uuid())
+title String
+link String
+adsimage String
+}
+ enum LanguageType {
+ English
+ Hindi               
+ } 

@@ -64,4 +64,14 @@ export class NotificationSettingService {
     });
     return successResponse(result, 'Notification setting updated successfully');
   }
+  // -------------get all notification setting --------------
+  @HandleError('Failed to get all notification setting')
+  async getAllNotificationSetting(): Promise<TResponse<any>> {
+    const result = await this.prisma.notificationToggle.findMany({
+      include: {
+        user: true,
+      },
+    });
+    return successResponse(result, 'Notification setting found successfully');
+  }
 }

@@ -15,7 +15,6 @@ export class UtilsService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
   ) {}
 
   sanitizedResponse(dto: any, data: any) {

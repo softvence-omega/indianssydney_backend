@@ -93,7 +93,6 @@ export class CommunityService {
   }
   // --------------get comment-----------
   @HandleError('Failed to fetch community comments', 'Comment')
-
   async findAllComments() {
     const comments = await this.prisma.comment.findMany({
       include: {
@@ -172,105 +171,138 @@ export class CommunityService {
   async findAll(query: PaginationDto): Promise<TResponse<any>> {
     const page = query.page || 1;
     const limit = query.limit && query.limit >= 0 ? query.limit : 10;
+
     const posts = await this.prisma.communityPost.findMany({
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        // CommentReaction
         comments: {
           include: {
             user: true,
             reactions: true,
           },
         },
-        // PostReaction
         reactions: true,
       },
     });
 
-    // Map to rename nested arrays
-    const formattedPosts = posts.map((post) => ({
-      id: post.id,
-      description: post.description,
-      image: post.image,
-      video: post.video,
-      userId: post.userId,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      postReactions: post.reactions, // rename PostReaction
-      comments: post.comments.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        user: comment.user,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-        commentReactions: comment.reactions, // rename CommentReaction
-      })),
-    }));
+    const formattedPosts = posts.map((post) => {
+      // Post like/dislike counts
+      const postLikeCount = post.reactions.filter(
+        (r) => r.type === 'LIKE',
+      ).length;
+      const postDislikeCount = post.reactions.filter(
+        (r) => r.type === 'DISLIKE',
+      ).length;
+
+      return {
+        id: post.id,
+        description: post.description,
+        image: post.image,
+        video: post.video,
+        userId: post.userId,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        postReactions: post.reactions,
+        postLikeCount,
+        postDislikeCount,
+        commentCount: post.comments.length,
+        comments: post.comments.map((comment) => {
+          const commentLikeCount = comment.reactions.filter(
+            (r) => r.type === 'LIKE',
+          ).length;
+          const commentDislikeCount = comment.reactions.filter(
+            (r) => r.type === 'DISLIKE',
+          ).length;
+
+          return {
+            id: comment.id,
+            content: comment.content,
+            user: comment.user,
+            createdAt: comment.createdAt,
+            updatedAt: comment.updatedAt,
+            commentReactions: comment.reactions,
+            commentLikeCount,
+            commentDislikeCount,
+          };
+        }),
+      };
+    });
 
     return successResponse(
       formattedPosts,
       'All community posts fetched successfully',
     );
   }
+
   // -------------post reaction find by id---------------------
   @HandleError('Failed to fetch community post', 'communityPost')
   async findOne(id: string) {
-    const post = await this.prisma.communityPost.findUnique({
-      where: { id },
+    const posts = await this.prisma.communityPost.findMany({
+      orderBy: { createdAt: 'desc' },
+
       include: {
-        user: {
-          select: { id: true, fullName: true, email: true, profilePhoto: true },
-        },
         comments: {
           include: {
-            user: { select: { id: true, fullName: true, profilePhoto: true } },
-            reactions: {
-              include: {
-                user: {
-                  select: { id: true, fullName: true, profilePhoto: true },
-                },
-              },
-            },
+            user: true,
+            reactions: true,
           },
         },
-        reactions: {
-          // Post reactions
-          include: {
-            user: { select: { id: true, fullName: true, profilePhoto: true } },
-          },
-        },
+        reactions: true,
       },
     });
 
-    if (!post) return null;
-
     // Map to rename nested arrays
-    const formattedPost = {
-      id: post.id,
-      description: post.description,
-      image: post.image,
-      video: post.video,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      user: post.user,
-      postReactions: post.reactions,
-      comments: post.comments.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        user: comment.user,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-        commentReactions: comment.reactions,
-      })),
-    };
+    const formattedPost = posts.map((post) => {
+      // Post like/dislike counts
+      const postLikeCount = post.reactions.filter(
+        (r) => r.type === 'LIKE',
+      ).length;
+      const postDislikeCount = post.reactions.filter(
+        (r) => r.type === 'DISLIKE',
+      ).length;
+
+      return {
+        id: post.id,
+        description: post.description,
+        image: post.image,
+        video: post.video,
+        userId: post.userId,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        postReactions: post.reactions,
+        postLikeCount,
+        postDislikeCount,
+        commentCount: post.comments.length,
+        comments: post.comments.map((comment) => {
+          const commentLikeCount = comment.reactions.filter(
+            (r) => r.type === 'LIKE',
+          ).length;
+          const commentDislikeCount = comment.reactions.filter(
+            (r) => r.type === 'DISLIKE',
+          ).length;
+
+          return {
+            id: comment.id,
+            content: comment.content,
+            user: comment.user,
+            createdAt: comment.createdAt,
+            updatedAt: comment.updatedAt,
+            commentReactions: comment.reactions,
+            commentLikeCount,
+            commentDislikeCount,
+          };
+        }),
+      };
+    });
 
     return successResponse(
       formattedPost,
       'Community post fetched successfully',
     );
   }
+  // --------------failed to update community-----------
 
   @HandleError('Failed to update community post', 'communityPost')
   async update(id: string, updateCommunityDto: UpdateCommunityDto) {
