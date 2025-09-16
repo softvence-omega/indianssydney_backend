@@ -20,6 +20,7 @@ async function bootstrap() {
     'http://localhost:3000',
     'http://localhost:5173',
     'https://indianssydney-backend.onrender.com',
+    'https://australiancanvas.com',
   ];
 
   app.enableCors({
