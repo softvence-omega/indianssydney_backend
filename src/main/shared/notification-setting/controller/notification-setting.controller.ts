@@ -22,6 +22,10 @@ export class NotificationSettingController {
     return await this.notificationSettingService.getNotificationSetting(userId);
   }
 
+  @Get('all')
+  async getAllNotificationSetting(): Promise<TResponse<any>> {
+    return await this.notificationSettingService.getAllNotificationSetting();
+  }
   @Patch()
   async updateNotificationSetting(
     @GetUser('userId') userId: string,

@@ -13,6 +13,7 @@ export class ContentmanageService {
     private readonly prisma: PrismaService,
     private readonly notificationGateway: NotificationGateway,
   ) {}
+
   @HandleError('Failed to update content status', 'contentmanage')
   async updateContentStatus(id: string, status: Status): Promise<any> {
     const updated = await this.prisma.content.update({
@@ -88,6 +89,23 @@ export class ContentmanageService {
       message: `Content status updated to ${status}`,
       data: updated,
     };
+  }
+
+  // --------------get all content with super admin ------------
+
+  @HandleError('Failed to get all content', 'contentmanage')
+  async getAllContentSuperadmin(): Promise<any> {
+    return this.prisma.content.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
+        subCategory: { select: { id: true, subname: true, subslug: true } },
+      },
+    });
   }
 
   // --------------- get recent content  --------------

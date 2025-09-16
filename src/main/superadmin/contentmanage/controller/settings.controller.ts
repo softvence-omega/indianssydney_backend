@@ -7,6 +7,7 @@ import {
   Patch,
   UploadedFile,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -60,6 +61,22 @@ export class SettingsController {
     return this.settingsService.getPrivacyPolicies();
   }
 
+  @Patch('privacy-policy/:id')
+  @ValidateSuperAdmin()
+  @ApiOperation({ summary: 'Update Privacy Policy by ID' })
+  updatePrivacyPolicyById(
+    @Param('id') id: string,
+    @Body() dto: UpdatePrivacyPolicyDto,
+  ) {
+    return this.settingsService.updatePrivacyPolicy(id, dto);
+  }
+
+  @Delete('privacy-policy/:id')
+  @ValidateSuperAdmin()
+  @ApiOperation({ summary: 'Delete Privacy Policy' })
+  async deletePrivacyPolicy(@Param('id') id: string) {
+    return this.settingsService.deletePrivacyPolicy(id);
+  }
   // -------------------- Terms --------------------
   @Post('terms')
   @ValidateSuperAdmin()
@@ -81,6 +98,19 @@ export class SettingsController {
     return this.settingsService.getTerms();
   }
 
+  @Get('terms/:id')
+  @ApiOperation({ summary: 'Get Terms & Conditions by ID' })
+  async getTermsById(@Param('id') id: string) {
+    return this.settingsService.getTermsById(id);
+  }
+
+  @Delete('terms/:id')
+  @ValidateSuperAdmin()
+  @ApiOperation({ summary: 'Delete Terms & Conditions' })
+  async deleteTerms(@Param('id') id: string) {
+    return this.settingsService.deleteTerms(id);
+  }
+
   // -------------------- FAQ (transactional) --------------------
   @Post('faq-section-with-faqs')
   @ValidateSuperAdmin()
@@ -95,6 +125,19 @@ export class SettingsController {
   @ApiOperation({ summary: 'Get FAQs' })
   getFaqs() {
     return this.settingsService.getFaqs();
+  }
+
+  @Get('faq/:id')
+  @ApiOperation({ summary: 'Get FAQ Section by ID' })
+  getFaqSection(@Param('id') id: string) {
+    return this.settingsService.getFaqSection(id);
+  }
+
+  @Delete('faq/:id')
+  @ValidateSuperAdmin()
+  @ApiOperation({ summary: 'Delete FAQ Section' })
+  deleteFaqSection(@Param('id') id: string) {
+    return this.settingsService.deleteFaqSection(id);
   }
 
   // -------------------- Language --------------------
@@ -112,18 +155,16 @@ export class SettingsController {
   }
 
   // -------------------- Ads --------------------
-  @Post('ads')
+
+  @ApiOperation({ summary: 'Create a new recommendation for admin' })
+  @ApiBearerAuth()
   @ValidateSuperAdmin()
-  @ApiOperation({ summary: 'Create Ads' })
+  @Post('ads-create')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
-      'file', // must match DTO field
-      new MulterService().createMulterOptions(
-        './temp',
-        'recommendations',
-        FileType.IMAGE,
-      ),
+      'file',
+      new MulterService().createMulterOptions('./temp', 'ads', FileType.IMAGE),
     ),
   )
   async createAds(
@@ -138,5 +179,37 @@ export class SettingsController {
   @ApiOperation({ summary: 'Get Ads' })
   getAds() {
     return this.settingsService.getAds();
+  }
+
+  @Get('ads/:id')
+  @ApiOperation({ summary: 'Get Ad by ID' })
+  getAd(@Param('id') id: string) {
+    return this.settingsService.getAd(id);
+  }
+
+  @Patch('ads/:id')
+  @ValidateSuperAdmin()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor(
+      'file',
+      new MulterService().createMulterOptions('./temp', 'ads', FileType.IMAGE),
+    ),
+  )
+  @ApiOperation({ summary: 'Update Ad by ID' })
+  updateAd(
+    @Param('id') id: string,
+    @Body() dto: CreateAdsDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (file) dto.file = file;
+    return this.settingsService.updateAd(id, dto);
+  }
+
+  @Delete('ads/:id')
+  @ValidateSuperAdmin()
+  @ApiOperation({ summary: 'Delete Ad' })
+  deleteAd(@Param('id') id: string) {
+    return this.settingsService.deleteAd(id);
   }
 }

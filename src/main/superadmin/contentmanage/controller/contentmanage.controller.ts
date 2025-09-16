@@ -29,6 +29,14 @@ export class ContentmanageController {
   ) {
     return this.contentmanageService.updateContentStatus(id, dto.status);
   }
+
+  @ApiOperation({ summary: 'Super Admin get all content with super admin' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('all-content-manage')
+  async getAllContentSuperadmin() {
+    return this.contentmanageService.getAllContentSuperadmin();
+  }
   // -----------super admin get recent  ------------
   @ApiOperation({ summary: 'Super Admin get recent  status-pentding' })
   @ApiBearerAuth()
@@ -46,7 +54,7 @@ export class ContentmanageController {
     return this.contentmanageService.getPendingContents();
   }
 
-  // ------------------sttus Approve----
+  // ------------------sttus Approve ----------------
   @ApiOperation({ summary: 'Super Admin get all status-pentding' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
@@ -55,7 +63,7 @@ export class ContentmanageController {
     return this.contentmanageService.getApprovedContents();
   }
 
-  // ------------------status Reject----
+  // ------------------status Reject-----------------
   @ApiOperation({ summary: 'Super Admin get all status-pentding' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
@@ -64,7 +72,7 @@ export class ContentmanageController {
     return this.contentmanageService.getDeclinedContents();
   }
 
-  // -----------------------------------payment plane create---------------------------------
+  // -------------------------payment plane create---------------------------------
   @ApiOperation({ summary: 'Super Admin create payment plan' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
@@ -72,7 +80,7 @@ export class ContentmanageController {
   async createPlan(@Body() payload: PaymentPlanDto) {
     return this.contentmanageService.createPlan(payload);
   }
-  //      ------------------------------ get all payment plane ---------------------------------
+  //------------------------------ get all payment plane ---------------------------------
   @ApiOperation({ summary: 'Super Admin get all payment plan' })
   @Get('all-plans')
   async getAllPlans() {

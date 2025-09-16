@@ -48,7 +48,21 @@ export class SettingsService {
     return successResponse(data, 'Privacy Policies fetched successfully');
   }
 
-  // -------------------- Terms & Conditions --------------------
+  @HandleError('Failed to get terms by id', 'Terms')
+  async getTermsById(id: string) {
+    const data = await this.prisma.termsConditions.findUnique({
+      where: { id },
+    });
+    return successResponse(data, 'Terms & Conditions fetched successfully');
+  }
+
+  @HandleError('Failed to delete privacy policy', 'PrivacyPolicy')
+  async deletePrivacyPolicy(id: string) {
+    const data = await this.prisma.termsConditions.delete({ where: { id } });
+    return successResponse(data, 'Terms & Conditions deleted successfully');
+  }
+
+  // -------------------- ----------------Terms & Conditions --------------------------------------------------------
   async createTerms(payload: CreateTermsConditionsDto) {
     const data = await this.prisma.termsConditions.create({ data: payload });
     return successResponse(data, 'Terms & Conditions created successfully');
@@ -67,7 +81,13 @@ export class SettingsService {
     return successResponse(data, 'Terms & Conditions fetched successfully');
   }
 
+  async deleteTerms(id: string) {
+    const data = await this.prisma.termsConditions.delete({ where: { id } });
+    return successResponse(data, 'Terms & Conditions deleted successfully');
+  }
+
   // -------------------- FAQ (transactional) --------------------
+  @HandleError('Failed to create FAQ section with FAQs', 'FAQ')
   async createFaqSectionWithFaqs(payload: CreateFaqSectionWithFaqsDto) {
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Create section
@@ -93,6 +113,7 @@ export class SettingsService {
     );
   }
 
+  @HandleError('Failed to get FAQs', 'FAQ')
   async getFaqs() {
     const data = await this.prisma.faqSection.findMany({
       include: { faqs: true },
@@ -100,28 +121,43 @@ export class SettingsService {
     return successResponse(data, 'FAQs fetched successfully');
   }
 
+  async getFaqSection(id: string) {
+    const data = await this.prisma.faqSection.findUnique({
+      where: { id },
+      include: { faqs: true },
+    });
+    return successResponse(data, 'FAQ Section fetched successfully');
+  }
+
+  async deleteFaqSection(id: string) {
+    const data = await this.prisma.faqSection.delete({ where: { id } });
+    return successResponse(data, 'FAQ Section deleted successfully');
+  }
+
   // -------------------- Language --------------------
+  @HandleError('Failed to create language', 'Language')
   async createLanguage(payload: CreateLanguageDto) {
     const data = await this.prisma.language.create({ data: payload });
     return successResponse(data, 'Language created successfully');
   }
 
+  @HandleError('Failed to get languages', 'Language')
   async getLanguages() {
     const data = await this.prisma.language.findMany();
     return successResponse(data, 'Languages fetched successfully');
   }
 
-  // -------------------- Ads --------------------
+  // --------------------------------- Ads --------------------------------------
   @HandleError('Failed to create ad', 'Ads')
   async createAds(payload: CreateAdsDto) {
     if (!payload.file) {
-      throw new Error('Recommendation image is required');
+      throw new AppError(400, 'Recommendation image is required');
     }
 
-    // Process uploaded file (returns { url: string })
-    const fileInstance = await this.fileService.processUploadedFile(
-      payload.file,
-    );
+    let fileInstance: any;
+    if (payload.file) {
+      fileInstance = await this.fileService.processUploadedFile(payload.file);
+    }
 
     const data = await this.prisma.ads.create({
       data: {
@@ -133,9 +169,42 @@ export class SettingsService {
 
     return successResponse(data, 'Ad created successfully');
   }
+  
 
+  @HandleError('Failed to get ads', 'Ads')
   async getAds() {
     const data = await this.prisma.ads.findMany();
     return successResponse(data, 'Ads fetched successfully');
+  }
+
+  @HandleError('Failed to get ad', 'Ads')
+  async getAd(id: string) {
+    const data = await this.prisma.ads.findUnique({ where: { id } });
+    return successResponse(data, 'Ad fetched successfully');
+  }
+
+  @HandleError('Failed to update ad', 'Ads')
+  async updateAd(id: string, payload: CreateAdsDto) {
+    let fileInstance: any;
+    if (payload.file) {
+      fileInstance = await this.fileService.processUploadedFile(payload.file);
+    }
+
+    const data = await this.prisma.ads.update({
+      where: { id },
+      data: {
+        title: payload.title,
+        link: payload.link,
+        ...(fileInstance && { adsimage: fileInstance.url }),
+      },
+    });
+
+    return successResponse(data, 'Ad updated successfully');
+  }
+
+  @HandleError('Failed to delete ad', 'Ads')
+  async deleteAd(id: string) {
+    const data = await this.prisma.ads.delete({ where: { id } });
+    return successResponse(data, 'Ad deleted successfully');
   }
 }

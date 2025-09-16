@@ -115,6 +115,10 @@ export class CreateAdsDto {
     type: 'string',
     format: 'binary',
     required: true,
+    description: 'ads  image file',
   })
-  file?: any;
+  file?: Express.Multer.File;
+
+
+  
 }
