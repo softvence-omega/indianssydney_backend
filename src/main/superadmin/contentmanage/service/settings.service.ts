@@ -50,7 +50,7 @@ export class SettingsService {
 
   @HandleError('Failed to get terms by id', 'Terms')
   async getTermsById(id: string) {
-    const data = await this.prisma.termsConditions.findUnique({
+    const data = await this.prisma.privacyPolicy.findUnique({
       where: { id },
     });
     return successResponse(data, 'Terms & Conditions fetched successfully');
@@ -58,7 +58,7 @@ export class SettingsService {
 
   @HandleError('Failed to delete privacy policy', 'PrivacyPolicy')
   async deletePrivacyPolicy(id: string) {
-    const data = await this.prisma.termsConditions.delete({ where: { id } });
+    const data = await this.prisma.privacyPolicy.delete({ where: { id } });
     return successResponse(data, 'Terms & Conditions deleted successfully');
   }
 
@@ -169,7 +169,6 @@ export class SettingsService {
 
     return successResponse(data, 'Ad created successfully');
   }
-  
 
   @HandleError('Failed to get ads', 'Ads')
   async getAds() {
