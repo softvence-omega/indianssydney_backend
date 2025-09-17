@@ -6,16 +6,12 @@ model LiveEvent {
   tags      String[]
   startTime DateTime
   endTime   DateTime
-
+  youtubeLiveUrl String
   // ------------relation----------------
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  // ----------------Agora fields---------------------
-  channelName String
-  rtcToken    String?
-  rtmToken    String?
-  uid         String?
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

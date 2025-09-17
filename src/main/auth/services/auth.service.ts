@@ -29,42 +29,7 @@ export class AuthService {
   ) {}
 
   // ---------- REGISTER (send email verification OTP) ----------
-  // async register(dto: RegisterDto): Promise<TResponse<any>> {
-  //   const { email, password, confirmPassword } = dto;
 
-  //   if (password !== confirmPassword) throw new AppError(400, 'Passwords do not match');
-
-  //   const existing = await this.prisma.user.findUnique({ where: { email } });
-  //   if (existing) throw new AppError(400, 'User already exists with this email');
-
-  //   const { otp, expiryTime } = this.utils.generateOtpAndExpiry();
-
-  //   const user = await this.prisma.user.create({
-  //     data: {
-  //       email,
-  //       password: await this.utils.hash(password),
-  //       isVerified: false,
-  //       emailOtp: otp,
-  //       otpExpiry: expiryTime,
-  //     },
-  //   });
-
-  //   await this.mail.sendEmail(
-  //     email,
-  //     'Verify Your Email',
-  //     `
-  //       <h3>Hi,</h3>
-  //       <p>Use the OTP below to verify your email:</p>
-  //       <h2>${otp}</h2>
-  //       <p>This OTP will expire in 10 minutes.</p>
-  //     `,
-  //   );
-
-  //   return successResponse(
-  //     { email: user.email },
-  //     'Registered successfully. Check your email for the verification OTP.',
-  //   );
-  // }
 
   @HandleError('Failed to Register profile', 'Register ')
   async register(payload: RegisterDto) {
@@ -126,35 +91,10 @@ export class AuthService {
     return { resetToken };
   }
 
-  // ---------- VERIFY EMAIL (match OTP) ----------
-  // async verifyEmail(dto: VerifyEmailDto): Promise<TResponse<any>> {
 
-  //   const { email, otp } = dto;
-
-  //   const user = await this.prisma.user.findUnique({ where: { email } });
-  //   if (!user) throw new AppError(404, 'User not found');
-  //   if (user.isVerified) return successResponse({}, 'Email already verified');
-
-  //   if (!user.emailOtp || !user.otpExpiry) throw new AppError(400, 'No OTP found. Please register again.');
-  //   if (user.emailOtp !== otp) throw new AppError(400, 'Invalid OTP');
-  //   if (new Date() > user.otpExpiry) throw new AppError(400, 'OTP has expired');
-
-  //   await this.prisma.user.update({
-  //     where: { id: user.id },
-  //     data: { isVerified: true, emailOtp: null, otpExpiry: null },
-  //   });
-
-  //   await this.mail.sendEmail(
-  //     email,
-  //     'Email Verified',
-  //     `<h3>Hi,</h3><p>Your email has been verified successfully.</p>`,
-  //   );
-
-  //   return successResponse({}, 'Email verified successfully');
-
-  // }
 
   // ---------- LOGIN (require verified) ----------
+
   @HandleError('Failed to Login profile', 'Login ')
   async login(dto: LoginDto): Promise<TResponse<any>> {
     const { email, password } = dto;
