@@ -1,21 +1,15 @@
 model LiveEvent {
-  id        String   @id @default(uuid())
-  title     String
-  subTitle  String
-  thumbail  String?
-  tags      String[]
-  startTime DateTime
-  endTime   DateTime
-
+  id         String   @id @default(uuid())
+  title      String
+  subTitle   String
+  thumbail   String?
+  tags       String[]
+  startTime  DateTime
+  endTime    DateTime
+  youtubeUrl String?
   // ------------relation----------------
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  // ----------------Agora fields---------------------
-  channelName String
-  rtcToken    String?
-  rtmToken    String?
-  uid         String?
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
