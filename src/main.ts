@@ -17,6 +17,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const allowedOrigins = [
+    'https://the-australian-canvas.vercel.app',
     'http://localhost:3000',
     'http://localhost:5173',
     'https://indianssydney-backend.onrender.com',
