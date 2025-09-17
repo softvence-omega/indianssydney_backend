@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDateString, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 export class CreateLiveEventDto {
   @ApiProperty()
@@ -26,4 +32,9 @@ export class CreateLiveEventDto {
   @ApiProperty()
   @IsDateString()
   endTime: Date;
+
+  @ApiProperty({ description: 'YouTube live event URL' })
+  @IsString()
+  @IsUrl()
+  youtubeLiveUrl: string;
 }
