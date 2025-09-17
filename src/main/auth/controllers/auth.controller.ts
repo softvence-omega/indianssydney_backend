@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GoogleLoginDto } from '../dto/google-login.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -10,6 +10,7 @@ import { VerifyOtpAuthDto } from '../dto/varify-otp.dto';
 
 import { ForgetPasswordAuthDto } from '../dto/forgot-password.dto';
 import { ResetPasswordAuthDto } from '../dto/reset-password';
+import type { Response } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -25,10 +26,21 @@ export class AuthController {
     return this.authService.register(body);
   }
 
-  @ApiOperation({ summary: 'User Login with Email' })
   @Post('login')
-  async login(@Body() body: LoginDto) {
-    return this.authService.login(body);
+  @ApiOperation({ summary: 'User Login with Email' })
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) res: Response, // needed for cookies
+  ) {
+    const result = (await this.authService.login(body)) as any;
+
+    // Set HTTP-only cookie
+    res.cookie('token', result?.data?.token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+    return { result, message: 'Login successful' };
   }
 
   @ApiOperation({ summary: 'Google Login or Sign Up' })

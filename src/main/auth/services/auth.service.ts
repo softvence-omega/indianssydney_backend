@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Res,
 } from '@nestjs/common';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { UtilsService } from 'src/lib/utils/utils.service';
@@ -227,7 +228,7 @@ export class AuthService {
 
     return { resetToken };
   }
-  // ---------------------------------------------varify otp signup token ----------------------------------
+  // --------------------------------------------- with token varify otp signup token ----------------------------------
   async verifyOtp(payload: VerifyOtpAuthDto) {
     // Verify the JWT token
     let decoded: any;
@@ -262,14 +263,15 @@ export class AuthService {
     });
 
     // Generate a new JWT token
-    const jwtPayload = {
-      id: updatedUser.id,
-      email: updatedUser.email,
-      roles: updatedUser.role,
-    };
-    const token = await this.jwt.signAsync(jwtPayload, {
-      expiresIn: '77d',
-    });
+    // const jwtPayload = {
+    //   id: updatedUser.id,
+    //   email: updatedUser.email,
+    //   roles: updatedUser.role,
+    // };
+    const token = await this.jwt.signAsync(
+      { id: user.id, email: user.email, roles: user.role },
+      { secret: process.env.JWT_SECRET, expiresIn: '77d' },
+    );
 
     return {
       success: true,

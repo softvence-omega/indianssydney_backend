@@ -15,6 +15,14 @@ export class CreateContentDto {
   title: string;
 
   @ApiProperty({
+    description: 'Title of the content',
+    example: 'https://youtu.be/k-WikFJvi6M?si=etS-bgr7a3EPPuyB',
+  })
+  @IsOptional()
+  @IsString()
+  youtubeVideoUrl?: string;
+
+  @ApiProperty({
     description: 'Subtitle of the content',
     example: 'A complete beginner guide',
   })
@@ -79,7 +87,7 @@ export class CreateContentDto {
     example: 'main.jpg',
   })
   @IsOptional()
-  mainImage?: Express.Multer.File;
+  image?: Express.Multer.File;
 
   @ApiPropertyOptional({
     description: 'Upload a video thumbnail',
@@ -97,7 +105,7 @@ export class CreateContentDto {
     example: 'intro.mp4',
   })
   @IsOptional()
-  videoFile?: Express.Multer.File;
+  video?: Express.Multer.File;
 
   @ApiPropertyOptional({
     description: 'Upload a main audio file',
@@ -106,7 +114,7 @@ export class CreateContentDto {
     example: 'background.mp3',
   })
   @IsOptional()
-  audioFile?: Express.Multer.File;
+  audio?: Express.Multer.File;
 
   @ApiProperty({
     description: 'Category ID (UUID)',
