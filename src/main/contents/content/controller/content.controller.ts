@@ -77,6 +77,7 @@ export class ContentController {
       paragraph: body.paragraph,
       shortQuote: body.shortQuote,
       imageCaption: body.imageCaption,
+      youtubeVideoUrl: body.youtubeVideoUrl,
       tags:
         typeof body.tags === 'string'
           ? body.tags.split(',').map((t: string) => t.trim())
@@ -84,10 +85,10 @@ export class ContentController {
       contentType: body.contentType,
       categoryId: body.categoryId,
       subCategoryId: body.subCategoryId,
-      mainImage: files.find((f) => f.fieldname === 'mainImage'),
+      image: files.find((f) => f.fieldname === 'image'),
       videoThumbnail: files.find((f) => f.fieldname === 'videoThumbnail'),
-      videoFile: files.find((f) => f.fieldname === 'videoFile'),
-      audioFile: files.find((f) => f.fieldname === 'audioFile'),
+      video: files.find((f) => f.fieldname === 'video'),
+      audio: files.find((f) => f.fieldname === 'audio'),
       additionalFields: [],
     };
 

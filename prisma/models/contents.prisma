@@ -15,9 +15,10 @@ model Content {
   paragraph      String?
   shortQuote     String?
   image          String?
-  videoFile      String?
+  video          String?
   imageCaption   String?
-  audioFile      String?
+  audio          String?
+  youtubeVideoUrl   String?
   tags           String[]
   videoThumbnail String?
 

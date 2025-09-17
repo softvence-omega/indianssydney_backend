@@ -88,15 +88,15 @@ export class ContentService {
       let videoThumbUrl: string | undefined;
       let audioUrl: string | undefined;
 
-      if (payload.mainImage) {
+      if (payload.image) {
         const processedFile = await this.fileService.processUploadedFile(
-          payload.mainImage,
+          payload.image,
         );
         imageUrl = processedFile?.url;
       }
-      if (payload.videoFile) {
+      if (payload.video) {
         const processedVideo = await this.fileService.processUploadedFile(
-          payload.videoFile,
+          payload.video,
         );
         videoUrl = processedVideo?.url;
       }
@@ -106,9 +106,9 @@ export class ContentService {
         );
         videoThumbUrl = processedThumb?.url;
       }
-      if (payload.audioFile) {
+      if (payload.audio) {
         const processedAudio = await this.fileService.processUploadedFile(
-          payload.audioFile,
+          payload.audio,
         );
         audioUrl = processedAudio?.url;
       }
@@ -117,14 +117,16 @@ export class ContentService {
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
           data: {
+
             title: payload.title,
             subTitle: payload.subTitle,
             paragraph: payload.paragraph,
             shortQuote: payload.shortQuote,
+            youtubeVideoUrl: payload.youtubeVideoUrl,
             image: imageUrl,
-            videoFile: videoUrl,
+            video: videoUrl,
             videoThumbnail: videoThumbUrl,
-            audioFile: audioUrl,
+            audio: audioUrl,
             imageCaption: payload.imageCaption,
             tags: payload.tags ?? [],
             contentType: payload.contentType,
