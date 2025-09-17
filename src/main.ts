@@ -12,7 +12,7 @@ async function bootstrap() {
   // --------------Swagger config with Bearer Auth------------------
   const config = new DocumentBuilder()
     .setTitle('indianssydney backend')
-    .setDescription('Team indianssudney API description')
+    .setDescription('Team indianssydney API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
