@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsArray,
   IsEnum,
@@ -93,6 +93,30 @@ export class CreateFaqSectionWithFaqsDto {
   @Type(() => CreateFaqDto)
   faqs: CreateFaqDto[];
 }
+// ----update faq--
+// dto/update-faq.dto.ts
+
+export class UpdateFaqDto extends PartialType(CreateFaqDto) {}
+
+export class UpdateFaqSectionDto {
+  @ApiProperty({ example: 'Updated Section Title', required: false })
+  @IsOptional()
+  @IsString()
+  sectionTitle?: string;
+
+  @ApiProperty({
+    type: [UpdateFaqDto],
+    required: false,
+    example: [
+      { question: 'Updated refund policy?', answer: 'Refunds within 30 days.' },
+    ],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateFaqDto)
+  faqs?: UpdateFaqDto[];
+}
 
 // -------------------- Language --------------------
 export class CreateLanguageDto {
@@ -118,7 +142,4 @@ export class CreateAdsDto {
     description: 'ads  image file',
   })
   file?: Express.Multer.File;
-
-
-  
 }

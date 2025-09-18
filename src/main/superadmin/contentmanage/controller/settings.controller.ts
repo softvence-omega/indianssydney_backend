@@ -27,6 +27,7 @@ import {
   CreateLanguageDto,
   CreatePrivacyPolicyDto,
   CreateTermsConditionsDto,
+  UpdateFaqSectionDto,
   UpdatePrivacyPolicyDto,
   UpdateTermsConditionsDto,
 } from '../dto/setting.dto';
@@ -132,6 +133,14 @@ export class SettingsController {
   getFaqSection(@Param('id') id: string) {
     return this.settingsService.getFaqSection(id);
   }
+// settings.controller.ts
+@Patch('faq/:id')
+@ValidateSuperAdmin()
+@ApiOperation({ summary: 'Update FAQ Section by ID' })
+updateFaqSection(@Param('id') id: string, @Body() dto: UpdateFaqSectionDto) {
+  return this.settingsService.updateFaqSection(id, dto);
+}
+
 
   @Delete('faq/:id')
   @ValidateSuperAdmin()
@@ -154,6 +163,23 @@ export class SettingsController {
     return this.settingsService.getLanguages();
   }
 
+  @Get('language/:id')
+  @ApiOperation({ summary: 'Get Language by ID' })
+  getLanguage(@Param('id') id: string) {
+    return this.settingsService.getLanguage(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update language' })
+  updateLanguage(@Param('id') id: string, @Body() dto: CreateLanguageDto) {
+    return this.settingsService.updateLanguage(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete language' })
+  deleteLanguage(@Param('id') id: string) {
+    return this.settingsService.deleteLanguage(id);
+  }
   // -------------------- Ads --------------------
 
   @ApiOperation({ summary: 'Create a new recommendation for admin' })

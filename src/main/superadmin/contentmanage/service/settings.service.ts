@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { successResponse, TResponse } from 'src/common/utils/response.util';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import {
   CreateAdsDto,
+  CreateFaqDto,
   CreateFaqSectionWithFaqsDto,
   CreateLanguageDto,
   CreatePrivacyPolicyDto,
   CreateTermsConditionsDto,
+  UpdateFaqSectionDto,
   UpdatePrivacyPolicyDto,
   UpdateTermsConditionsDto,
 } from '../dto/setting.dto';
@@ -121,6 +123,7 @@ export class SettingsService {
     return successResponse(data, 'FAQs fetched successfully');
   }
 
+  @HandleError('Failed to get FAQ section', 'FAQ')
   async getFaqSection(id: string) {
     const data = await this.prisma.faqSection.findUnique({
       where: { id },
@@ -134,6 +137,30 @@ export class SettingsService {
     return successResponse(data, 'FAQ Section deleted successfully');
   }
 
+  @HandleError('Failed to update FAQ section', 'FAQ')
+  async updateFaqSection(id: string, dto: UpdateFaqSectionDto) {
+    const data = await this.prisma.faqSection.update({
+      where: { id },
+      data: {
+        sectionTitle: dto.sectionTitle,
+        faqs: dto.faqs
+          ? {
+              deleteMany: {},
+              create: dto.faqs
+                .filter((faq) => faq.question && faq.answer)
+                .map((faq) => ({
+                  question: faq.question!,
+                  answer: faq.answer!,
+                })),
+            }
+          : undefined,
+      },
+      include: { faqs: true },
+    });
+
+    return successResponse(data, 'FAQ Section updated successfully');
+  }
+
   // -------------------- Language --------------------
   @HandleError('Failed to create language', 'Language')
   async createLanguage(payload: CreateLanguageDto) {
@@ -145,6 +172,26 @@ export class SettingsService {
   async getLanguages() {
     const data = await this.prisma.language.findMany();
     return successResponse(data, 'Languages fetched successfully');
+  }
+
+  @HandleError('Failed to get language', 'Language')
+  async updateLanguage(id: string, dto: CreateLanguageDto) {
+    return this.prisma.language.update({
+      where: { id },
+      data: { language: dto.language },
+    });
+  }
+
+  @HandleError('Failed to get language', 'Language')
+  async deleteLanguage(id: string) {
+    return this.prisma.language.delete({ where: { id } });
+  }
+
+  @HandleError('Failed to get language', 'Language')
+  async getLanguage(id: string) {
+    const lang = await this.prisma.language.findUnique({ where: { id } });
+    if (!lang) throw new NotFoundException('Language not found');
+    return lang;
   }
 
   // --------------------------------- Ads --------------------------------------
