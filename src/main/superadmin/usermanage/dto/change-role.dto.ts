@@ -6,6 +6,7 @@ export enum UserRoleEnum {
   ADMIN = 'ADMIN',
   SUPER_ADMIN = 'SUPER_ADMIN',
   MEMBER = 'MEMBER',
+  CONTIBUTOR = 'CONTIBUTOR',
 }
 
 export class ChangeRoleDto {
