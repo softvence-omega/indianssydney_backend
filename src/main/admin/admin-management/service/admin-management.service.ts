@@ -258,21 +258,19 @@ export class AdminManagementService {
     }));
   }
 
-  // --------------GET ANALYISS----
+  // --------------GET ANALYISS--------------------------
 
   @HandleError('Failed to get analytics top content')
-  async getAnalyticsTopContent(){
+  async getAnalyticsTopContent() {
     return this.prisma.content.findMany({
       where: { isDeleted: false },
       orderBy: { contentviews: 'desc' },
       take: 10,
       include: {
         user: {
-          select: { id: true, fullName: true,  profilePhoto: true },
+          select: { id: true, fullName: true, profilePhoto: true },
         },
-       
       },
     });
-
   }
 }

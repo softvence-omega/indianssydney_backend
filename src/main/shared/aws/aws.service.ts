@@ -7,7 +7,7 @@ import { promisify } from 'util';
 const randomBytes = promisify(crypto.randomBytes);
 
 @Injectable()
-export class S3Service {
+export class awsService {
   private s3: aws.S3;
   private bucketName: string;
 
@@ -25,17 +25,17 @@ export class S3Service {
     });
   }
 
-  async generateUploadURL(): Promise<string> {
+  async generateUploadURL(): Promise<{ uploadURL: string; key: string }> {
     const rawBytes = await randomBytes(16);
-    const imageName = rawBytes.toString('hex');
+    const key = rawBytes.toString('hex');
 
     const params = {
       Bucket: this.bucketName,
-      Key: imageName,
+      Key: key,
       Expires: 60,
     };
 
     const uploadURL = await this.s3.getSignedUrlPromise('putObject', params);
-    return uploadURL;
+    return { uploadURL, key };
   }
 }

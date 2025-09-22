@@ -19,6 +19,7 @@ import { PaymentModule } from './shared/payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdminManagementModule } from './admin/admin-management/admin-management.module';
 import { LiveEventModule } from './contents/live-event/live-event.module';
+import { awsModule } from './shared/aws/aws.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { LiveEventModule } from './contents/live-event/live-event.module';
     AdminDashboardModule,
     PaymentModule,
     AdminManagementModule,
+    awsModule,
   ],
   controllers: [],
   providers: [],
