@@ -188,4 +188,91 @@ export class AdminManagementService {
       data: { status },
     });
   }
+
+  // ----------get analytics get category-------------
+  @HandleError('Failed to get analytics top category')
+  async getAnalyticsTopCategory() {
+    // total content count
+    const totalContents = await this.prisma.content.count({
+      where: { isDeleted: false },
+    });
+
+    if (totalContents === 0) {
+      return [];
+    }
+
+    // group by categoryId from contents
+    const grouped = await this.prisma.content.groupBy({
+      by: ['categoryId'],
+      _count: { categoryId: true },
+      orderBy: { _count: { categoryId: 'desc' } },
+      take: 10,
+      where: { isDeleted: false },
+    });
+
+    // fetch category names
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: grouped.map((g) => g.categoryId) }, isDeleted: false },
+      select: { id: true, name: true },
+    });
+
+    // merge and add percentage
+    return grouped.map((g) => {
+      const category = categories.find((c) => c.id === g.categoryId);
+      return {
+        categoryId: g.categoryId,
+        categoryName: category?.name || 'Unknown',
+        contentCount: g._count.categoryId,
+        percentage:
+          ((g._count.categoryId / totalContents) * 100).toFixed(2) + '%',
+      };
+    });
+  }
+
+  // ----------language total use ------------------
+  @HandleError('Failed to get analytics top language')
+  async getAnalyticsTopLanguage() {
+    const totalUsage = await this.prisma.language.aggregate({
+      _sum: { languageuse: true },
+    });
+    const total = totalUsage._sum.languageuse ?? 0;
+
+    if (total === 0) {
+      return [];
+    }
+
+    // fetch languages with usage
+    const result = await this.prisma.language.findMany({
+      select: {
+        language: true,
+        languageuse: true,
+      },
+      orderBy: { languageuse: 'desc' },
+    });
+
+    // add percentage
+    return result.map((item) => ({
+      language: item.language,
+      count: item.languageuse ?? 0,
+      percentage: (((item.languageuse ?? 0) / total) * 100).toFixed(2) + '%',
+    }));
+  }
+
+  // --------------GET ANALYISS----
+
+  @HandleError('Failed to get analytics top content')
+  async getAnalyticsTopContent(){
+    return this.prisma.content.findMany({
+      where: { isDeleted: false },
+      orderBy: { contentviews: 'desc' },
+      take: 10,
+      include: {
+        user: {
+          select: { id: true, fullName: true,  profilePhoto: true },
+        },
+       
+      },
+    });
+
+  }
 }

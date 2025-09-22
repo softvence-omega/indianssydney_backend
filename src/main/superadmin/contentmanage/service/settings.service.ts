@@ -170,7 +170,15 @@ export class SettingsService {
 
   @HandleError('Failed to get languages', 'Language')
   async getLanguages() {
-    const data = await this.prisma.language.findMany();
+    // increment each language by +1
+    await this.prisma.language.updateMany({
+      data: { languageuse: { increment: 1 } },
+    });
+
+    const data = await this.prisma.language.findMany({
+      orderBy: { languageuse: 'asc' },
+    });
+
     return successResponse(data, 'Languages fetched successfully');
   }
 

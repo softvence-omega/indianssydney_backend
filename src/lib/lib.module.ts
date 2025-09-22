@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { SeedModule } from './seed/seed.module';
 import { UtilsModule } from './utils/utils.module';
 import { MulterModule } from './multer/multer.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MulterModule } from './multer/multer.module';
     UtilsModule,
     FileModule,
     MulterModule,
+    S3Module,
   ],
   exports: [],
   providers: [],
