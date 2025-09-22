@@ -68,4 +68,14 @@ export class CategorySubcategoryController {
   findOneSubcategory(@Param('id') id: string) {
     return this.categorySubcategoryService.findOneSubcategory(id);
   }
+
+  @Get('subcategory/slug/:slug')
+  findOneSubcategoryBySlug(@Param(' subslug ') subslug: string) {
+    return this.categorySubcategoryService.findOneSubcategoryBySlug(subslug);
+  }
+
+  @Get('category/slug/:slug')
+  findOnecategoryBySlug(@Param('slug') slug: string) {
+    return this.categorySubcategoryService.findOnecategoryBySlug(slug);
+  }
 }
