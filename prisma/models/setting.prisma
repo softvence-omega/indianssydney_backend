@@ -27,16 +27,23 @@ model Faq {
 }
 
 model Language {
-  id       String       @id @default(uuid())
-  languageuse   Int?        @default(0)
-  language LanguageType
+  id          String       @id @default(uuid())
+  languageuse Int?         @default(0)
+  language    LanguageType
 }
 
 model Ads {
-  id       String @id @default(uuid())
-  title    String
-  link     String
-  adsimage String
+  id         String      @id @default(uuid())
+  title      String
+  link       String?
+  adsimage   String
+  subtitle   String?
+  adsposition AdsPostion?
+}
+
+enum AdsPostion {
+  FRONTPAGE
+  CATEGORYPAGE
 }
 
 enum LanguageType {

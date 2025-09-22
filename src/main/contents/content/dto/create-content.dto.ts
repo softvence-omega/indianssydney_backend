@@ -14,8 +14,8 @@ export class CreateContentDto {
   @IsString()
   title: string;
 
-  @ApiProperty({
-    description: 'Title of the content',
+  @ApiPropertyOptional({
+    description: 'YouTube video URL of the content',
     example: 'https://youtu.be/k-WikFJvi6M?si=etS-bgr7a3EPPuyB',
   })
   @IsOptional()
