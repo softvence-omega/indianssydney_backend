@@ -38,6 +38,9 @@ services:
       AGORA_CUSTOMER_ID: '1477f33546b0489caf01e3c460ffc700'
       AGORA_SECRET: 'ee5031a115364163a97fdca89b19b971'
 
+      ACCESS_KEY: 'AKIAX3ULI3YKFVHU6TOD'
+      ACCESS_SECRET: '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'
+      BUCKET_NAME: 'indianssendy12'
     ports:
       - 5055:5055
     depends_on:

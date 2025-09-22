@@ -6,6 +6,7 @@ import { SeedModule } from './seed/seed.module';
 import { UtilsModule } from './utils/utils.module';
 import { MulterModule } from './multer/multer.module';
 
+
 @Module({
   imports: [
     SeedModule,
@@ -14,6 +15,7 @@ import { MulterModule } from './multer/multer.module';
     UtilsModule,
     FileModule,
     MulterModule,
+   
   ],
   exports: [],
   providers: [],

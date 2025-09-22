@@ -34,4 +34,7 @@ export enum ENVEnum {
   // -------------------agora ------------------
   AGORA_CUSTOMER_ID = 'AGORA_CUSTOMER_ID',
   AGORA_SECRET = 'AGORA_SECRET',
+  AWS_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID',
+  AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY',
+  BUCKET_NAME = 'BUCKET_NAME',
 }

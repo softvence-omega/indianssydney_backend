@@ -28,6 +28,7 @@ model Faq {
 
 model Language {
   id       String       @id @default(uuid())
+  languageuse   Int?        @default(0)
   language LanguageType
 }
 

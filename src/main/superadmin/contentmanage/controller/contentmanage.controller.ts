@@ -54,7 +54,7 @@ export class ContentmanageController {
     return this.contentmanageService.getPendingContents();
   }
 
-  // ------------------sttus Approve ----------------
+  // ------------------status Approve ----------------
   @ApiOperation({ summary: 'Super Admin get all status-pentding' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
