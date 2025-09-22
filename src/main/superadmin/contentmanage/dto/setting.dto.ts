@@ -7,7 +7,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { LanguageType } from '@prisma/client';
+import { AdsPostion, LanguageType } from '@prisma/client';
 import { Type } from 'class-transformer';
 
 // -------------------- Privacy Policy --------------------
@@ -132,14 +132,30 @@ export class CreateAdsDto {
   title: string;
 
   @ApiProperty({ example: 'https://example.com' })
+  @IsOptional()
   @IsString()
-  link: string;
+  link?: string;
 
   @ApiProperty({
     type: 'string',
     format: 'binary',
     required: true,
-    description: 'ads  image file',
+    description: 'Ads image file',
   })
-  file?: Express.Multer.File;
+  file: Express.Multer.File;
+
+  @ApiProperty({ example: 'Get the best deals today' })
+  @IsOptional()
+  @IsString()
+  subtitle?: string;
+
+  @ApiProperty({
+    enum: AdsPostion,
+    example: AdsPostion.FRONTPAGE,
+    description: 'Where the ad will be displayed',
+  })
+  @IsOptional()
+  @IsEnum(AdsPostion)
+  adsposition?: AdsPostion;
 }
+export class UpdateAdsDto extends PartialType(CreateAdsDto) {}

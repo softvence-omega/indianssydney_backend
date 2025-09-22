@@ -9,6 +9,7 @@ import {
   CreateLanguageDto,
   CreatePrivacyPolicyDto,
   CreateTermsConditionsDto,
+  UpdateAdsDto,
   UpdateFaqSectionDto,
   UpdatePrivacyPolicyDto,
   UpdateTermsConditionsDto,
@@ -219,6 +220,8 @@ export class SettingsService {
         title: payload.title,
         link: payload.link,
         adsimage: fileInstance.url,
+        subtitle: payload.subtitle,
+        adsposition: payload.adsposition,
       },
     });
 
@@ -238,7 +241,7 @@ export class SettingsService {
   }
 
   @HandleError('Failed to update ad', 'Ads')
-  async updateAd(id: string, payload: CreateAdsDto) {
+  async updateAd(id: string, payload: UpdateAdsDto) {
     let fileInstance: any;
     if (payload.file) {
       fileInstance = await this.fileService.processUploadedFile(payload.file);
@@ -247,9 +250,11 @@ export class SettingsService {
     const data = await this.prisma.ads.update({
       where: { id },
       data: {
-        title: payload.title,
-        link: payload.link,
-        ...(fileInstance && { adsimage: fileInstance.url }),
+        ...(payload.title && { title: payload.title }),
+        ...(payload.link && { link: payload.link }),
+        ...(payload.subtitle && { subtitle: payload.subtitle }), 
+        ...(payload.adsposition && { adsposition: payload.adsposition }), 
+        ...(fileInstance && { adsimage: fileInstance.url }), 
       },
     });
 

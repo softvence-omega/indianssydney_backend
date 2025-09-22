@@ -154,6 +154,33 @@ export class CategorySubcategoryService {
     return successResponse(subcategory);
   }
 
-  // 
+  // slug get subcategory--
+@HandleError('Failed to fetch subcategory')
+  async findOneSubcategoryBySlug( subslug : string) {
+  const subcategory = await this.prisma.subCategory.findUnique({
+    where: {  subslug  },
+  });
+
+  if (!subcategory) {
+    throw new AppError(404, `Subcategory with slug "${ subslug }" not found`);
+  }
+
+  return successResponse(subcategory, 'Subcategory fetched successfully');
+}
+
+// ----slug 
+@HandleError('Failed to fetch category')
+async findOnecategoryBySlug(slug: string) {
+  const category = await this.prisma.category.findUnique({
+    where: { slug },
+  });
+
+  if (!category) {
+    throw new AppError(404, `Category with slug "${slug}" not found`);
+  }
+
+  return successResponse(category, 'Category fetched successfully');
+}
+
 
 }
