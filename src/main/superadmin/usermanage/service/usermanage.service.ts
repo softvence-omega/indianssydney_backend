@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
+import { UserRoleEnum } from '../dto/change-role.dto';
 
 @Injectable()
 export class UsermanageService {
@@ -28,10 +29,7 @@ export class UsermanageService {
   }
 
   // ---------------- super admin status chnage-----------------------
-  async changeUserRole(
-    id: string,
-    role: 'USER' | 'ADMIN' | 'SUPER_ADMIN' | 'MEMBER',
-  ) {
+  async changeUserRole(id: string, role: UserRoleEnum) {
     const user = await this.prisma.user.update({
       where: { id },
       data: { role },
