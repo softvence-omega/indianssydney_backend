@@ -9,6 +9,7 @@ import { FileService } from 'src/lib/file/file.service';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { successResponse, TResponse } from 'src/common/utils/response.util';
 import { HandleError } from 'src/common/error/handle-error.decorator';
+import { AdditionalContentType } from '@prisma/client';
 import {
   CreateContentComemnt,
   CreateContentCommentReactionDto,
@@ -166,7 +167,7 @@ export class ContentService {
             await tx.additionalContent.create({
               data: {
                 contentId: newContent.id,
-                type: field.type,
+                type: field.type as AdditionalContentType,
                 value: fileUrl || '',
                 order: order++,
               },
