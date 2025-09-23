@@ -12,7 +12,7 @@ export class awsService {
   private bucketName: string;
 
   constructor() {
-    const region = 'us-west-2';
+    const region = 'us-east-1';
     this.bucketName = 'direct-upload-s3-bucket-thing';
 
     this.s3 = new aws.S3({
@@ -22,6 +22,11 @@ export class awsService {
       signatureVersion: 'v4',
     });
   }
+
+  /**
+   * Generate a pre-signed upload URL for S3
+   * @param fileType MIME type of file (e.g. image/png, video/mp4, audio/mpeg)
+   */
 
   async generateUploadURL(
     fileType: string,
