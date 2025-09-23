@@ -33,6 +33,7 @@ export class awsService {
       Bucket: this.bucketName,
       Key: key,
       Expires: 60,
+      "Content-Type": "multipart/form-data"
     };
 
     const uploadURL = await this.s3.getSignedUrlPromise('putObject', params);
