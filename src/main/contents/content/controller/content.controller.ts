@@ -74,6 +74,8 @@ export class ContentController {
     const dto: CreateContentDto = {
       title: body.title,
       subTitle: body.subTitle,
+      subcategorysslug : body.subcategorysslug,
+      categorysslug : body.categorysslug,
       paragraph: body.paragraph,
       shortQuote: body.shortQuote,
       imageCaption: body.imageCaption,

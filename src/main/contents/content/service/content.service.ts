@@ -121,6 +121,8 @@ export class ContentService {
 
             title: payload.title,
             subTitle: payload.subTitle,
+             subcategorysslug :payload.subcategorysslug,
+            categorysslug : payload.categorysslug,
             paragraph: payload.paragraph,
             shortQuote: payload.shortQuote,
             youtubeVideoUrl: payload.youtubeVideoUrl,
@@ -348,7 +350,7 @@ export class ContentService {
       ) || 0;
 
     // ---------- Comment Length ----------
-    // total characters across all comments
+
     const totalCommentLength =
       content.ContentComments?.reduce(
         (total, comment) => total + (comment.contentcomment?.length || 0),
@@ -407,7 +409,7 @@ export class ContentService {
       throw new NotFoundException('Content not found');
     }
 
-    // increment contentviews by
+    // ------------- increment contentviews by ----------------------
     return this.prisma.content.update({
       where: { id },
       data: {

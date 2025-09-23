@@ -26,7 +26,8 @@ model Content {
   updatedAt DateTime @updatedAt
   status    Status   @default(PENDING)
   isDeleted Boolean  @default(false)
-
+  categorysslug     String?
+  subcategorysslug  String?
   //-------------- Relations-----------------
   userId     String
   user       User     @relation(fields: [userId], references: [id])
