@@ -14,29 +14,35 @@ export class awsService {
   constructor() {
     const region = 'us-west-2';
     this.bucketName = 'direct-upload-s3-bucket-thing';
-    const accessKeyId = ENVEnum.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = ENVEnum.AWS_SECRET_ACCESS_KEY;
 
     this.s3 = new aws.S3({
       region,
-      accessKeyId,
-      secretAccessKey,
+      accessKeyId: ENVEnum.AWS_ACCESS_KEY_ID,
+      secretAccessKey: ENVEnum.AWS_SECRET_ACCESS_KEY,
       signatureVersion: 'v4',
     });
   }
 
-  async generateUploadURL(): Promise<{ uploadURL: string; key: string }> {
-    const rawBytes = await randomBytes(16);
-    const key = rawBytes.toString('hex');
+  async generateUploadURL(
+    fileType: string,
+  ): Promise<{ uploadURL: string; key: string }> {
+    try {
+      const rawBytes = crypto.randomBytes(16);
+      const ext = fileType.split('/')[1] || 'bin';
+      const key = `${rawBytes.toString('hex')}.${ext}`;
 
-    const params = {
-      Bucket: this.bucketName,
-      Key: key,
-      Expires: 60,
-      "Content-Type": "multipart/form-data"
-    };
+      const params = {
+        Bucket: this.bucketName,
+        Key: key,
+        Expires: 60,
+        ContentType: fileType,
+      };
 
-    const uploadURL = await this.s3.getSignedUrlPromise('putObject', params);
-    return { uploadURL, key };
+      const uploadURL = await this.s3.getSignedUrlPromise('putObject', params);
+      return { uploadURL, key };
+    } catch (err) {
+      console.error('❌ S3 Signed URL Error:', err);
+      throw err;
+    }
   }
 }
