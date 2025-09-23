@@ -39,7 +39,7 @@ export class awsService {
       const params = {
         Bucket: this.bucketName,
         Key: key,
-        Expires: 60,
+        Expires: 300,
         ContentType: fileType,
       };
 
