@@ -51,10 +51,7 @@ export class AuthController {
     return this.authGoogleService.googleLogin(body);
   }
 
-  // @Post('verify-email')
-  // verifyEmail(@Body() dto: VerifyEmailDto) {
-  //   return this.authService.verifyEmail(dto);
-  // }
+
 
   @Post('signup-verify-otp')
   async verifyOtp(@Body() payload: VerifyOtpAuthDto) {
