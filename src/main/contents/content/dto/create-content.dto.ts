@@ -37,6 +37,23 @@ export class CreateContentDto {
   @IsString()
   paragraph?: string;
 
+    @ApiPropertyOptional({
+    description: 'categorysslug ',
+    example: 'This post categorysslug ...',
+  })
+  @IsOptional()
+  @IsString()
+  categorysslug ?: string;
+
+  @ApiPropertyOptional({
+    description: 'categorysslug ',
+    example: 'This post categorysslug ...',
+  })
+  @IsOptional()
+  @IsString()
+ subcategorysslug ?: string;
+
+
   @ApiPropertyOptional({
     description: 'Short quote for highlight',
     example: 'Code once, scale forever.',
