@@ -28,12 +28,12 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  // ---------- REGISTER (send email verification OTP) ----------
+  // ---------- ----------REGISTER (send email verification OTP) ----------
 
 
   @HandleError('Failed to Register profile', 'Register ')
   async register(payload: RegisterDto) {
-    const { email, password, confirmPassword } = payload;
+    const { email, password, confirmPassword,fullName } = payload;
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -53,6 +53,7 @@ export class AuthService {
     const newUser = await this.prisma.user.create({
       data: {
         email,
+        fullName,
         password: hashedPassword,
         isVerified: false,
       },

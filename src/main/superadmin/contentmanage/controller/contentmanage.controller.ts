@@ -118,4 +118,6 @@ export class ContentmanageController {
   async getAllReports() {
     return this.contentmanageService.getAllReports();
   }
+// ---------get all report super admin---------------------
+
 }

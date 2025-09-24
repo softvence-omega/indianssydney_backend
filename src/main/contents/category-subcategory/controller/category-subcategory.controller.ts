@@ -40,18 +40,20 @@ export class CategorySubcategoryController {
   findOneCategory(@Param('id') id: string) {
     return this.categorySubcategoryService.findOneCategory(id);
   }
-
+//  ------------ update category subcategory--------
   @Patch(':id')
   @ApiBearerAuth()
   @ValidateAdmin()
-  async updateCategory(
+  async updateCategoryAndSubcategories(
     @Param('id') id: string,
 
     @Body() dto: UpdateCategoryDto,
   ) {
-    return this.categorySubcategoryService.updateCategory(id, { ...dto });
+    return this.categorySubcategoryService.updateCategoryAndSubcategories(id, { ...dto });
   }
-
+// ------------- delete category -----------------
+@ApiBearerAuth()
+@ValidateAdmin()
   @Delete('category/:id')
   removeCategory(@Param('id') id: string) {
     return this.categorySubcategoryService.removeCategory(id);

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from '../dto/create-category-subcategory.dto';
 import {
   UpdateCategoryDto,
-  UpdateSubcategoryDto,
+
 } from '../dto/update-category-subcategory.dto';
 import { FileService } from 'src/lib/file/file.service';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
@@ -74,18 +74,59 @@ export class CategorySubcategoryService {
     if (!category) throw new AppError(404, 'Category not found');
     return successResponse(category);
   }
-  // ----------------------------- update category -----------------------------
-  @HandleError('Failed to update category')
-  async updateCategory(id: string, dto: UpdateCategoryDto): Promise<TResponse> {
-    const updated = await this.prisma.category.update({
+  
+// ----------------------------- update category + subcategories -----------------------------
+@HandleError('Failed to update category and subcategories')
+async updateCategoryAndSubcategories(
+  id: string,
+  dto: UpdateCategoryDto,
+): Promise<TResponse> {
+  return this.prisma.$transaction(async (tx) => {
+    
+    const category = await tx.category.findUnique({ where: { id } });
+    if (!category) throw new AppError(404, 'Category not found');
+
+    // Update category
+    if (dto.name) {
+      await tx.category.update({
+        where: { id },
+        data: {
+          tamplate: dto.tamplate,
+          name: dto.name,
+          slug: generateSlug(dto.name),
+        },
+      });
+    }
+
+    // If subcategories provided, replace them
+    if (dto.subnames) {
+      // delete old subs
+      await tx.subCategory.deleteMany({ where: { categoryId: id } });
+
+      // insert new subs
+      await tx.subCategory.createMany({
+        data: dto.subnames.map((sub) => ({
+          subname: sub,
+          subslug: generateSlug(sub),
+          categoryId: id,
+        
+        })),
+      });
+    }
+
+    // Return updated with subcategories
+    const updatedCategory = await tx.category.findUnique({
       where: { id },
-      data: {
-        ...(dto.name && { name: dto.name }),
-      },
+      include: { subCategories: true },
     });
 
-    return successResponse(updated, 'Category updated successfully');
-  }
+    return successResponse(
+      updatedCategory,
+      'Category and subcategories updated successfully',
+    );
+  });
+}
+
   // ----------------------------- remove category -----------------------------
   @HandleError('Failed to delete category and subcategories')
   async removeCategory(id: string): Promise<TResponse> {
