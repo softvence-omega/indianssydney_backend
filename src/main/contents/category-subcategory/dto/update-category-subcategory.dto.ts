@@ -11,7 +11,15 @@ export class UpdateCategoryDto {
   name?: string;
 
   @ApiPropertyOptional({
-    description: 'List of subcategories to add/update under this category',
+    description: 'Template name of the category',
+    example: 'new-template',
+  })
+  @IsOptional()
+  @IsString()
+  tamplate?: string;
+
+  @ApiPropertyOptional({
+    description: 'List of subcategories to update/add under this category',
     example: ['Industry & Finance', 'Politics', 'Education'],
     type: [String],
   })
@@ -19,14 +27,4 @@ export class UpdateCategoryDto {
   @IsArray()
   @IsString({ each: true })
   subnames?: string[];
-}
-
-export class UpdateSubcategoryDto {
-  @ApiPropertyOptional({
-    description: 'Name of the subcategory',
-    example: 'Updated Industry & Finance',
-  })
-  @IsOptional()
-  @IsString()
-  subname?: string;
 }
