@@ -30,7 +30,7 @@ export class AuthController {
   @ApiOperation({ summary: 'User Login with Email' })
   async login(
     @Body() body: LoginDto,
-    @Res({ passthrough: true }) res: Response, // needed for cookies
+    @Res({ passthrough: true }) res: Response, 
   ) {
     const result = (await this.authService.login(body)) as any;
 

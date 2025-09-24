@@ -42,7 +42,7 @@ export class AdminDashboardController {
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Get('recent-activity')
-  @ApiOperation({ summary: 'Get Recent activity overview superadmin' })
+  @ApiOperation({ summary: 'Get Recent activity overview super admin' })
   async getRecentActivity() {
     const result = await this.adminDashboardService.recentActivity();
     return { success: true, data: result };

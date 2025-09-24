@@ -25,7 +25,6 @@ export class AdminManagementController {
     @Param('id') id: string,
     @Body() dto: ContentStatusChangeDto,
     @GetUser('userId') userId: string,
-    @Req() req: any,
   ) {
     return this.adminManagementService.updateContentStatus(
       id,

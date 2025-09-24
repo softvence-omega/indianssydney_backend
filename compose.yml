@@ -9,14 +9,14 @@ services:
       NODE_ENV: 'production'
       DATABASE_URL: 'postgresql://postgres:postgres@db:5432/indians'
 
-      FRONTEND_URL: 'https://lgcglobalcontractingltd.com/js'
+      FRONTEND_URL: 'https://indianssydney-backend.onrender.com'
 
       JWT_SECRET: 'secret'
       JWT_EXPIRES_IN: 90d
 
-      BASE_URL: 'https://lgcglobalcontractingltd.com/js'
+      BASE_URL: 'https://indianssydney-backend.onrender.com'
 
-      APP_DOMAIN: 'https://chipper-zuccutto-d9e789.netlify.app'
+      APP_DOMAIN: 'https://indianssydney-backend.onrender.com'
 
       PORT: 5050
 
