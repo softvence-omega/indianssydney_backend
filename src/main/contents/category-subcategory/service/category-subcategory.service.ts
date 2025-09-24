@@ -82,39 +82,46 @@ async updateCategoryAndSubcategories(
   dto: UpdateCategoryDto,
 ): Promise<TResponse> {
   return this.prisma.$transaction(async (tx) => {
-    
-    const category = await tx.category.findUnique({ where: { id } });
+    const category = await tx.category.findUnique({
+      where: { id },
+      include: { subCategories: true },
+    });
     if (!category) throw new AppError(404, 'Category not found');
 
-    // Update category
-    if (dto.name) {
+    // Update category fields if provided
+    if (dto.name || dto.tamplate) {
       await tx.category.update({
         where: { id },
         data: {
-          tamplate: dto.tamplate,
-          name: dto.name,
-          slug: generateSlug(dto.name),
+          name: dto.name ?? category.name,
+          tamplate: dto.tamplate ?? category.tamplate,
+          ...(dto.name && { slug: generateSlug(dto.name) }),
         },
       });
     }
 
-    // If subcategories provided, replace them
-    if (dto.subnames) {
-      // delete old subs
-      await tx.subCategory.deleteMany({ where: { categoryId: id } });
+    // If subcategories provided, add only new ones
+    if (dto.subnames && dto.subnames.length > 0) {
+      // Existing subcategory names
+      const existingSubnames = category.subCategories.map((sub) => sub.subname);
 
-      // insert new subs
-      await tx.subCategory.createMany({
-        data: dto.subnames.map((sub) => ({
-          subname: sub,
-          subslug: generateSlug(sub),
-          categoryId: id,
-        
-        })),
-      });
+      // Filter out already existing subcategories
+      const newSubnames = dto.subnames.filter(
+        (sub) => !existingSubnames.includes(sub)
+      );
+
+      if (newSubnames.length > 0) {
+        await tx.subCategory.createMany({
+          data: newSubnames.map((sub) => ({
+            subname: sub,
+            subslug: generateSlug(sub),
+            categoryId: id,
+          })),
+        });
+      }
     }
 
-    // Return updated with subcategories
+    // Return updated category with all subcategories
     const updatedCategory = await tx.category.findUnique({
       where: { id },
       include: { subCategories: true },
@@ -122,7 +129,7 @@ async updateCategoryAndSubcategories(
 
     return successResponse(
       updatedCategory,
-      'Category and subcategories updated successfully',
+      'Category and subcategories updated successfully'
     );
   });
 }
@@ -142,8 +149,7 @@ async updateCategoryAndSubcategories(
         select: { id: true },
       });
       const subCategoryIds = subCategories.map((sub) => sub.id);
-
-      // ------------- Check if any content is linked to any subcategory------------
+// ------------- Check if any content is linked to any subcategory------------
       let subCategoryContentCount = 0;
       if (subCategoryIds.length > 0) {
         subCategoryContentCount = await tx.content.count({
@@ -222,6 +228,5 @@ async findOnecategoryBySlug(slug: string) {
 
   return successResponse(category, 'Category fetched successfully');
 }
-
 
 }
