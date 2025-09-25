@@ -16,12 +16,15 @@ import {
   CreateContentReactionDto,
 } from '../dto/create-content-comment.dto';
 import { UpdateContentDto } from '../dto/update-content.dto';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class ContentService {
   constructor(
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
+    private readonly httpService: HttpService,
   ) {}
   // ---------------------content crate-----------------------
   @HandleError('Failed to create content', 'content')
@@ -114,10 +117,30 @@ export class ContentService {
         );
         audioUrl = processedAudio?.url;
       }
+//-------  external  API expects "content"---------
+let evaluationResult: any;
+
+if (payload.paragraph) {
+  try {
+    const response = await firstValueFrom(
+      this.httpService.post(
+        'https://theaustraliancanvas.onrender.com/files/content-evaluation',
+        { content: payload.paragraph }, 
+      ),
+    );
+
+    evaluationResult = response.data;
+  } catch (error) {
+    console.error('External API error:', error.message);
+    evaluationResult = { success: false, error_message: 'External API failed' };
+  }
+}
 
       // ---------- Transaction: create Content + AdditionalContent--------
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
+
+          
           data: {
             title: payload.title,
             subTitle: payload.subTitle,
@@ -136,6 +159,9 @@ export class ContentService {
             userId: userId,
             categoryId: payload.categoryId,
             subCategoryId: payload.subCategoryId,
+            evaluationResult: evaluationResult
+        ? JSON.stringify(evaluationResult)
+        : null,
           },
         });
 

@@ -20,6 +20,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AdminManagementModule } from './admin/admin-management/admin-management.module';
 import { LiveEventModule } from './contents/live-event/live-event.module';
 import { awsModule } from './shared/aws/aws.module';
+import { FaqbotModule } from './shared/faqbot/faqbot.module';
+import { AustraliaLawModule } from './shared/australia-law/australia-law.module';
 
 @Module({
   imports: [
@@ -40,6 +42,9 @@ import { awsModule } from './shared/aws/aws.module';
     PaymentModule,
     AdminManagementModule,
     awsModule,
+    FaqbotModule,
+    AustraliaLawModule,
+    
   ],
   controllers: [],
   providers: [],

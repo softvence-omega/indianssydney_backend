@@ -43,8 +43,10 @@ export class RecommendationService {
   }
 
   // ------------use selected recommandation ----------
+  // recommendation.service.ts
+  @HandleError('Failed to assign recommendations', 'Recommendation only user')
   async userSelect(userId: string, payload: UseSelectRecommendationDto) {
-    const { recommendationId } = payload;
+    const { recommendationIds } = payload;
 
     // Fetch user with existing recommendations
     const user = await this.prisma.user.findUnique({
@@ -52,29 +54,28 @@ export class RecommendationService {
       include: { recommendations: true },
     });
 
-    if (!user) {
-      throw new AppError(404, 'User not found');
-    }
+    if (!user) throw new AppError(404, 'User not found');
 
-    // Check if recommendation is already assigned
-    const alreadySelected = user.recommendations?.some(
-      (r) => r.id === recommendationId,
+    // Filter out already-selected ones
+    const alreadySelectedIds = user.recommendations.map((r) => r.id);
+    const newIds = recommendationIds.filter(
+      (id) => !alreadySelectedIds.includes(id),
     );
 
-    if (alreadySelected) {
+    if (newIds.length === 0) {
       return {
-        message: 'Recommendation already selected for this user',
+        message: 'All provided recommendations are already selected',
         userId,
-        recommendationId,
+        selectedRecommendations: user.recommendations,
       };
     }
 
-    //-------------- Assign the recommendation to the user--------------
+    // Assign multiple recommendations
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
         recommendations: {
-          connect: { id: recommendationId },
+          connect: newIds.map((id) => ({ id })),
         },
       },
       include: {
@@ -83,7 +84,7 @@ export class RecommendationService {
     });
 
     return {
-      message: 'Recommendation assigned successfully',
+      message: 'Recommendations assigned successfully',
       userId: updatedUser.id,
       selectedRecommendations: updatedUser.recommendations,
     };
@@ -146,7 +147,7 @@ export class RecommendationService {
   }
 
   // ---------------update recommendation ------------------------
-
+@HandleError('Failed to update recommendation', 'Recommendation only admin')
   async update(id: string, payload: CreateRecommendationDto) {
     let fileUrl: string | undefined;
 
@@ -167,5 +168,90 @@ export class RecommendationService {
     });
 
     return successResponse(updated, 'Recommendation updated successfully');
+  }
+
+  // recommendation.service.ts
+  @HandleError('Failed to get user selected recommendations')
+  async getUserSelected(userId: string): Promise<TResponse<any>> {
+    // Fetch user with selected recommendations
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        recommendations: {
+          include: {
+            user: {
+              select: { id: true, fullName: true, profilePhoto: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) throw new AppError(404, 'User not found');
+
+    return successResponse(
+      user.recommendations,
+      'User selected recommendations retrieved successfully',
+    );
+  }
+
+  // --------recommendation.service.ts---------
+  @HandleError('Failed to get user selected recommendations with category contents')
+  async getUserSelectedWithContent(userId: string): Promise<TResponse<any>> {
+    // Fetch user with selected recommendations
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        recommendations: {
+          include: {
+            user: {
+              select: { id: true, fullName: true, profilePhoto: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) throw new AppError(404, 'User not found');
+
+    // Map each recommendation to include its category and contents
+    const result = await Promise.all(
+      user.recommendations.map(async (rec) => {
+        // Find the category linked by the recommendation's title
+        const category = await this.prisma.category.findFirst({
+          where: { name: rec.title },
+          include: {
+            contents: true, // fetch all contents under this category
+          },
+        });
+
+        return {
+          recommendationId: rec.id,
+          recommendationTitle: rec.title,
+          categoryId: category?.id ?? null,
+          categoryName: category?.name ?? null,
+          contents:
+            category?.contents.map((c) => ({
+              id: c.id,
+              title: c.title,
+              subTitle: c.subTitle,
+              paragraph: c.paragraph,
+              shortQuote: c.shortQuote,
+              image: c.image,
+              video: c.video,
+              audio: c.audio,
+              videoThumbnail: c.videoThumbnail,
+              youtubeVideoUrl: c.youtubeVideoUrl,
+              tags: c.tags,
+              evaluationResult: c.evaluationResult,
+            })) ?? [],
+        };
+      }),
+    );
+
+    return successResponse(
+      result,
+      'User selected recommendations with category contents retrieved successfully',
+    );
   }
 }

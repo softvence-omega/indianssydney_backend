@@ -10,6 +10,7 @@ export enum FileType {
   VIDEO = 'video',
   AUDIO = 'audio',
   ANY = 'any',
+  PDF='pdf'
 }
 
 @Injectable()
