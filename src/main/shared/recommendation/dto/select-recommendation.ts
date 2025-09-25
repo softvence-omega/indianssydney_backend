@@ -1,11 +1,14 @@
-import { ApiProperty } from "@nestjs/swagger";
-import {  IsString } from "class-validator";
+// dto/select-recommendation.ts
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsUUID } from 'class-validator';
 
 export class UseSelectRecommendationDto {
   @ApiProperty({
-    description: 'Recommendation ID to assign',
-    example: 'rec_123',
+    example: ['uuid-1', 'uuid-2'],
+    description: 'Array of recommendation IDs user selects',
   })
-  @IsString()
-  recommendationId: string;
+  @IsArray()
+  @IsUUID('all', { each: true })
+  recommendationIds: string[];
 }
+

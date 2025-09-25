@@ -14,6 +14,7 @@ import {
   Get,
   Param,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { ContentService } from '../service/content.service';
 import { CreateContentDto } from '../dto/create-content.dto';
@@ -32,6 +33,7 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
 import { AdditionalFieldDto } from '../dto/additional-field.dto';
+import { UpdateContentDto } from '../dto/update-content.dto';
 
 @ApiTags('Contents ALL Here News,Article')
 @Controller('content')
@@ -275,5 +277,46 @@ export class ContentController {
     @Body() dto: CreateContentCommentReactionDto,
   ) {
     return this.contentService.createContentCommentReaction({ ...dto, userId });
+  }
+// ------------ soft delete content---------
+ @ApiOperation({summary:'delete content soft'})
+  @ApiBearerAuth()
+  @ValidateContibutor()
+  @Delete(':id')
+  async deleteContent(@Param('id') id: string) {
+    return this.contentService.deleteContent(id);
+  }
+// ------- update content---------
+@ApiOperation({ summary: 'Update existing content' })
+  @ApiBearerAuth()
+  @ValidateContibutor()
+  @Patch(':id')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UpdateContentDto })
+  @UseInterceptors(
+    AnyFilesInterceptor(
+      new MulterService().createMulterOptions('./temp', 'content', FileType.ANY),
+    ),
+  )
+  async updateContent(
+    @Param('id') id: string,
+    @Body() body: any,
+    @GetUser('userId') userId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    console.log('Update Body:', body);
+    console.log('Update Files:', files.map(f => ({ fieldname: f.fieldname, name: f.originalname })));
+
+    const dto: UpdateContentDto = {
+      ...body,
+      tags: typeof body.tags === 'string' ? body.tags.split(',').map((t: string) => t.trim()) : body.tags,
+      image: files.find(f => f.fieldname === 'image'),
+      video: files.find(f => f.fieldname === 'video'),
+      videoThumbnail: files.find(f => f.fieldname === 'videoThumbnail'),
+      audio: files.find(f => f.fieldname === 'audio'),
+      additionalFields: [], // parse like in create (can reuse helper function)
+    };
+
+    return this.contentService.update(id, dto, userId, files);
   }
 }
