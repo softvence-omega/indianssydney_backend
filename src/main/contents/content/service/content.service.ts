@@ -15,6 +15,7 @@ import {
   CreateContentCommentReactionDto,
   CreateContentReactionDto,
 } from '../dto/create-content-comment.dto';
+import { UpdateContentDto } from '../dto/update-content.dto';
 
 @Injectable()
 export class ContentService {
@@ -118,11 +119,10 @@ export class ContentService {
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
           data: {
-
             title: payload.title,
             subTitle: payload.subTitle,
-             subcategorysslug :payload.subcategorysslug,
-            categorysslug : payload.categorysslug,
+            subcategorysslug: payload.subcategorysslug,
+            categorysslug: payload.categorysslug,
             paragraph: payload.paragraph,
             shortQuote: payload.shortQuote,
             youtubeVideoUrl: payload.youtubeVideoUrl,
@@ -207,11 +207,11 @@ export class ContentService {
     }
   }
 
-  // -----------------fetch all content------------------
+  // ----------------- get all content------------------
   @HandleError('Failed to fetch all contents', 'content')
   async findAllContent(): Promise<TResponse<any>> {
     const contents = await this.prisma.content.findMany({
-      where: { isDeleted: false },
+      where: { isDeleted: false, status: 'APPROVE' },
       include: {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
@@ -291,11 +291,11 @@ export class ContentService {
     );
   }
 
-  // ---------------------single  contents-----------------
+  // ---------------------single  contents by id -----------------
   @HandleError('Failed to fetch user contents', 'content')
   async findOne(id: string): Promise<TResponse<any>> {
     const content = await this.prisma.content.findUnique({
-      where: { id, isDeleted: false },
+      where: { id, isDeleted: false, status: 'APPROVE' },
       include: {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
@@ -435,39 +435,6 @@ export class ContentService {
     return successResponse(comment, 'Comment added successfully');
   }
 
-  // --------------get comment-----------
-  // async findAllContentComments() {
-  //   const comments = await this.prisma.contentComment.findMany({
-  //     include: {
-  //       user: {
-  //         select: {
-  //           id: true,
-  //           fullName: true,
-  //           email: true,
-  //           profilePhoto: true,
-  //         },
-  //       },
-  //       reactions: {
-  //         include: {
-  //           user: {
-  //             select: {
-  //               id: true,
-  //               fullName: true,
-  //               profilePhoto: true,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //     orderBy: { createdAt: 'desc' },
-  //   });
-
-  //   return successResponse(
-  //     comments,
-  //     'All content comments fetched successfully',
-  //   );
-  // }
-
   // ----------- Add Post Reaction ------------
   @HandleError('Failed to add content reaction', 'PostReaction')
   async createContentReaction(
@@ -502,5 +469,188 @@ export class ContentService {
       commentreaction,
       'Content Comment reaction added successfully',
     );
+  }
+
+  //-------  delete soft --------
+
+  @HandleError('Failed to deleted content')
+  async deleteContent(id: string) {
+    await this.prisma.content.update({
+      where: { id, status: 'Declined' },
+      data: { isDeleted: true },
+    });
+
+    return { message: 'Content deleted successfully' };
+  }
+
+  // --------------- update content---------
+
+  @HandleError('Failed to update content', 'content')
+  async update(
+    id: string,
+    payload: UpdateContentDto,
+    userId: string,
+    files: Express.Multer.File[],
+  ): Promise<TResponse<any>> {
+    try {
+      // ---------------- Validate Content ----------------
+      const existingContent = await this.prisma.content.findUnique({
+        where: { id },
+        include: { additionalContents: true },
+      });
+      if (!existingContent) {
+        throw new BadRequestException(`Content with ID ${id} does not exist`);
+      }
+
+      // ---------------- Validate User ----------------
+      const userExists = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (!userExists) {
+        throw new BadRequestException(`Invalid userId: ${userId}`);
+      }
+
+      // ---------------- Validate Category/SubCategory ----------------
+      if (payload.categoryId) {
+        const categoryExists = await this.prisma.category.findUnique({
+          where: { id: payload.categoryId },
+        });
+        if (!categoryExists) {
+          throw new BadRequestException(
+            `Invalid categoryId: ${payload.categoryId}`,
+          );
+        }
+      }
+      if (payload.subCategoryId) {
+        const subCategoryExists = await this.prisma.subCategory.findUnique({
+          where: { id: payload.subCategoryId },
+        });
+        if (!subCategoryExists) {
+          throw new BadRequestException(
+            `Invalid subCategoryId: ${payload.subCategoryId}`,
+          );
+        }
+      }
+
+      // ---------------- Process Files ----------------
+      let imageUrl = existingContent.image;
+      let videoUrl = existingContent.video;
+      let videoThumbUrl = existingContent.videoThumbnail;
+      let audioUrl = existingContent.audio;
+
+      if (payload.image) {
+        const processedFile = await this.fileService.processUploadedFile(
+          payload.image,
+        );
+        imageUrl = processedFile?.url;
+      }
+      if (payload.video) {
+        const processedVideo = await this.fileService.processUploadedFile(
+          payload.video,
+        );
+        videoUrl = processedVideo?.url;
+      }
+      if (payload.videoThumbnail) {
+        const processedThumb = await this.fileService.processUploadedFile(
+          payload.videoThumbnail,
+        );
+        videoThumbUrl = processedThumb?.url;
+      }
+      if (payload.audio) {
+        const processedAudio = await this.fileService.processUploadedFile(
+          payload.audio,
+        );
+        audioUrl = processedAudio?.url;
+      }
+
+      // ---------------- Transaction ----------------
+      const updatedContent = await this.prisma.$transaction(async (tx) => {
+        // ---- Update Content ----
+        const content = await tx.content.update({
+          where: { id },
+          data: {
+            title: payload.title ?? existingContent.title,
+            subTitle: payload.subTitle ?? existingContent.subTitle,
+            subcategorysslug:
+              payload.subcategorysslug ?? existingContent.subcategorysslug,
+            categorysslug:
+              payload.categorysslug ?? existingContent.categorysslug,
+            paragraph: payload.paragraph ?? existingContent.paragraph,
+            shortQuote: payload.shortQuote ?? existingContent.shortQuote,
+            youtubeVideoUrl:
+              payload.youtubeVideoUrl ?? existingContent.youtubeVideoUrl,
+            image: imageUrl,
+            video: videoUrl,
+            videoThumbnail: videoThumbUrl,
+            audio: audioUrl,
+            imageCaption: payload.imageCaption ?? existingContent.imageCaption,
+            tags: payload.tags ?? existingContent.tags,
+            contentType: payload.contentType ?? existingContent.contentType,
+            categoryId: payload.categoryId ?? existingContent.categoryId,
+            subCategoryId:
+              payload.subCategoryId ?? existingContent.subCategoryId,
+            updatedAt: new Date(),
+          },
+        });
+
+        // ---- Replace Additional Fields ----
+        if (payload.additionalFields) {
+          await tx.additionalContent.deleteMany({ where: { contentId: id } });
+
+          let order = 1;
+          for (const field of payload.additionalFields) {
+            if (!field.type || (!field.value && !field.file)) continue;
+
+            let fileUrl: string | undefined;
+            if (
+              field.file &&
+              ['image', 'audio', 'video'].includes(field.type)
+            ) {
+              const processedFile = await this.fileService.processUploadedFile(
+                field.file,
+              );
+              fileUrl = processedFile?.url;
+            } else {
+              fileUrl = field.value;
+            }
+
+            await tx.additionalContent.create({
+              data: {
+                contentId: id,
+                value: fileUrl || '',
+                order: order++,
+              },
+            });
+          }
+        }
+
+        return content;
+      });
+
+      // ---------------- Fetch Updated Content ----------------
+      const result = await this.prisma.content.findUnique({
+        where: { id: updatedContent.id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+          category: true,
+          subCategory: true,
+          additionalContents: { orderBy: { order: 'asc' } },
+        },
+      });
+
+      return successResponse(result, 'Content updated successfully');
+    } catch (error) {
+      console.error('Update content error:', error);
+      throw new BadRequestException(
+        error.message || 'Failed to update content',
+      );
+    }
   }
 }
