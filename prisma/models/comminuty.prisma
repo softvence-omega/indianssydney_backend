@@ -15,6 +15,8 @@ model Comment {
   id              String            @id @default(uuid())
   content         String
   userId          String
+  isDeleted       Boolean  @default(false)
+  status         CommentStatus     @default(PENDING)
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   reactions       CommentReaction[]
   CommunityPost   CommunityPost?    @relation(fields: [communityPostId], references: [id])
@@ -52,4 +54,10 @@ model CommentReaction {
 enum ReactionType {
   LIKE
   DISLIKE
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVE
+  Declined
 }

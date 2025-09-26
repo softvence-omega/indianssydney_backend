@@ -118,6 +118,47 @@ export class ContentmanageController {
   async getAllReports() {
     return this.contentmanageService.getAllReports();
   }
-// ---------get all report super admin---------------------
+// ---------get all hate space ---------------------
+@ApiOperation({ summary: 'Super Admin get all hate space' })
+@ApiBearerAuth()
+@ValidateSuperAdmin()
+@Get('hate-space')
+async getAllHateSpace() {
+  return this.contentmanageService.getAllHateSpace();
+}
+
+@Patch(':id/soft-delete')
+@ApiOperation({ summary: 'Soft delete a content' })
+async softDelete(@Param('id') id: string) {
+  return this.contentmanageService.softDeleteContent(id);
+}
+// -------Apioperation for hate command---
+
+// --------- Get all hate comments ---------
+  @ApiOperation({ summary: 'Super Admin get all comments flagged as hate speech' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('hate-comments')
+  async getAllHateComments() {
+    return this.contentmanageService.getAllHateComments();
+  }
+
+  // --------- Approve a hate comment ---------
+  @ApiOperation({ summary: 'Super Admin approve a comment flagged as hate speech' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Patch('hate-comments/:id/approve')
+  async approveHateComment(@Param('id') id: string) {
+    return this.contentmanageService.approveHateComment(id);
+  }
+
+  // --------- Soft delete a hate comment ---------
+  @ApiOperation({ summary: 'Super Admin soft delete a comment flagged as hate speech' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Patch('hate-comments/:id/soft-delete')
+  async softDeleteHateComment(@Param('id') id: string) {
+    return this.contentmanageService.softDeleteHateComment(id);
+  }
 
 }

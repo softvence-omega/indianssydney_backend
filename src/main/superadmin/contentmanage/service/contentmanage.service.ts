@@ -1,8 +1,8 @@
 import { successResponse } from 'src/common/utils/response.util';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from 'src/lib/prisma/prisma.service';
-import { Status } from '@prisma/client';
+import { CommentStatus, Status } from '@prisma/client';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { PaymentPlanDto } from '../dto/payment-plane.dto';
 import { NotificationGateway } from 'src/lib/notificaton/notification.gateway';
@@ -279,5 +279,179 @@ export class ContentmanageService {
     });
 
     return successResponse(reports, 'All reports retrieved successfully');
+  }
+  // -------hate space maintain-------
+  @HandleError('Failed to get all hate space', 'HateSpace')
+  async getAllHateSpace() {
+    const hateSpace = await this.prisma.content.findMany({
+      where: {
+        evaluationResult: { not: null },
+        isDeleted: false,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    // Format response
+    const formatted = hateSpace
+      .map((content) => {
+        let evaluation;
+        try {
+          evaluation = content.evaluationResult
+            ? JSON.parse(content.evaluationResult)
+            : null;
+          // evaluation_result is nested JSON string
+          if (evaluation?.evaluation_result) {
+            evaluation.evaluation_result = JSON.parse(
+              evaluation.evaluation_result,
+            );
+          }
+        } catch (e) {
+          evaluation = {
+            evaluation_result: { percentage: 0, lines: [] },
+            success: false,
+          };
+        }
+
+        return {
+          title: content.title,
+          subTitle: content.subTitle,
+          author: content.user
+            ? {
+                id: content.user.id,
+                fullName: content.user.fullName || 'Unknown User',
+                profilePhoto: content.user.profilePhoto || null,
+                role: content.user.role,
+              }
+            : null,
+          percentage: evaluation?.evaluation_result?.percentage ?? 0,
+          lines: evaluation?.evaluation_result?.lines ?? [],
+        };
+      })
+      // Filter out content with percentage >= 98
+      .filter((c) => c.percentage < 98);
+
+    return {
+      success: true,
+      message: 'All hate space retrieved successfully',
+      data: formatted,
+    };
+  }
+
+  // -------soft deleted content---------
+  @HandleError('Failed to soft delete content', 'Content')
+  async softDeleteContent(contentId: string) {
+    const content = await this.prisma.content.update({
+      where: { id: contentId },
+      data: { isDeleted: true },
+    });
+
+    return {
+      success: true,
+      message: 'Content soft deleted successfully',
+      data: {
+        id: content.id,
+        title: content.title,
+        isDeleted: content.isDeleted,
+      },
+    };
+  }
+
+  // -------hate speech comment---
+
+  @HandleError('Failed to get all hate speech comments', 'HateSpeechComment')
+  async getAllHateSpeechComments() {
+    const hateSpeechComments = await this.prisma.comment.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return successResponse(
+      hateSpeechComments,
+      'All hate speech comments retrieved successfully',
+    );
+  }
+
+  // ---------------- Get all hate comments ----------------
+  @HandleError('Failed to get all hate comments', 'HateComment')
+  async getAllHateComments() {
+    const comments = await this.prisma.comment.findMany({
+      where: { hate_speech_detect: true, isDeleted: false },
+      include: { user: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      success: true,
+      message: 'Hate comments retrieved successfully',
+      data: comments,
+    };
+  }
+
+  // ---------------- Approve hate comment ----------------
+  @HandleError('Failed to approve hate comment', 'HateComment')
+  async approveHateComment(commentId: string) {
+    const existing = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+    if (!existing || !existing.hate_speech_detect || existing.isDeleted) {
+      throw new NotFoundException('Hate comment not found');
+    }
+
+    const updated = await this.prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        status: CommentStatus.APPROVE,
+        hate_speech_detect: false,
+        confidence: null,
+        explanation: null,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Hate comment approved successfully',
+      data: updated,
+    };
+  }
+
+  // ---------------- Soft delete hate comment ----------------
+  @HandleError('Failed to soft delete hate comment', 'HateComment')
+  async softDeleteHateComment(commentId: string) {
+    const existing = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+    if (!existing || !existing.hate_speech_detect || existing.isDeleted) {
+      throw new NotFoundException('Hate comment not found');
+    }
+
+    const deleted = await this.prisma.comment.update({
+      where: { id: commentId },
+      data: { isDeleted: true, status: CommentStatus.Declined },
+    });
+
+    return {
+      success: true,
+      message: 'Hate comment soft deleted successfully',
+      data: deleted,
+    };
   }
 }
