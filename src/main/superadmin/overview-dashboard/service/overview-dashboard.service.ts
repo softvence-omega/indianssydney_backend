@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateOverviewDashboardDto } from '../dto/update-overview-dashboard.dto';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { CreateTotalPageViewDto } from '../dto/create-page-view.dto';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { TResponse } from 'src/common/utils/response.util';
 
-@Injectable()
+@Injectable() 
 export class OverviewDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -302,4 +301,6 @@ async getTotalUserActivity() {
       data: EditorContentActivity,
     };
   }
+
+ 
 }
