@@ -22,6 +22,7 @@ import { LiveEventModule } from './contents/live-event/live-event.module';
 import { awsModule } from './shared/aws/aws.module';
 import { FaqbotModule } from './shared/faqbot/faqbot.module';
 import { AustraliaLawModule } from './shared/australia-law/australia-law.module';
+import { AicontentModule } from './contents/aicontent/aicontent.module';
 
 @Module({
   imports: [
@@ -44,6 +45,8 @@ import { AustraliaLawModule } from './shared/australia-law/australia-law.module'
     awsModule,
     FaqbotModule,
     AustraliaLawModule,
+    AicontentModule,
+    
     
   ],
   controllers: [],

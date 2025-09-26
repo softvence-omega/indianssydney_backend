@@ -29,7 +29,7 @@ export class OverviewDashboardService {
     return total;
   }
 
-  // ----------------get total view with grotth--------------------------------------
+  // ----------------get total view with groth--------------------------------------
 
   @HandleError('super admin can total get view user')
   async getTotalWithBonus() {
@@ -73,7 +73,7 @@ export class OverviewDashboardService {
     });
     const currentMonthCount = currentMonthViews._sum.count ?? 0;
 
-    // ---------pageGroth percentage-----------------
+    // ---------page Groth percentage-----------------
     let pageGroth: number;
 
     if (lastMonthCount === 0) {
@@ -151,52 +151,67 @@ export class OverviewDashboardService {
 
   // ---------total user acitvity------------
 
-  @HandleError('super admin can total get view user role')
-  async getTotalUserActivity() {
-    // Total users
-    const totalUser = await this.prisma.user.count();
+  @HandleError('Super admin can total get view user role')
+async getTotalUserActivity() {
+  // Total users
+  const totalUser = await this.prisma.user.count();
 
-    // Total page views
-    const totalPageView = await this.prisma.totalPageview.findFirst();
-    const totalPageViewCount = totalPageView?.count ?? 0;
+  // Total page views
+  const totalPageView = await this.prisma.totalPageview.findFirst();
+  const totalPageViewCount = totalPageView?.count ?? 0;
 
-    // Users by role
-    const userRoles = await this.prisma.user.groupBy({
-      by: ['role'],
-      _count: { role: true },
-    });
+  // Users by role
+  const userRoles = await this.prisma.user.groupBy({
+    by: ['role'],
+    _count: { role: true },
+  });
 
-    // Map role counts to desired keys
-    const roleCounts = {
-      visitorCount: 0,
-      adminCount: 0,
-      contibutorCount: 0,
-      memberCount: 0,
-    };
+  // Map role counts to desired keys
+  const roleCounts = {
+    visitorCount: 0,
+    adminCount: 0,
+    contributorCount: 0,
+    memberCount: 0,
+    superAdminCount: 0,
+  };
 
-    userRoles.forEach((r) => {
-      switch (r.role) {
-        case 'USER':
-          roleCounts.visitorCount = r._count.role;
-          break;
-        case 'ADMIN':
-          roleCounts.adminCount = r._count.role;
-          break;
-        case 'CONTIBUTOR':
-          roleCounts.contibutorCount = r._count.role;
-          break;
-        case 'MEMBER':
-          roleCounts.memberCount = r._count.role;
-          break;
-      }
-    });
+  userRoles.forEach((r) => {
+    switch (r.role) {
+      case 'USER':
+        roleCounts.visitorCount = r._count.role;
+        break;
+      case 'ADMIN':
+        roleCounts.adminCount = r._count.role;
+        break;
+      case 'CONTIBUTOR':
+        roleCounts.contributorCount = r._count.role;
+        break;
+      case 'MEMBER':
+        roleCounts.memberCount = r._count.role;
+        break;
+      case 'SUPER_ADMIN':
+        roleCounts.superAdminCount = r._count.role;
+        break;
+    }
+  });
 
-    return {
-      totalUser,
-      totalPageViewCount,
-      ...roleCounts,
-    };
-  }
+  // Calculate percentages
+  const percentages = {
+    visitorPercentage: totalUser ? (roleCounts.visitorCount / totalUser) * 100 : 0,
+    adminPercentage: totalUser ? (roleCounts.adminCount / totalUser) * 100 : 0,
+    contributorPercentage: totalUser ? (roleCounts.contributorCount / totalUser) * 100 : 0,
+    memberPercentage: totalUser ? (roleCounts.memberCount / totalUser) * 100 : 0,
+    superAdminPercentage: totalUser ? (roleCounts.superAdminCount / totalUser) * 100 : 0,
+  };
+
+  return {
+    totalUser,
+    totalPageViewCount,
+    ...roleCounts,
+    ...percentages,
+  };
+}
+
 
   //----------------- traffic & engagement overview  ----------------------------
   @HandleError('Failed to get traffic & engagement overview')

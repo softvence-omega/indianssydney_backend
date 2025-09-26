@@ -7,15 +7,17 @@ import { TResponse } from 'src/common/utils/response.util';
 
 @Injectable()
 export class AdminDashboardService {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ------------------admin dashboard overview--------------------
-  @HandleError('Failed to get admin dashboard overview', 'admin-dashboard')
+ @HandleError('Failed to get admin dashboard overview', 'admin-dashboard')
 async getAdminDashboardOverview(): Promise<any> {
+  // User counts
   const totalContributorRole = await this.prisma.user.count({
     where: { isDeleted: false, role: 'CONTIBUTOR' },
   });
 
+  // Content counts
   const contentPublished = await this.prisma.content.count({
     where: { status: 'APPROVE', isDeleted: false },
   });
@@ -23,6 +25,12 @@ async getAdminDashboardOverview(): Promise<any> {
   const contentPending = await this.prisma.content.count({
     where: { status: 'PENDING', isDeleted: false },
   });
+
+  // AI counts
+  const totalAiParagraphs = await this.prisma.aiParagraphGeneration.count();
+  const totalAiSeoTags = await this.prisma.aiSeoTag.count();
+
+  const totalAiPerformance = totalAiParagraphs + totalAiSeoTags;
 
   return {
     success: true,
@@ -34,6 +42,11 @@ async getAdminDashboardOverview(): Promise<any> {
       content: {
         published: contentPublished,
         pending: contentPending,
+      },
+      aiPerformance: {
+        total: totalAiPerformance,
+        paragraphs: totalAiParagraphs,
+        seoTags: totalAiSeoTags,
       },
     },
   };
@@ -78,43 +91,119 @@ async getAdminDashboardOverview(): Promise<any> {
   }
 
   // ----------------- Recent Activity -----------------------
- @HandleError('Failed to get recent activity overview')
-async recentActivity(): Promise<TResponse<any>> {
-  const activities = await this.prisma.content.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    include: {
-      user: {
-        select: { fullName: true, email: true },
+  @HandleError('Failed to get recent activity overview')
+  async recentActivity(): Promise<TResponse<any>> {
+    const activities = await this.prisma.content.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      include: {
+        user: {
+          select: { fullName: true, email: true },
+        },
+      },
+    });
+
+    const formatted = activities.map((activity) => {
+      const userName =
+        activity.user?.fullName && activity.user.fullName.trim() !== ''
+          ? activity.user.fullName
+          : 'Unknown User';
+
+      return {
+        message: `${userName} submitted "${activity.title}"`,
+        time: new Date(activity.createdAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+    });
+
+    return {
+      success: true,
+      message: 'Recent activities fetched successfully',
+      data: formatted,
+    };
+  }
+
+  // ----to per performance with views------
+
+  @HandleError('Failed to get top performance overview')
+  async topPerformance(): Promise<TResponse<any>> {
+    const topContents = await this.prisma.content.findMany({
+      where: { isDeleted: false },
+      orderBy: { contentviews: 'desc' },
+      take: 10,
+      include: {
+        user: {
+          select: { fullName: true, email: true },
+        },
+      },
+    });
+
+    const formatted = topContents.map((content) => {
+      const userName =
+        content.user?.fullName && content.user.fullName.trim() !== ''
+          ? content.user.fullName
+          : 'Unknown User';
+
+      return {
+        title: content.title,
+        views: content.contentviews ,
+        author: userName,
+      };
+    });
+
+    return {
+      success: true,
+      message: 'Top performance fetched successfully',
+      data: formatted,
+    };
+  }
+
+@HandleError('Failed top contributor content contentHistory')
+async contentHistory(): Promise<TResponse<any>> {
+  const topContributors = await this.prisma.user.findMany({
+    where: { isDeleted: false },
+    select: {
+      id: true,
+      fullName: true,
+      profilePhoto: true,
+      constents: { // Use the correct relation name from your Prisma schema
+        where: { status: 'APPROVE', isDeleted: false },
+        select: {
+          id: true,
+          contentviews: true,
+        },
       },
     },
   });
 
-  const formatted = activities.map((activity) => {
-    const userName =
-      activity.user?.fullName && activity.user.fullName.trim() !== ''
-        ? activity.user.fullName
-        : 'Unknown User';
+  const formatted = topContributors
+    .map((user) => {
+      const totalPublished = user.constents.length;
+      const totalViews = user.constents.reduce(
+        (sum, c) => sum + (c.contentviews || 0),
+        0,
+      );
 
-    return {
-      message: `${userName} submitted "${activity.title}"`,
-      time: new Date(activity.createdAt).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-  });
+      return {
+        name: user.fullName || 'Unknown User',
+        profilePhoto: user.profilePhoto || null,
+        totalPublished,
+        totalViews,
+      };
+    })
+    .sort((a, b) => b.totalPublished - a.totalPublished)
+    .slice(0, 10);
 
   return {
     success: true,
-    message: 'Recent activities fetched successfully',
+    message: 'Top 10 contributors fetched successfully',
     data: formatted,
   };
 }
 
-
- 
 }
