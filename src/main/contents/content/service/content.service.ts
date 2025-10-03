@@ -735,4 +735,53 @@ export class ContentService {
 
     return successResponse(contents, 'Contents fetched successfully');
   }
+
+  // ------------- get homepage content by category with limit 7 each -------------
+  @HandleError('Failed to fetch homepage contents', 'content')
+  async getHomePageContent(): Promise<TResponse<any>> {
+ 
+    const categories = await this.prisma.category.findMany({
+      where: { isDeleted: false },
+      select: { id: true, name: true, slug: true },
+    });
+
+    if (!categories || categories.length === 0) {
+      return successResponse([], 'No categories found');
+    }
+  
+    const contentsByCategory = await Promise.all(
+      categories.map(async (category) => {
+        const contents = await this.prisma.content.findMany({
+          where: {
+            categoryId: category.id,
+            isDeleted: false,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                profilePhoto: true,
+              },
+            },
+            category: true,
+            subCategory: true,
+            additionalContents: { orderBy: { order: 'asc' } },
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+
+        return {
+          category,
+          contents: contents ?? [],
+        };
+      }),
+    );
+
+    return successResponse(
+      contentsByCategory,
+      'Homepage contents fetched successfully',
+    );
+  }
 }
