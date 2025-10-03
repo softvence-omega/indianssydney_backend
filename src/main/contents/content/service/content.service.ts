@@ -117,30 +117,31 @@ export class ContentService {
         );
         audioUrl = processedAudio?.url;
       }
-//-------  external  API expects "content"---------
-let evaluationResult: any;
+      //-------  external  API expects "content"---------
+      let evaluationResult: any;
 
-if (payload.paragraph) {
-  try {
-    const response = await firstValueFrom(
-      this.httpService.post(
-        'https://theaustraliancanvas.onrender.com/files/content-evaluation',
-        { content: payload.paragraph }, 
-      ),
-    );
+      if (payload.paragraph) {
+        try {
+          const response = await firstValueFrom(
+            this.httpService.post(
+              'https://theaustraliancanvas.onrender.com/files/content-evaluation',
+              { content: payload.paragraph },
+            ),
+          );
 
-    evaluationResult = response.data;
-  } catch (error) {
-    console.error('External API error:', error.message);
-    evaluationResult = { success: false, error_message: 'External API failed' };
-  }
-}
+          evaluationResult = response.data;
+        } catch (error) {
+          console.error('External API error:', error.message);
+          evaluationResult = {
+            success: false,
+            error_message: 'External API failed',
+          };
+        }
+      }
 
       // ---------- Transaction: create Content + AdditionalContent--------
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
-
-          
           data: {
             title: payload.title,
             subTitle: payload.subTitle,
@@ -160,8 +161,8 @@ if (payload.paragraph) {
             categoryId: payload.categoryId,
             subCategoryId: payload.subCategoryId,
             evaluationResult: evaluationResult
-        ? JSON.stringify(evaluationResult)
-        : null,
+              ? JSON.stringify(evaluationResult)
+              : null,
           },
         });
 
@@ -678,5 +679,60 @@ if (payload.paragraph) {
         error.message || 'Failed to update content',
       );
     }
+  }
+
+  // -----get content by category slug---
+  @HandleError('Failed to fetch contents by category slug', 'content')
+  async getContentByCategorySlug(categorySlug: string) {
+    const contents = await this.prisma.content.findMany({
+      where: {
+        category: {
+          slug: categorySlug,
+        },
+        isDeleted: false,
+        status: 'APPROVE',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+          },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: {
+          orderBy: { order: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Contents fetched successfully');
+  }
+
+  // -----get content by subcategory slug---
+  @HandleError('Failed to fetch contents by subcategory slug', 'content')
+  async getContentBySubCategorySlug(subCategorySlug: string) {
+    const contents = await this.prisma.content.findFirst({
+      where: {
+        subcategorysslug: subCategorySlug,
+        isDeleted: false,
+        status: 'APPROVE',
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Contents fetched successfully');
   }
 }
