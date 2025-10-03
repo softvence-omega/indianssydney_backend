@@ -136,6 +136,13 @@ if (payload.paragraph) {
   }
 }
 
+
+
+      
+
+
+
+
       // ---------- Transaction: create Content + AdditionalContent--------
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
@@ -678,5 +685,44 @@ if (payload.paragraph) {
         error.message || 'Failed to update content',
       );
     }
+  }
+
+
+  // -----get content by category slug---
+@HandleError('Failed to fetch contents by category slug', 'content')
+async getContentByCategorySlug(categorySlug: string) {
+    const contents = await this.prisma.content.findMany({
+      where: { categorysslug: categorySlug, isDeleted: false, status: 'APPROVE' },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Contents fetched successfully');
+  }
+
+  // -----get content by subcategory slug---
+@HandleError('Failed to fetch contents by subcategory slug', 'content')
+async getContentBySubCategorySlug(subCategorySlug: string) {
+    const contents = await this.prisma.content.findMany({
+      where: { subcategorysslug: subCategorySlug, isDeleted: false, status: 'APPROVE' },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Contents fetched successfully');
   }
 }

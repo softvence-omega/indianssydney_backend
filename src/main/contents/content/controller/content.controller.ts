@@ -76,8 +76,8 @@ export class ContentController {
     const dto: CreateContentDto = {
       title: body.title,
       subTitle: body.subTitle,
-      subcategorysslug : body.subcategorysslug,
-      categorysslug : body.categorysslug,
+      subcategorysslug: body.subcategorysslug,
+      categorysslug: body.categorysslug,
       paragraph: body.paragraph,
       shortQuote: body.shortQuote,
       imageCaption: body.imageCaption,
@@ -278,16 +278,32 @@ export class ContentController {
   ) {
     return this.contentService.createContentCommentReaction({ ...dto, userId });
   }
-// ------------ soft delete content---------
- @ApiOperation({summary:'delete content soft'})
+  // ------------ soft delete content---------
+  @ApiOperation({ summary: 'delete content soft' })
   @ApiBearerAuth()
   @ValidateContibutor()
   @Delete(':id')
   async deleteContent(@Param('id') id: string) {
     return this.contentService.deleteContent(id);
   }
-// ------- update content---------
-@ApiOperation({ summary: 'Update existing content' })
+
+  //  get content by category & subcateory slug
+  @ApiOperation({ summary: 'Get contents by category and subcategory slugs' })
+  @Get('category/:categorySlug')
+  async getContentByCategorySlug(@Param('categorySlug') categorySlug: string) {
+    return this.contentService.getContentByCategorySlug(categorySlug);
+  }
+
+  @ApiTags('Get by content subgetory slug')
+  @Get('subcategory/:subCategorySlug')
+  async getContentBySubCategorySlug(
+    @Param('subCategorySlug') subCategorySlug: string,
+  ) {
+    return this.contentService.getContentBySubCategorySlug(subCategorySlug);
+  }
+
+  // ------- update content---------
+  @ApiOperation({ summary: 'Update existing content' })
   @ApiBearerAuth()
   @ValidateContibutor()
   @Patch(':id')
@@ -295,7 +311,11 @@ export class ContentController {
   @ApiBody({ type: UpdateContentDto })
   @UseInterceptors(
     AnyFilesInterceptor(
-      new MulterService().createMulterOptions('./temp', 'content', FileType.ANY),
+      new MulterService().createMulterOptions(
+        './temp',
+        'content',
+        FileType.ANY,
+      ),
     ),
   )
   async updateContent(
@@ -305,15 +325,21 @@ export class ContentController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     console.log('Update Body:', body);
-    console.log('Update Files:', files.map(f => ({ fieldname: f.fieldname, name: f.originalname })));
+    console.log(
+      'Update Files:',
+      files.map((f) => ({ fieldname: f.fieldname, name: f.originalname })),
+    );
 
     const dto: UpdateContentDto = {
       ...body,
-      tags: typeof body.tags === 'string' ? body.tags.split(',').map((t: string) => t.trim()) : body.tags,
-      image: files.find(f => f.fieldname === 'image'),
-      video: files.find(f => f.fieldname === 'video'),
-      videoThumbnail: files.find(f => f.fieldname === 'videoThumbnail'),
-      audio: files.find(f => f.fieldname === 'audio'),
+      tags:
+        typeof body.tags === 'string'
+          ? body.tags.split(',').map((t: string) => t.trim())
+          : body.tags,
+      image: files.find((f) => f.fieldname === 'image'),
+      video: files.find((f) => f.fieldname === 'video'),
+      videoThumbnail: files.find((f) => f.fieldname === 'videoThumbnail'),
+      audio: files.find((f) => f.fieldname === 'audio'),
       additionalFields: [], // parse like in create (can reuse helper function)
     };
 
