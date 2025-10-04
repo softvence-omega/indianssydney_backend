@@ -6,7 +6,7 @@ import { ApplyStatus, Status } from '@prisma/client';
 @Injectable()
 export class AdminManagementService {
   constructor(private readonly prisma: PrismaService) {}
-  @HandleError('Failed to update content status', 'contentmanage')
+  @HandleError('Failed to update content status', 'content-manage')
   async updateContentStatus(
     contentId: string,
     newStatus: Status,
@@ -17,7 +17,14 @@ export class AdminManagementService {
       include: {
         user: {
           //  show content owner
-          select: { id: true, fullName: true, email: true, profilePhoto: true },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+            role: true,
+            statusChanges: true,
+          },
         },
         category: { select: { id: true, name: true, slug: true } },
         subCategory: { select: { id: true, subname: true, subslug: true } },
