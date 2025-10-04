@@ -27,14 +27,14 @@ export class AicontentController {
 
   // GET AI 
   @Get('paragraph')
-  @ApiOperation({ summary: 'Get AI' })
+  @ApiOperation({ summary: 'Get AI all data here' })
   async getAiParagraph() {
     return this.service.getAiParagraph();
   }
   // -------get seotag------
 
   @Get('seo')
-  @ApiOperation({ summary: 'Get SEO' })
+  @ApiOperation({ summary: 'Get SEO all data here generate' })
   async getSeoTags() {
     return this.service.getSeoTags();
   }
