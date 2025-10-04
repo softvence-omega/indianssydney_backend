@@ -4,7 +4,7 @@ import { CreateTotalPageViewDto } from '../dto/create-page-view.dto';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { TResponse } from 'src/common/utils/response.util';
 
-@Injectable() 
+@Injectable()
 export class OverviewDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -83,11 +83,64 @@ export class OverviewDashboardService {
       );
     }
 
+    // ===== Content stats =====
+
+    // Get last month content count
+    const lastMonthContentCount = await this.prisma.content.count({
+      where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+    });
+
+    // Get current month content count
+    const currentMonthContentCount = await this.prisma.content.count({
+      where: {
+        createdAt: { gte: startOfCurrentMonth, lte: endOfCurrentMonth },
+      },
+    });
+
+    // Get total content (all time)
+    const totalContentCount = await this.prisma.content.count();
+
+    // Calculate growth percentage
+    const contentGrowthPercentage =
+      lastMonthContentCount === 0
+        ? currentMonthContentCount > 0
+          ? 100
+          : 0
+        : Math.round(
+            ((currentMonthContentCount - lastMonthContentCount) /
+              lastMonthContentCount) *
+              100,
+          );
+
+    // ======= Article stats =======
+    const [
+      totalArticleCurrentMonth,
+      totalArticleLastMonthPending,
+      totalArticles,
+    ] = await Promise.all([
+      this.prisma.content.count({
+        where: {
+          createdAt: { gte: startOfCurrentMonth, lte: endOfCurrentMonth },
+        },
+      }),
+      this.prisma.content.count({
+        where: {
+          createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+          status: 'PENDING',
+        },
+      }),
+      this.prisma.content.count(),
+    ]);
+
     // Current total
     const total = await this.prisma.totalPageview.findFirst();
     const baseCount = total?.count ?? 1;
 
     return {
+      totalArticleCurrentMonth,
+      totalArticleLastMonthPending,
+      totalArticles,
+      contentGrowthPercentage,
       baseCount,
       lastMonthCount,
       currentMonthCount,
@@ -151,66 +204,75 @@ export class OverviewDashboardService {
   // ---------total user acitvity------------
 
   @HandleError('Super admin can total get view user role')
-async getTotalUserActivity() {
-  // Total users
-  const totalUser = await this.prisma.user.count();
+  async getTotalUserActivity() {
+    // Total users
+    const totalUser = await this.prisma.user.count();
 
-  // Total page views
-  const totalPageView = await this.prisma.totalPageview.findFirst();
-  const totalPageViewCount = totalPageView?.count ?? 0;
+    // Total page views
+    const totalPageView = await this.prisma.totalPageview.findFirst();
+    const totalPageViewCount = totalPageView?.count ?? 0;
 
-  // Users by role
-  const userRoles = await this.prisma.user.groupBy({
-    by: ['role'],
-    _count: { role: true },
-  });
+    // Users by role
+    const userRoles = await this.prisma.user.groupBy({
+      by: ['role'],
+      _count: { role: true },
+    });
 
-  // Map role counts to desired keys
-  const roleCounts = {
-    visitorCount: 0,
-    adminCount: 0,
-    contributorCount: 0,
-    memberCount: 0,
-    superAdminCount: 0,
-  };
+    // Map role counts to desired keys
+    const roleCounts = {
+      visitorCount: 0,
+      adminCount: 0,
+      contributorCount: 0,
+      memberCount: 0,
+      superAdminCount: 0,
+    };
 
-  userRoles.forEach((r) => {
-    switch (r.role) {
-      case 'USER':
-        roleCounts.visitorCount = r._count.role;
-        break;
-      case 'ADMIN':
-        roleCounts.adminCount = r._count.role;
-        break;
-      case 'CONTIBUTOR':
-        roleCounts.contributorCount = r._count.role;
-        break;
-      case 'MEMBER':
-        roleCounts.memberCount = r._count.role;
-        break;
-      case 'SUPER_ADMIN':
-        roleCounts.superAdminCount = r._count.role;
-        break;
-    }
-  });
+    userRoles.forEach((r) => {
+      switch (r.role) {
+        case 'USER':
+          roleCounts.visitorCount = r._count.role;
+          break;
+        case 'ADMIN':
+          roleCounts.adminCount = r._count.role;
+          break;
+        case 'CONTIBUTOR':
+          roleCounts.contributorCount = r._count.role;
+          break;
+        case 'MEMBER':
+          roleCounts.memberCount = r._count.role;
+          break;
+        case 'SUPER_ADMIN':
+          roleCounts.superAdminCount = r._count.role;
+          break;
+      }
+    });
 
-  // Calculate percentages
-  const percentages = {
-    visitorPercentage: totalUser ? (roleCounts.visitorCount / totalUser) * 100 : 0,
-    adminPercentage: totalUser ? (roleCounts.adminCount / totalUser) * 100 : 0,
-    contributorPercentage: totalUser ? (roleCounts.contributorCount / totalUser) * 100 : 0,
-    memberPercentage: totalUser ? (roleCounts.memberCount / totalUser) * 100 : 0,
-    superAdminPercentage: totalUser ? (roleCounts.superAdminCount / totalUser) * 100 : 0,
-  };
+    // Calculate percentages
+    const percentages = {
+      visitorPercentage: totalUser
+        ? (roleCounts.visitorCount / totalUser) * 100
+        : 0,
+      adminPercentage: totalUser
+        ? (roleCounts.adminCount / totalUser) * 100
+        : 0,
+      contributorPercentage: totalUser
+        ? (roleCounts.contributorCount / totalUser) * 100
+        : 0,
+      memberPercentage: totalUser
+        ? (roleCounts.memberCount / totalUser) * 100
+        : 0,
+      superAdminPercentage: totalUser
+        ? (roleCounts.superAdminCount / totalUser) * 100
+        : 0,
+    };
 
-  return {
-    totalUser,
-    totalPageViewCount,
-    ...roleCounts,
-    ...percentages,
-  };
-}
-
+    return {
+      totalUser,
+      totalPageViewCount,
+      ...roleCounts,
+      ...percentages,
+    };
+  }
 
   //----------------- traffic & engagement overview  ----------------------------
   @HandleError('Failed to get traffic & engagement overview')
@@ -301,6 +363,4 @@ async getTotalUserActivity() {
       data: EditorContentActivity,
     };
   }
-
- 
 }
