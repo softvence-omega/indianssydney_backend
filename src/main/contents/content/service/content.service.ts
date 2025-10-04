@@ -737,51 +737,122 @@ export class ContentService {
   }
 
   // ------------- get homepage content by category with limit 7 each -------------
+  // content/content.service.ts
   @HandleError('Failed to fetch homepage contents', 'content')
   async getHomePageContent(): Promise<TResponse<any>> {
- 
-    const categories = await this.prisma.category.findMany({
-      where: { isDeleted: false },
-      select: { id: true, name: true, slug: true },
-    });
+    try {
+      const categories = await this.prisma.category.findMany({
+        where: { isDeleted: false },
+        select: { id: true, name: true, slug: true },
+      });
 
-    if (!categories || categories.length === 0) {
-      return successResponse([], 'No categories found');
-    }
-  
-    const contentsByCategory = await Promise.all(
-      categories.map(async (category) => {
-        const contents = await this.prisma.content.findMany({
-          where: {
-            categoryId: category.id,
-            isDeleted: false,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                profilePhoto: true,
-              },
+      if (!categories || categories.length === 0) {
+        return successResponse([], 'No categories found');
+      }
+
+      const contentsByCategory = await Promise.all(
+        categories.map(async (category) => {
+          const contents = await this.prisma.content.findMany({
+            where: {
+              categoryId: category.id,
+              isDeleted: false,
+              status: 'APPROVE', // Filter for approved contents only
             },
-            category: true,
-            subCategory: true,
-            additionalContents: { orderBy: { order: 'asc' } },
-          },
-          orderBy: { createdAt: 'desc' },
-        });
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  profilePhoto: true,
+                },
+              },
+              category: true,
+              subCategory: true,
+              ContentComments: {
+                // Include for stats calculation
+                include: { reactions: true },
+              },
+              ContentReactions: true, // Include for stats
+              additionalContents: { orderBy: { order: 'asc' } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 7, // Limit to 7 per category
+          });
 
-        return {
-          category,
-          contents: contents ?? [],
-        };
-      }),
-    );
+          // Enrich each content with stats (like in findAllContent)
+          const enrichedContents = contents.map((content) => {
+            const likeCount = content.ContentReactions.filter(
+              (r) => r.type === 'LIKE',
+            ).length;
+            const dislikeCount = content.ContentReactions.filter(
+              (r) => r.type === 'DISLIKE',
+            ).length;
+            const commentCount = content.ContentComments?.length || 0;
+            const commentReactionCount =
+              content.ContentComments?.reduce(
+                (total, comment) => total + (comment.reactions?.length || 0),
+                0,
+              ) || 0;
+            const commentLikeCount =
+              content.ContentComments?.reduce(
+                (total, comment) =>
+                  total +
+                  (comment.reactions?.filter((r) => r.type === 'LIKE').length ||
+                    0),
+                0,
+              ) || 0;
+            const commentDislikeCount =
+              content.ContentComments?.reduce(
+                (total, comment) =>
+                  total +
+                  (comment.reactions?.filter((r) => r.type === 'DISLIKE')
+                    .length || 0),
+                0,
+              ) || 0;
+            const totalCommentLength =
+              content.ContentComments?.reduce(
+                (total, comment) =>
+                  total + (comment.contentcomment?.length || 0),
+                0,
+              ) || 0;
+            const avgCommentLength =
+              commentCount > 0 ? totalCommentLength / commentCount : 0;
 
-    return successResponse(
-      contentsByCategory,
-      'Homepage contents fetched successfully',
-    );
+            return {
+              ...content,
+              likeCount,
+              dislikeCount,
+              reactionCount: content.ContentReactions?.length || 0,
+              commentCount,
+              commentReactionCount,
+              commentLikeCount,
+              commentDislikeCount,
+              totalCommentLength,
+              avgCommentLength,
+            };
+          });
+
+          return {
+            category: {
+              id: category.id,
+              name: category.name,
+              slug: category.slug,
+            },
+            contents: enrichedContents, // Now limited to 7, with stats
+            totalContentsInCategory: enrichedContents.length, // Bonus: count for UI
+          };
+        }),
+      );
+
+      return successResponse(
+        contentsByCategory,
+        `Homepage contents fetched successfully (${contentsByCategory.reduce((sum, group) => sum + group.contents.length, 0)} total items)`,
+      );
+    } catch (error) {
+      console.error('getHomePageContent error:', error);
+      // Re-throw with HandleError decorator handling
+      throw error;
+    }
   }
 }
