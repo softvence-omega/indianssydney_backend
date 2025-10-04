@@ -40,6 +40,13 @@ import { UpdateContentDto } from '../dto/update-content.dto';
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
+  // -------get home page content category wise 7 content show -----
+  @ApiOperation({ summary: 'Get 7 contents by category slug' })
+  @Get('home-page-content')
+  async getHomePageContent() {
+    return this.contentService.getHomePageContent();
+  }
+
   @ApiOperation({
     summary: 'Create new content with files and additional data',
   })
