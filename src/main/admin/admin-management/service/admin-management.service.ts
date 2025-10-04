@@ -75,6 +75,7 @@ export class AdminManagementService {
       message: `Content status updated to ${newStatus}`,
       data: updated,
       changedBy: admin,
+      history,
       counts: counts.reduce(
         (acc, cur) => ({
           ...acc,

@@ -855,4 +855,76 @@ export class ContentService {
       throw error;
     }
   }
+
+  // ------get content by getContentByTypeByPODCAST-----
+
+  @HandleError('Failed to fetch contents by content type', 'podcast')
+  async getContentByTypeByPODCAST(): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: {
+        contentType: 'PODCAST',
+        isDeleted: false,
+        status: 'APPROVE',
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Podcast contents fetched successfully');
+  }
+
+  // ------------------ get content by getContentByTypeByVIDEO-----------------
+
+  @HandleError('Failed to fetch contents by content type', 'video')
+  async getContentByTypeByVIDEO(): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: {
+        contentType: 'VIDEO',
+        isDeleted: false,
+        status: 'APPROVE',
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Video contents fetched successfully');
+  }
+
+  // ------------------ get content by getContentByTypeByARTICLE-----------------
+
+  @HandleError('Failed to fetch contents by content type', 'article')
+  async getContentByTypeByARTICLE(): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: {
+        contentType: 'ARTICLE',
+        isDeleted: false,
+        status: 'APPROVE',
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Article contents fetched successfully');
+  }
 }
