@@ -30,10 +30,9 @@ export class AuthService {
 
   // ---------- ----------REGISTER (send email verification OTP) ----------
 
-
   @HandleError('Failed to Register profile', 'Register ')
   async register(payload: RegisterDto) {
-    const { email, password, confirmPassword,fullName } = payload;
+    const { email, password, confirmPassword, fullName } = payload;
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -92,8 +91,6 @@ export class AuthService {
     return { resetToken };
   }
 
-
-
   // ---------- LOGIN (require verified) ----------
 
   @HandleError('Failed to Login profile', 'Login ')
@@ -144,14 +141,14 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        emailOtp: otp, // Make sure your column is named emailOtp
+        emailOtp: otp,
         otpExpiry: expiryTime,
       },
     });
 
     // Send OTP email
     await this.mail.sendEmail(
-      email, // Use payload.email here
+      email,
       'Verify Your Email',
       `
       <h3>Hi,</h3>
