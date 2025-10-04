@@ -47,6 +47,29 @@ export class ContentController {
     return this.contentService.getHomePageContent();
   }
 
+  // ----------------  commnet content  -----------------------
+  @Post('content-comment')
+  @ApiBearerAuth()
+  @ValidateAuth()
+  createContentComment(
+    @Body() payload: CreateContentComemnt,
+    @GetUser('userId') userId: string,
+  ) {
+    return this.contentService.createContentComment({ ...payload, userId });
+  }
+
+  // -----------   Add content  Reaction   ------------
+  @ApiOperation({ summary: 'add conent reaction with  on a content' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Post('/content-reaction')
+  createContentReaction(
+    @GetUser('userId') userId: string,
+    @Body() dto: CreateContentReactionDto,
+  ) {
+    return this.contentService.createContentReaction({ ...dto, userId });
+  }
+
   @ApiOperation({
     summary: 'Create new content with files and additional data',
   })
@@ -221,48 +244,34 @@ export class ContentController {
     return this.contentService.getContentByUser(userId);
   }
 
+  // ------ get content by content type podcast ---
+  @ApiOperation({ summary: 'Get contents by content type' })
+  @Get('contentType-podcast')
+  async getContentByTypeByPODCAST() {
+    return this.contentService.getContentByTypeByPODCAST();
+  }
+
+  // -------- get content by content type video ----
+  @ApiOperation({ summary: 'Get contents by content type VIDEO' })
+  @Get('contentType-video')
+  async getContentByTypeByVIDEO() {
+    return this.contentService.getContentByTypeByVIDEO();
+  }
+
+  // --------------get content type by article ----------
+
+  @ApiOperation({ summary: 'Get contents by content type ARTICLE' })
+  @Get('contentType-article')
+  async getContentByTypeByARTICLE() {
+    return this.contentService.getContentByTypeByARTICLE();
+  }
+
   // ---------------Get all contents every where----------
 
   @ApiOperation({ summary: 'Get all contents all user' })
   @Get('contents-all')
   async findAllContent() {
     return this.contentService.findAllContent();
-  }
-
-  // ------------Get single content by id-----------------------
-  @ApiOperation({ summary: 'Get a single content by ID' })
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.contentService.findOne(id);
-  }
-  // ------------------- increment content view count -------------------
-  @ApiOperation({ summary: 'Increment content view count by 1' })
-  @Patch(':id/views')
-  async incrementViews(@Param('id') id: string) {
-    return this.contentService.incrementView(id);
-  }
-
-  // ----------------  commnet content  -----------------------
-  @Post('content-comment')
-  @ApiBearerAuth()
-  @ValidateAuth()
-  createContentComment(
-    @Body() payload: CreateContentComemnt,
-    @GetUser('userId') userId: string,
-  ) {
-    return this.contentService.createContentComment({ ...payload, userId });
-  }
-
-  // -----------   Add content  Reaction   ------------
-  @ApiOperation({ summary: 'add conent reaction with  on a content' })
-  @ApiBearerAuth()
-  @ValidateAuth()
-  @Post('/content-reaction')
-  createContentReaction(
-    @GetUser('userId') userId: string,
-    @Body() dto: CreateContentReactionDto,
-  ) {
-    return this.contentService.createContentReaction({ ...dto, userId });
   }
 
   // ----------  get comment all comment content   ----------------
@@ -294,14 +303,30 @@ export class ContentController {
     return this.contentService.deleteContent(id);
   }
 
-  //  get content by category & subcateory slug
+  // ------------Get single content by id-----------------------
+  @ApiOperation({ summary: 'Get a single content by ID' })
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.contentService.findOne(id);
+  }
+  // ------------------- increment content view count -------------------
+  @ApiOperation({ summary: 'Increment content view count by 1' })
+  @Patch(':id/views')
+  async incrementViews(@Param('id') id: string) {
+    return this.contentService.incrementView(id);
+  }
+
+  //  get content by category & sub-cateory slug
   @ApiOperation({ summary: 'Get contents by category and subcategory slugs' })
   @Get('category/:categorySlug')
   async getContentByCategorySlug(@Param('categorySlug') categorySlug: string) {
     return this.contentService.getContentByCategorySlug(categorySlug);
   }
 
-  @ApiTags('Get by content subgetory slug')
+  @ApiTags(
+    'Get by content sub-category slug',
+    'Get contents by sub-category slug',
+  )
   @Get('subcategory/:subCategorySlug')
   async getContentBySubCategorySlug(
     @Param('subCategorySlug') subCategorySlug: string,
@@ -347,7 +372,7 @@ export class ContentController {
       video: files.find((f) => f.fieldname === 'video'),
       videoThumbnail: files.find((f) => f.fieldname === 'videoThumbnail'),
       audio: files.find((f) => f.fieldname === 'audio'),
-      additionalFields: [], // parse like in create (can reuse helper function)
+      additionalFields: [],
     };
 
     return this.contentService.update(id, dto, userId, files);

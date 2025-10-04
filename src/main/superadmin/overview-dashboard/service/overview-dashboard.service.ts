@@ -349,12 +349,31 @@ export class OverviewDashboardService {
     };
   }
 
-  @HandleError('Editor content activity  user manage overview')
+  // ----------------- Editor content activity -----------------------
+  @HandleError('Editor content activity user manage overview')
   async editorContentActivity(): Promise<TResponse<any>> {
     const EditorContentActivity =
       await this.prisma.contentStatusHistory.findMany({
         orderBy: { changedAt: 'desc' },
         take: 10,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              role: true,
+              profilePhoto: true,
+            },
+          },
+          content: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+            },
+          },
+        },
       });
 
     return {
