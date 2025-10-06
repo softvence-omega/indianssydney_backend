@@ -7,33 +7,33 @@
  */
 
 model Content {
-  id              String      @id @default(uuid())
-  contentType     ContentType
-  title           String
-  subTitle        String
-  contentviews    Int?        @default(0)
-  paragraph       String?
-  shortQuote      String?
-  image           String?
-  video           String?
-  imageCaption    String?
-  audio           String?
-  youtubeVideoUrl String?
-  tags            String[]
-  videoThumbnail  String?
-  evaluationResult String? 
+  id               String      @id @default(uuid())
+  contentType      ContentType
+  title            String
+  subTitle         String
+  contentviews     Int?        @default(0)
+  paragraph        String?
+  shortQuote       String?
+  image            String?
+  video            String?
+  imageCaption     String?
+  audio            String?
+  youtubeVideoUrl  String?
+  tags             String[]
+  videoThumbnail   String?
+  evaluationResult String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  status    Status   @default(PENDING)
-  isDeleted Boolean  @default(false)
-  categorysslug     String?
-  subcategorysslug  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  status           Status   @default(PENDING)
+  isDeleted        Boolean  @default(false)
+  categorysslug    String?
+  subcategorysslug String?
   //-------------- Relations-----------------
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
 
   subCategoryId String
   subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
@@ -43,7 +43,8 @@ model Content {
   ContentComments  ContentComment[]
   ContentReactions ContentReaction[]
   statusHistories  ContentStatusHistory[]
-  ReportContents  ReportContent[]
+  ReportContents   ReportContent[]
+  bookmarks        Bookmark[]
 
   @@map("contents")
 }
@@ -139,6 +140,19 @@ model ContentCommentReaction {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  contentId String
+  createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@map("bookmarks")
+}
+
 // ------------------ ENUMS ---------------------------
 enum ContetReactionType {
   LIKE
@@ -150,7 +164,6 @@ enum Status {
   APPROVE
   Declined
 }
-
 
 enum AdditionalContentType {
   image

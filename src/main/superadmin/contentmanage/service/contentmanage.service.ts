@@ -295,7 +295,7 @@ export class ContentmanageService {
             },
           },
         },
-       
+
         images: true,
       },
       orderBy: {

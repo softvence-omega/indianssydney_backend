@@ -928,4 +928,63 @@ export class ContentService {
 
     return successResponse(contents, 'Article contents fetched successfully');
   }
+
+  async bookmarkContent(contentId: string, userId: string) {
+    try {
+      // Check if already bookmarked
+      const existing = await this.prisma.bookmark.findUnique({
+        where: { userId_contentId: { userId, contentId } },
+      });
+
+      if (existing) {
+        return { message: 'Content already bookmarked' };
+      }
+
+      // -------Create bookmark-------
+      const bookmark = await this.prisma.bookmark.create({
+        data: { userId, contentId },
+        include: { content: true },
+      });
+
+      return { message: 'Content bookmarked successfully', bookmark };
+    } catch (error) {
+      throw new Error('Failed to bookmark content: ' + error.message);
+    }
+  }
+
+  // ------------------ Get all bookmarks for a user ------------------
+  async getBookmarkedContents(userId: string) {
+    try {
+      const bookmarks = await this.prisma.bookmark.findMany({
+        where: { userId },
+        include: { content: true },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return bookmarks.map((b) => b.content);
+    } catch (error) {
+      throw new Error('Failed to fetch bookmarks: ' + error.message);
+    }
+  }
+
+  // ------------------ Remove bookmark ------------------
+  async removeBookmark(contentId: string, userId: string) {
+    try {
+      const deleted = await this.prisma.bookmark.delete({
+        where: { userId_contentId: { userId, contentId } },
+      });
+
+      return { message: 'Bookmark removed successfully', deleted };
+    } catch (error) {
+      throw new Error('Failed to remove bookmark: ' + error.message);
+    }
+  }
+
+  // Optional: Check if content is bookmarked
+  async isBookmarked(contentId: string, userId: string) {
+    const bookmark = await this.prisma.bookmark.findUnique({
+      where: { userId_contentId: { userId, contentId } },
+    });
+    return !!bookmark;
+  }
 }

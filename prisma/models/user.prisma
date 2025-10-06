@@ -47,6 +47,7 @@ model User {
   contentReaction        ContentReaction[]
   contentCommentReaction ContentCommentReaction[]
   statusChanges          ContentStatusHistory[]
+  bookmarks              Bookmark[]
 
   @@map("users")
 }

@@ -51,7 +51,7 @@ export class AdminDashboardController {
   @ApiBearerAuth()
   @ValidateAdmin()
   @Get('top-performance')
-  @ApiOperation({ summary: 'Get top performance contents super admin' })
+  @ApiOperation({ summary: 'Get top performance contents super admin top performance with view' })
   async getTopPerformance() {
     const result = await this.adminDashboardService.topPerformance();
     return { success: true, data: result };
@@ -67,5 +67,5 @@ export class AdminDashboardController {
     return { success: true, data: result };
   }
   
-  
+
 }

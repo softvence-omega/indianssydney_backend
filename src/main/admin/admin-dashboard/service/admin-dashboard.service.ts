@@ -10,48 +10,47 @@ export class AdminDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   // ------------------admin dashboard overview--------------------
- @HandleError('Failed to get admin dashboard overview', 'admin-dashboard')
-async getAdminDashboardOverview(): Promise<any> {
-  // User counts
-  const totalContributorRole = await this.prisma.user.count({
-    where: { isDeleted: false, role: 'CONTIBUTOR' },
-  });
+  @HandleError('Failed to get admin dashboard overview', 'admin-dashboard')
+  async getAdminDashboardOverview(): Promise<any> {
+    // User counts
+    const totalContributorRole = await this.prisma.user.count({
+      where: { isDeleted: false, role: 'CONTIBUTOR' },
+    });
 
-  // Content counts
-  const contentPublished = await this.prisma.content.count({
-    where: { status: 'APPROVE', isDeleted: false },
-  });
+    // Content counts
+    const contentPublished = await this.prisma.content.count({
+      where: { status: 'APPROVE', isDeleted: false },
+    });
 
-  const contentPending = await this.prisma.content.count({
-    where: { status: 'PENDING', isDeleted: false },
-  });
+    const contentPending = await this.prisma.content.count({
+      where: { status: 'PENDING', isDeleted: false },
+    });
 
-  // AI counts
-  const totalAiParagraphs = await this.prisma.aiParagraphGeneration.count();
-  const totalAiSeoTags = await this.prisma.aiSeoTag.count();
+    // AI counts
+    const totalAiParagraphs = await this.prisma.aiParagraphGeneration.count();
+    const totalAiSeoTags = await this.prisma.aiSeoTag.count();
 
-  const totalAiPerformance = totalAiParagraphs + totalAiSeoTags;
+    const totalAiPerformance = totalAiParagraphs + totalAiSeoTags;
 
-  return {
-    success: true,
-    message: 'Admin dashboard overview fetched successfully',
-    data: {
-      users: {
-        contributors: totalContributorRole,
+    return {
+      success: true,
+      message: 'Admin dashboard overview fetched successfully',
+      data: {
+        users: {
+          contributors: totalContributorRole,
+        },
+        content: {
+          published: contentPublished,
+          pending: contentPending,
+        },
+        aiPerformance: {
+          total: totalAiPerformance,
+          paragraphs: totalAiParagraphs,
+          seoTags: totalAiSeoTags,
+        },
       },
-      content: {
-        published: contentPublished,
-        pending: contentPending,
-      },
-      aiPerformance: {
-        total: totalAiPerformance,
-        paragraphs: totalAiParagraphs,
-        seoTags: totalAiSeoTags,
-      },
-    },
-  };
-}
-
+    };
+  }
 
   //----------------- traffic & engagement overview  ----------------------------
   @HandleError('Failed to get traffic & engagement overview')
@@ -138,21 +137,24 @@ async getAdminDashboardOverview(): Promise<any> {
       take: 10,
       include: {
         user: {
-          select: { fullName: true, email: true },
+          select: { fullName: true, email: true, profilePhoto: true },
         },
       },
     });
 
     const formatted = topContents.map((content) => {
+      const user = content.user;
       const userName =
-        content.user?.fullName && content.user.fullName.trim() !== ''
-          ? content.user.fullName
+        user?.fullName && user.fullName.trim() !== ''
+          ? user.fullName
           : 'Unknown User';
 
       return {
         title: content.title,
-        views: content.contentviews ,
+        views: content.contentviews,
         author: userName,
+        email: user?.email || null,
+        profilePhoto: user?.profilePhoto || null, 
       };
     });
 
@@ -163,47 +165,47 @@ async getAdminDashboardOverview(): Promise<any> {
     };
   }
 
-@HandleError('Failed top contributor content contentHistory')
-async contentHistory(): Promise<TResponse<any>> {
-  const topContributors = await this.prisma.user.findMany({
-    where: { isDeleted: false },
-    select: {
-      id: true,
-      fullName: true,
-      profilePhoto: true,
-      constents: { // Use the correct relation name from your Prisma schema
-        where: { status: 'APPROVE', isDeleted: false },
-        select: {
-          id: true,
-          contentviews: true,
+  @HandleError('Failed top contributor content contentHistory')
+  async contentHistory(): Promise<TResponse<any>> {
+    const topContributors = await this.prisma.user.findMany({
+      where: { isDeleted: false },
+      select: {
+        id: true,
+        fullName: true,
+        profilePhoto: true,
+        constents: {
+          // Use the correct relation name from your Prisma schema
+          where: { status: 'APPROVE', isDeleted: false },
+          select: {
+            id: true,
+            contentviews: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  const formatted = topContributors
-    .map((user) => {
-      const totalPublished = user.constents.length;
-      const totalViews = user.constents.reduce(
-        (sum, c) => sum + (c.contentviews || 0),
-        0,
-      );
+    const formatted = topContributors
+      .map((user) => {
+        const totalPublished = user.constents.length;
+        const totalViews = user.constents.reduce(
+          (sum, c) => sum + (c.contentviews || 0),
+          0,
+        );
 
-      return {
-        name: user.fullName || 'Unknown User',
-        profilePhoto: user.profilePhoto || null,
-        totalPublished,
-        totalViews,
-      };
-    })
-    .sort((a, b) => b.totalPublished - a.totalPublished)
-    .slice(0, 10);
+        return {
+          name: user.fullName || 'Unknown User',
+          profilePhoto: user.profilePhoto || null,
+          totalPublished,
+          totalViews,
+        };
+      })
+      .sort((a, b) => b.totalPublished - a.totalPublished)
+      .slice(0, 10);
 
-  return {
-    success: true,
-    message: 'Top 10 contributors fetched successfully',
-    data: formatted,
-  };
-}
-
+    return {
+      success: true,
+      message: 'Top 10 contributors fetched successfully',
+      data: formatted,
+    };
+  }
 }

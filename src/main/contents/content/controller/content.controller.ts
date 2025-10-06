@@ -335,6 +335,40 @@ export class ContentController {
     return this.contentService.getContentBySubCategorySlug(ContentsubCategorySlug);
   }
 
+
+  // bookmark content
+  @ApiOperation({ summary: 'Bookmark a content' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Post('bookmark/:contentId')
+  async bookmarkContent(
+    @Param('contentId') contentId: string,
+    @GetUser('userId') userId: string,
+  ) {
+    return this.contentService.bookmarkContent(contentId, userId);
+  }
+
+  // get all bookmarked content for a user
+
+  @ApiOperation({ summary: 'Get all bookmarked contents for the user' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Get('bookmarks')
+  async getBookmarkedContents(@GetUser('userId') userId: string) {
+    return this.contentService.getBookmarkedContents(userId);
+  }
+
+  // remove bookmark from a content
+  @ApiOperation({ summary: 'Remove bookmark from a content' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Delete('bookmark/:contentId')
+  async removeBookmark(
+    @Param('contentId') contentId: string,
+    @GetUser('userId') userId: string,
+  ) {
+    return this.contentService.removeBookmark(contentId, userId);
+  }
   // ------- update content---------
   @ApiOperation({ summary: 'Update existing content' })
   @ApiBearerAuth()
