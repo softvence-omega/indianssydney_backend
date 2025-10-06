@@ -929,6 +929,8 @@ export class ContentService {
     return successResponse(contents, 'Article contents fetched successfully');
   }
 
+  // ------------------ Bookmark Content ------------------
+  @HandleError('Failed to bookmark content', 'bookmark')
   async bookmarkContent(contentId: string, userId: string) {
     try {
       // Check if already bookmarked
@@ -941,6 +943,7 @@ export class ContentService {
       }
 
       // -------Create bookmark-------
+
       const bookmark = await this.prisma.bookmark.create({
         data: { userId, contentId },
         include: { content: true },
@@ -953,10 +956,11 @@ export class ContentService {
   }
 
   // ------------------ Get all bookmarks for a user ------------------
+  @HandleError('Failed to fetch bookmarks', 'bookmark')
   async getBookmarkedContents(userId: string) {
     try {
       const bookmarks = await this.prisma.bookmark.findMany({
-        where: { userId },
+        where: { userId, isDeleted: false },
         include: { content: true },
         orderBy: { createdAt: 'desc' },
       });
@@ -968,13 +972,16 @@ export class ContentService {
   }
 
   // ------------------ Remove bookmark ------------------
+  @HandleError('Failed to remove bookmark', 'bookmark')
   async removeBookmark(contentId: string, userId: string) {
     try {
-      const deleted = await this.prisma.bookmark.delete({
+      // Soft delete: just set isDeleted = true
+      const updated = await this.prisma.bookmark.update({
         where: { userId_contentId: { userId, contentId } },
+        data: { isDeleted: true },
       });
 
-      return { message: 'Bookmark removed successfully', deleted };
+      return { message: 'Bookmark removed successfully', bookmark: updated };
     } catch (error) {
       throw new Error('Failed to remove bookmark: ' + error.message);
     }

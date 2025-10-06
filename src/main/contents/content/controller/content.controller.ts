@@ -47,6 +47,15 @@ export class ContentController {
     return this.contentService.getHomePageContent();
   }
 
+  // get all bookmarked content for a user
+
+  @ApiOperation({ summary: 'Get all bookmarked contents for the user' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Get('bookmarks')
+  async getBookmarkedContents(@GetUser('userId') userId: string) {
+    return this.contentService.getBookmarkedContents(userId);
+  }
   // ----------------  commnet content  -----------------------
   @Post('content-comment')
   @ApiBearerAuth()
@@ -325,16 +334,17 @@ export class ContentController {
   ) {
     return this.contentService.getContentByCategorySlug(ContentcategorySlug);
   }
-//  get content by sub-category slug
+  //  get content by sub-category slug
   @ApiOperation({ summary: 'Get contents by sub-category slug' })
   @ApiTags('Get by content sub-category slug')
   @Get('subcategory/:ContentsubCategorySlug')
   async getContentBySubCategorySlug(
     @Param('sContentsubCategorySlug') ContentsubCategorySlug: string,
   ) {
-    return this.contentService.getContentBySubCategorySlug(ContentsubCategorySlug);
+    return this.contentService.getContentBySubCategorySlug(
+      ContentsubCategorySlug,
+    );
   }
-
 
   // bookmark content
   @ApiOperation({ summary: 'Bookmark a content' })
@@ -348,16 +358,6 @@ export class ContentController {
     return this.contentService.bookmarkContent(contentId, userId);
   }
 
-  // get all bookmarked content for a user
-
-  @ApiOperation({ summary: 'Get all bookmarked contents for the user' })
-  @ApiBearerAuth()
-  @ValidateAuth()
-  @Get('bookmarks')
-  async getBookmarkedContents(@GetUser('userId') userId: string) {
-    return this.contentService.getBookmarkedContents(userId);
-  }
-
   // remove bookmark from a content
   @ApiOperation({ summary: 'Remove bookmark from a content' })
   @ApiBearerAuth()
@@ -369,6 +369,7 @@ export class ContentController {
   ) {
     return this.contentService.removeBookmark(contentId, userId);
   }
+
   // ------- update content---------
   @ApiOperation({ summary: 'Update existing content' })
   @ApiBearerAuth()
