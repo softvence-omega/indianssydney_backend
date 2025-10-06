@@ -4,8 +4,6 @@ model Notification {
   type    NotificationType
   title   String
   message String
-
-  // optional metadata for flexibility (ShiftMeta, TimeOffMeta, AnnouncementMeta, etc.)
   meta Json
 
   createdAt DateTime @default(now())

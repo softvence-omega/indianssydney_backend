@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 import { ContentStatusChangeDto } from '../dto/superadmin-contentmanage.dto';
 import { PaymentPlanDto } from '../dto/payment-plane.dto';
+import { UpdateReportStatusDto } from '../dto/report.status.dto';
 
 @ApiTags('Super Admin content Manage & plane Mange & Report manage')
 @Controller('contentmanage')
@@ -118,6 +119,35 @@ export class ContentmanageController {
   async getAllReports() {
     return this.contentmanageService.getAllReports();
   }
+  // ---------get single report super admin---------------------
+  @ApiOperation({ summary: 'Super Admin get single report with user profiles' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('reports/:id')
+  async getSingleReport(@Param('id') id: string) {
+    return this.contentmanageService.getSingleReport(id);
+  }
+  //  soft delete report content
+  @ApiOperation({ summary: 'Soft delete a report content' })
+  @ApiBearerAuth() 
+  @ValidateSuperAdmin()
+  @Patch('reports/:id/soft-delete')
+  async softDeleteReportContent(@Param('id') id: string) {
+    return this.contentmanageService.softDeleteReportContent(id);
+  }
+
+  // ------report status update------
+  @ApiOperation({ summary: 'Super Admin update report status' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Patch('reports/:id/status')
+  async updateReportStatus(
+    @Param('id') reportId: string,
+    @Body() updateReportStatusDto: UpdateReportStatusDto,
+  ) {
+    return this.contentmanageService.updateReportStatus(reportId, updateReportStatusDto.status);
+  }
+
 // ---------get all hate space ---------------------
 @ApiOperation({ summary: 'Super Admin get all hate space' })
 @ApiBearerAuth()

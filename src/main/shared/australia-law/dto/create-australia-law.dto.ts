@@ -12,10 +12,12 @@ export class CreateAustraliaLawDto {
   description?: string;
 
   @ApiProperty({
+    description:
+      'Upload multiple files only pdf file upload here , other files will be rejected',
     type: 'string',
     format: 'binary',
     isArray: true,
-    description: 'Upload multiple files',
+
     required: true,
   })
   files?: Express.Multer.File[];

@@ -2,7 +2,7 @@ import { successResponse } from 'src/common/utils/response.util';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from 'src/lib/prisma/prisma.service';
-import { CommentStatus, Status } from '@prisma/client';
+import { CommentStatus, ReportStatus, Status } from '@prisma/client';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { PaymentPlanDto } from '../dto/payment-plane.dto';
 import { NotificationGateway } from 'src/lib/notificaton/notification.gateway';
@@ -13,7 +13,7 @@ export class ContentmanageService {
     private readonly prisma: PrismaService,
     private readonly notificationGateway: NotificationGateway,
   ) {}
-
+  // -------------update content status-------------
   @HandleError('Failed to update content status', 'contentmanage')
   async updateContentStatus(id: string, status: Status): Promise<any> {
     const updated = await this.prisma.content.update({
@@ -124,7 +124,7 @@ export class ContentmanageService {
       },
     });
   }
-
+  // ---------------- get pending content  --------------
   @HandleError('Failed to get pending contents', 'contentmanage')
   async getPendingContents(): Promise<any> {
     return this.prisma.content.findMany({
@@ -192,7 +192,7 @@ export class ContentmanageService {
     return successResponse(plan, 'Payment plan created successfully');
   }
 
-  // --------get all plans
+  // --------get all plans-------------------
   @HandleError('Failed to get payment plans', 'contentmanage')
   async getAllPlans(): Promise<any> {
     const plans = await this.prisma.paymentplan.findMany({
@@ -264,8 +264,9 @@ export class ContentmanageService {
   @HandleError('Failed to get all reports', 'Report')
   async getAllReports() {
     const reports = await this.prisma.reportContent.findMany({
+      where: { isDeleted: false },
       include: {
-        // 👤 Reporter (the user who reported)
+        // -----  Reporter (the user who reported)---------
         user: {
           select: {
             id: true,
@@ -275,7 +276,7 @@ export class ContentmanageService {
             role: true,
           },
         },
-        // 🧾 Reported content info
+        // -------  Reported content info---------
         content: {
           select: {
             id: true,
@@ -283,7 +284,7 @@ export class ContentmanageService {
             paragraph: true,
             contentType: true,
             createdAt: true,
-            // 👤 Content owner info
+            // ---------- Content owner info-----------------
             user: {
               select: {
                 id: true,
@@ -305,7 +306,126 @@ export class ContentmanageService {
 
     return successResponse(reports, 'All reports retrieved successfully');
   }
+  // ------get getSingleReport------
+  async getSingleReport(id: string) {
+    const report = await this.prisma.reportContent.findUnique({
+      where: { id, isDeleted: false },
+      include: {
+        // -----  Reporter (the user who reported)---------
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+            role: true,
+          },
+        },
+        // -------  Reported content info---------
+        content: {
+          select: {
+            id: true,
+            title: true,
+            paragraph: true,
+            contentType: true,
+            createdAt: true,
+            // ---------- Content owner info-----------------
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                profilePhoto: true,
+                role: true,
+              },
+            },
+          },
+        },
 
+        images: true,
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
+
+    return successResponse(report, 'Report retrieved successfully');
+  }
+  // -------- report content delete -----------
+  @HandleError('Failed to delete reported content', 'Report')
+  async deleteReportedContent(reportId: string) {
+    const report = await this.prisma.reportContent.findUnique({
+      where: { id: reportId, isDeleted: false },
+      select: { contentId: true },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
+
+    // Soft delete the reported content
+    const deletedContent = await this.prisma.content.update({
+      where: { id: report.contentId },
+      data: { isDeleted: true },
+    });
+
+    // Optionally, you can also delete the report itself
+    await this.prisma.reportContent.delete({
+      where: { id: reportId },
+    });
+
+    return {
+      success: true,
+      message: 'Reported content deleted successfully',
+      data: deletedContent,
+    };
+  }
+  // -------status update for report----------
+  @HandleError('Failed to update report status', 'Report')
+  async updateReportStatus(reportId: string, status: ReportStatus) {
+    const report = await this.prisma.reportContent.findUnique({
+      where: { id: reportId },
+      select: { id: true },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
+
+    const updatedReport = await this.prisma.reportContent.update({
+      where: { id: reportId },
+      data: { status },
+    });
+
+    return {
+      success: true,
+      message: `Report status updated to ${status}`,
+      data: updatedReport,
+    };
+  }
+
+  // -----soft delete report------
+  async softDeleteReportContent(reportId: string) {
+    const report = await this.prisma.reportContent.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
+
+    const softDeletedReport = await this.prisma.reportContent.update({
+      where: { id: reportId },
+      data: { isDeleted: true },
+    });
+
+    return {
+      success: true,
+      message: 'Report soft deleted successfully',
+      data: softDeletedReport,
+    };
+  }
   // -------hate space maintain-------
   @HandleError('Failed to get all hate space', 'HateSpace')
   async getAllHateSpace() {
