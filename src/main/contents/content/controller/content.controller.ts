@@ -318,21 +318,21 @@ export class ContentController {
   }
 
   //  get content by category & sub-cateory slug
-  @ApiOperation({ summary: 'Get contents by category and subcategory slugs' })
+  @ApiOperation({ summary: 'Get contents by category slug' })
   @Get('category/:categorySlug')
-  async getContentByCategorySlug(@Param('categorySlug') categorySlug: string) {
-    return this.contentService.getContentByCategorySlug(categorySlug);
-  }
-
-  @ApiTags(
-    'Get by content sub-category slug',
-    'Get contents by sub-category slug',
-  )
-  @Get('subcategory/:subCategorySlug')
-  async getContentBySubCategorySlug(
-    @Param('subCategorySlug') subCategorySlug: string,
+  async getContentByCategorySlug(
+    @Param('ContentcategorySlug') ContentcategorySlug: string,
   ) {
-    return this.contentService.getContentBySubCategorySlug(subCategorySlug);
+    return this.contentService.getContentByCategorySlug(ContentcategorySlug);
+  }
+//  get content by sub-category slug
+  @ApiOperation({ summary: 'Get contents by sub-category slug' })
+  @ApiTags('Get by content sub-category slug')
+  @Get('subcategory/:ContentsubCategorySlug')
+  async getContentBySubCategorySlug(
+    @Param('sContentsubCategorySlug') ContentsubCategorySlug: string,
+  ) {
+    return this.contentService.getContentBySubCategorySlug(ContentsubCategorySlug);
   }
 
   // ------- update content---------

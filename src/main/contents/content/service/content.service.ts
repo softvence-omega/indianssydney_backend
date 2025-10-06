@@ -684,11 +684,11 @@ export class ContentService {
 
   // -----get content by category slug---
   @HandleError('Failed to fetch contents by category slug', 'content')
-  async getContentByCategorySlug(categorySlug: string) {
+  async getContentByCategorySlug(ContentcategorySlug: string) {
     const contents = await this.prisma.content.findMany({
       where: {
         category: {
-          slug: categorySlug,
+          slug: ContentcategorySlug,
         },
         isDeleted: false,
         status: 'APPROVE',
@@ -716,10 +716,10 @@ export class ContentService {
 
   // -----get content by subcategory slug---
   @HandleError('Failed to fetch contents by subcategory slug', 'content')
-  async getContentBySubCategorySlug(subCategorySlug: string) {
+  async getContentBySubCategorySlug(ContentsubCategorySlug: string) {
     const contents = await this.prisma.content.findFirst({
       where: {
-        subcategorysslug: subCategorySlug,
+        subcategorysslug: ContentsubCategorySlug,
         isDeleted: false,
         status: 'APPROVE',
       },
@@ -738,7 +738,7 @@ export class ContentService {
   }
 
   // ------------- get homepage content by category with limit 7 each -------------
-  // content/content.service.ts
+
   @HandleError('Failed to fetch homepage contents', 'content')
   async getHomePageContent(): Promise<TResponse<any>> {
     try {
