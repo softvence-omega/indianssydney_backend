@@ -18,8 +18,7 @@ export class AicontentService {
   // ---------- AI Paragraph Generation ----------
   @HandleError('Failed to generate AI paragraph', 'AI paragraph generation')
   async paragraphCreate(dto: CreateAiParagraphDto) {
-    const apiUrl =
-      'https://theaustraliancanvas.onrender.com/files/content-generation';
+    const apiUrl = 'http://3.105.232.50:8000/files/content-generation';
 
     try {
       const response = await firstValueFrom(
@@ -60,7 +59,7 @@ export class AicontentService {
   // ---------- SEO Tag Generation ----------
   @HandleError('Failed to generate SEO tags', 'SEO tag generation')
   async seoTagCreate(dto: CreateAiCategoryDto) {
-    const apiUrl = 'https://theaustraliancanvas.onrender.com/files/seo-tags';
+    const apiUrl = 'http://3.105.232.50:8000/files/seo-tags';
 
     try {
       const response = await firstValueFrom(
@@ -129,7 +128,7 @@ export class AicontentService {
     return paragraph;
   }
 
-  // ------GET SEO TAG--
+  // ------GET SEO TAG. ---------
 
   @HandleError('Failed to get SEO tags', 'Get SEO tags')
   async getSeoTags() {

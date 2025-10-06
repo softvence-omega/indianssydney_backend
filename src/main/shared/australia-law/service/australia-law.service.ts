@@ -17,12 +17,12 @@ interface ExternalApiResponse {
 @Injectable()
 export class AustraliaLawService {
   private readonly externalApi =
-    'https://theaustraliancanvas.onrender.com/files/upload_multiple';
+    'http://3.105.232.50:8000/files/upload_multiple';
 
   constructor(
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
-       private readonly httpService: HttpService,
+    private readonly httpService: HttpService,
   ) {}
 
   @HandleError('Error creating Australia law')
@@ -48,16 +48,22 @@ export class AustraliaLawService {
       // Prepare form-data for external API
       const form = new FormData();
       if (dto.description) form.append('description', dto.description);
-      files.forEach((file) => form.append('files', file.buffer, file.originalname));
+      files.forEach((file) =>
+        form.append('files', file.buffer, file.originalname),
+      );
 
       console.log('FormData:', form);
 
       // Upload to external API
-      const { data } = await axios.post<ExternalApiResponse>(this.externalApi, form, {
-        headers: {
-          ...form.getHeaders(),
+      const { data } = await axios.post<ExternalApiResponse>(
+        this.externalApi,
+        form,
+        {
+          headers: {
+            ...form.getHeaders(),
+          },
         },
-      });
+      );
 
       console.log('External API response:', data);
 
@@ -81,7 +87,10 @@ export class AustraliaLawService {
       };
     } catch (error) {
       console.error('Error in createAustraliaLaw:', error);
-      throw new AppError(500, `Failed to create Australia law: ${error.message}`);
+      throw new AppError(
+        500,
+        `Failed to create Australia law: ${error.message}`,
+      );
     }
   }
 

@@ -382,4 +382,154 @@ export class OverviewDashboardService {
       data: EditorContentActivity,
     };
   }
+
+  // -------------------analytics overview-------------------
+  @HandleError('Failed to get analytics overview')
+  async analyticsDashboardTags() {
+    const tagsData = await this.prisma.aiSeoTag.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: { tags: true },
+    });
+
+    const allTags = tagsData.flatMap((item) => item.tags || []);
+
+    const tagCounts: Record<string, number> = {};
+    for (const tag of allTags) {
+      const normalized = tag.trim().toLowerCase();
+      tagCounts[normalized] = (tagCounts[normalized] || 0) + 1;
+    }
+
+    // 4️⃣ Sort by frequency and take top 6
+    const topTags = Object.entries(tagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name]) => name);
+
+    return {
+      success: true,
+      message: 'Top 6 tags fetched successfully',
+      data: topTags,
+    };
+  }
+  // ---contentMetrics for dashboard
+  @HandleError('Failed to get content metrics overview')
+  async contentMetrics() {
+    const contents = await this.prisma.content.findMany({
+      where: { isDeleted: false },
+      select: { compareResult: true },
+    });
+
+    // Extract performance percentage from JSON string
+    const aiPerformance = contents
+      .map((item) => {
+        try {
+          const parsed = JSON.parse(item.compareResult || '{}');
+          return parsed.percentage_not_aligned ?? null;
+        } catch {
+          return null;
+        }
+      })
+      .filter((p) => p !== null);
+
+    // Calculate average percentage
+    const averagePerformance =
+      aiPerformance.length > 0
+        ? aiPerformance.reduce((a, b) => a + b, 0) / aiPerformance.length
+        : 0;
+
+    return {
+      success: true,
+      message: 'AI performance metrics fetched successfully',
+      data: {
+        averagePerformance: Number(averagePerformance.toFixed(2)),
+        allPerformances: aiPerformance,
+      },
+    };
+  }
+  // --------------- User Engagement & Personalization -----------------------
+  @HandleError('Failed to get user engagement & personalization overview')
+  async getUserEngagementPersonalization(period: string = 'all') {
+    const now = new Date();
+    let sinceDate: Date | null = null;
+
+    switch (period) {
+      case 'week':
+        sinceDate = new Date(now);
+        sinceDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        sinceDate = new Date(now);
+        sinceDate.setMonth(now.getMonth() - 1);
+        break;
+      case 'quarter':
+        sinceDate = new Date(now);
+        sinceDate.setMonth(now.getMonth() - 3);
+        break;
+      case 'all':
+      default:
+        sinceDate = null; // No filter
+    }
+
+    const whereClause = sinceDate ? { createdAt: { gte: sinceDate } } : {};
+
+    // Fetch counts
+    const [totalUsers, totalBookmarks, totalComments, totalReactions] =
+      await Promise.all([
+        this.prisma.user.count({ where: whereClause }),
+        this.prisma.bookmark.count({ where: whereClause }),
+        this.prisma.contentComment.count({ where: whereClause }),
+        this.prisma.contentReaction.count({ where: whereClause }),
+      ]);
+
+    // Fetch totals for average growth calculation (compared to previous period)
+    let previousPeriodWhere: any = null;
+    if (sinceDate) {
+      const periodDiffDays = Math.ceil(
+        (now.getTime() - sinceDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
+      const prevStart = new Date(sinceDate);
+      prevStart.setDate(sinceDate.getDate() - periodDiffDays);
+      const prevEnd = new Date(sinceDate);
+      previousPeriodWhere = { createdAt: { gte: prevStart, lt: prevEnd } };
+    }
+
+    const [prevUsers, prevBookmarks, prevComments, prevReactions] =
+      previousPeriodWhere
+        ? await Promise.all([
+            this.prisma.user.count({ where: previousPeriodWhere }),
+            this.prisma.bookmark.count({ where: previousPeriodWhere }),
+            this.prisma.contentComment.count({ where: previousPeriodWhere }),
+            this.prisma.contentReaction.count({ where: previousPeriodWhere }),
+          ])
+        : [0, 0, 0, 0];
+
+    // Calculate growth %
+    const calcGrowth = (current: number, prev: number) =>
+      prev === 0 ? 0 : ((current - prev) / prev) * 100;
+
+    const averageGrowth =
+      (calcGrowth(totalUsers, prevUsers) +
+        calcGrowth(totalBookmarks, prevBookmarks) +
+        calcGrowth(totalComments, prevComments) +
+        calcGrowth(totalReactions, prevReactions)) /
+      4;
+
+    return {
+      totalUsers,
+      totalBookmarks,
+      totalComments,
+      totalReactions,
+      averageGrowth: Number(averageGrowth.toFixed(2)),
+    };
+  }
+
+  // ------------------ getCommunityModerationAI -------------------
+//   async getCommunityModerationAI() {
+
+//     const hatespace= await this.prisma.communityPost.count();
+    
+// }
+
+
 }

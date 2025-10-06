@@ -56,7 +56,7 @@ export class ContentController {
   async getBookmarkedContents(@GetUser('userId') userId: string) {
     return this.contentService.getBookmarkedContents(userId);
   }
-  // ----------------  commnet content  -----------------------
+  // ----------------  commnent content  -----------------------
   @Post('content-comment')
   @ApiBearerAuth()
   @ValidateAuth()

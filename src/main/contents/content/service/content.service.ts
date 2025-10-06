@@ -119,27 +119,49 @@ export class ContentService {
         audioUrl = processed?.url;
       }
       //-------  external  API expects "content"---------
-      let evaluationResult: any;
+      // let evaluationResult: any;
+      let compareResult: any;
+      // ----- evaluation api call -----------
+      // if (payload.paragraph) {
+      //   try {
+      //     const response = await firstValueFrom(
+      //       this.httpService.post(
+      //         'http://3.105.232.50:8000/files/content-evaluation',
+      //         { content: payload.paragraph },
+      //       ),
+      //     );
 
+      //     evaluationResult = response.data;
+      //   } catch (error) {
+      //     console.error('External API comparison error:', error.message);
+      //     evaluationResult = {
+      //       success: false,
+      //       error_message: 'External API  comparison failed',
+      //     };
+      //   }
+      // }
+      // ------ compare api call -----------
       if (payload.paragraph) {
         try {
+          // TODO FIXED: proper query param usage
           const response = await firstValueFrom(
             this.httpService.post(
-              'https://theaustraliancanvas.onrender.com/files/content-evaluation',
-              { content: payload.paragraph },
+              `http://3.105.232.50:8000/files/compare-text?text=${encodeURIComponent(
+                payload.paragraph,
+              )}`,
+              {},
             ),
           );
 
-          evaluationResult = response.data;
+          compareResult = response.data;
         } catch (error) {
-          console.error('External API error:', error.message);
-          evaluationResult = {
+          console.error('External API (compare-text) error:', error.message);
+          compareResult = {
             success: false,
-            error_message: 'External API failed',
+            error_message: 'External API (compare-text) failed',
           };
         }
       }
-
       // ---------- Transaction: create Content + AdditionalContent--------
       const content = await this.prisma.$transaction(async (tx) => {
         const newContent = await tx.content.create({
@@ -161,9 +183,10 @@ export class ContentService {
             userId: userId,
             categoryId: payload.categoryId,
             subCategoryId: payload.subCategoryId,
-            evaluationResult: evaluationResult
-              ? JSON.stringify(evaluationResult)
-              : null,
+            // evaluationResult: evaluationResult
+            //   ? JSON.stringify(evaluationResult)
+            //   : null,
+            compareResult: compareResult ? JSON.stringify(compareResult) : null,
           },
         });
 
@@ -226,6 +249,14 @@ export class ContentService {
         },
       });
 
+      // Parse evaluationResult and compareResult JSON fields
+      if (result?.compareResult && typeof result.compareResult === 'string') {
+        try {
+          result.compareResult = JSON.parse(result.compareResult);
+        } catch (err) {
+          console.warn('Failed to parse compareResult JSON:', err.message);
+        }
+      }
       return successResponse(result, 'Content created successfully');
     } catch (error) {
       console.error('Create content error:', error);

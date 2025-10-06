@@ -12,7 +12,7 @@ import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { PaginationDto } from 'src/common/dto/pagination';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom } from 'rxjs';
 @Injectable()
 export class CommunityService {
   constructor(
@@ -80,46 +80,46 @@ export class CommunityService {
       'Community post created successfully',
     );
   }
-// -------create comment ----
-@HandleError('Failed to add comment', 'Comment')
-async createComment(payload: CreateCommentDto & { userId: string }) {
-  const apiUrl = 'https://theaustraliancanvas.onrender.com/files/hatespeech';
+  // -------create comment ----
+  @HandleError('Failed to add comment', 'Comment')
+  async createComment(payload: CreateCommentDto & { userId: string }) {
+    const apiUrl = 'http://3.105.232.50:8000/files/hatespeech';
 
-  let hateSpeechResult = {
-    hate_speech_detect: false,
-    confidence: 0,
-    explanation: null,
-  };
-
-  try {
-    const response = await firstValueFrom(
-      this.httpService.post(apiUrl, { text: payload.content }),
-    );
-
-    const data = response.data;
-    hateSpeechResult = {
-      hate_speech_detect: Boolean(data.hate_speech_detect), // <-- Fix here
-      confidence: data.confidence,
-      explanation: data.explanation,
+    let hateSpeechResult = {
+      hate_speech_detect: false,
+      confidence: 0,
+      explanation: null,
     };
-  } catch (error) {
-    console.error('Hate speech API error:', error.message);
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(apiUrl, { text: payload.content }),
+      );
+
+      const data = response.data;
+      hateSpeechResult = {
+        hate_speech_detect: Boolean(data.hate_speech_detect), // <-- Fix here
+        confidence: data.confidence,
+        explanation: data.explanation,
+      };
+    } catch (error) {
+      console.error('Hate speech API error:', error.message);
+    }
+
+    // Save comment with AI response
+    const comment = await this.prisma.comment.create({
+      data: {
+        content: payload.content,
+        userId: payload.userId,
+        communityPostId: payload.communityPostId,
+        hate_speech_detect: hateSpeechResult.hate_speech_detect,
+        confidence: hateSpeechResult.confidence,
+        explanation: hateSpeechResult.explanation,
+      },
+    });
+
+    return successResponse(comment, 'Comment added successfully');
   }
-
-  // Save comment with AI response
-  const comment = await this.prisma.comment.create({
-    data: {
-      content: payload.content,
-      userId: payload.userId,
-      communityPostId: payload.communityPostId,
-      hate_speech_detect: hateSpeechResult.hate_speech_detect,
-      confidence: hateSpeechResult.confidence,
-      explanation: hateSpeechResult.explanation,
-    },
-  });
-
-  return successResponse(comment, 'Comment added successfully');
-}
 
   // --------------get comment-----------
   @HandleError('Failed to fetch community comments', 'Comment')

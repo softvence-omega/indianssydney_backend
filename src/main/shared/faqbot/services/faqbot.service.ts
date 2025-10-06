@@ -10,25 +10,27 @@ import { PrismaService } from 'src/lib/prisma/prisma.service';
 export class FaqbotService {
   constructor(
     private readonly httpService: HttpService,
-   private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async create(createFaqbotDto: CreateFaqbotDto) {
-    const apiUrl = 'https://theaustraliancanvas.onrender.com/files/faq-chatbot';
-    
+    const apiUrl = 'http://3.105.232.50:8000/files/faq-chatbot';
+
     try {
       // 1️⃣ Call external FAQ chatbot API
       const response = await firstValueFrom(
-        this.httpService.post(apiUrl, { user_message: createFaqbotDto.user_message }),
+        this.httpService.post(apiUrl, {
+          user_message: createFaqbotDto.user_message,
+        }),
       );
 
       const botResponse = response.data.response;
 
       // 2️⃣ Save user message + bot response in DB
       const savedMessage = await this.prisma.faqBot.create({
-        data: { 
+        data: {
           user_message: createFaqbotDto.user_message,
-          bot_response: botResponse,  // Save bot response
+          bot_response: botResponse, // Save bot response
         },
       });
 

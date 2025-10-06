@@ -21,30 +21,31 @@ model Content {
   youtubeVideoUrl  String?
   tags             String[]
   videoThumbnail   String?
+  // ai model evaluation fields
   evaluationResult String?
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  status           Status   @default(PENDING)
-  isDeleted        Boolean  @default(false)
+  compareResult    String?
+  
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  status           Status      @default(PENDING)
+  isDeleted        Boolean     @default(false)
   categorysslug    String?
   subcategorysslug String?
   //-------------- Relations-----------------
   userId           String
-  user             User     @relation(fields: [userId], references: [id])
+  user             User        @relation(fields: [userId], references: [id])
   categoryId       String
-  category         Category @relation(fields: [categoryId], references: [id])
+  category         Category    @relation(fields: [categoryId], references: [id])
 
-  subCategoryId String
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-
+  subCategoryId      String
+  subCategory        SubCategory            @relation(fields: [subCategoryId], references: [id])
+  // One Content can have multiple AdditionalContents
   additionalContents AdditionalContent[]
-
-  ContentComments  ContentComment[]
-  ContentReactions ContentReaction[]
-  statusHistories  ContentStatusHistory[]
-  ReportContents   ReportContent[]
-  bookmarks        Bookmark[]
+  ContentComments    ContentComment[]
+  ContentReactions   ContentReaction[]
+  statusHistories    ContentStatusHistory[]
+  ReportContents     ReportContent[]
+  bookmarks          Bookmark[]
 
   @@map("contents")
 }

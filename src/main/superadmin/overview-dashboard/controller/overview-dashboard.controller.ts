@@ -6,11 +6,19 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { OverviewDashboardService } from '../service/overview-dashboard.service';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateTotalPageViewDto } from '../dto/create-page-view.dto';
 import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
+import { EngagementQueryDto } from '../dto/engagement.dto';
 
 @ApiTags('Super Admin Overview Dashboard')
 @Controller('overview-dashboard')
@@ -106,4 +114,56 @@ export class OverviewDashboardController {
     const result = await this.overviewDashboardService.editorContentActivity();
     return { success: true, data: result };
   }
+  @ApiTags('Analytics Dashboard Super admin')
+  @ApiOperation({ summary: 'Get analytics dashboard data for super admin' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('analytics-dashboard/top-tags')
+  async getAnalyticsDashboardTags() {
+    const result = await this.overviewDashboardService.analyticsDashboardTags();
+    return { success: true, data: result };
+  }
+  @ApiTags('Analytics Dashboard Super admin')
+  @ApiOperation({ summary: 'Get Content Metrics data for super admin' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('analytics-dashboard/content-metrics')
+  async getContentMetrics() {
+    const result = await this.overviewDashboardService.contentMetrics();
+    return { success: true, data: result };
+  }
+
+  @ApiTags('Analytics Dashboard Super admin')
+  @ApiOperation({
+    summary: 'Get User Engagement & Personalization AI data for super admin',
+  })
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    description: 'Filter period for metrics',
+    enum: ['week', 'month', 'quarter', 'all'],
+    example: 'month',
+  })
+  @ValidateSuperAdmin()
+  @Get('Engagement-Personalization')
+  async getUserEngagementPersonalization(@Query() query: EngagementQueryDto) {
+    const period = query.period || 'all';
+    const result =
+      await this.overviewDashboardService.getUserEngagementPersonalization(
+        period,
+      );
+    return { success: true, data: result };
+  }
+
+  // @ApiTags('Analytics Dashboard Super admin')
+  // @ApiOperation({ summary: 'Community Moderation AI  data for super admin' })
+  // @ApiBearerAuth()
+  // @ValidateSuperAdmin()
+  // @Get('community-moderation ')
+  // async getCommunityModerationAI () {
+    
+  //   const result = await this.overviewDashboardService.getCommunityModerationAI();
+  //   return { success: true, data: result };
+  // }
 }
