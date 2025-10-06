@@ -87,35 +87,36 @@ export class ContentService {
         );
       }
 
-      // Process main file uploads
+      // ------------------ Process main file uploads -----------------------
       let imageUrl: string | undefined;
       let videoUrl: string | undefined;
       let videoThumbUrl: string | undefined;
       let audioUrl: string | undefined;
 
-      if (payload.image) {
-        const processedFile = await this.fileService.processUploadedFile(
-          payload.image,
-        );
-        imageUrl = processedFile?.url;
+      // Find files directly from files[] (not payload)
+      const imageFile = files?.find((f) => f.fieldname === 'image');
+      const videoFile = files?.find((f) => f.fieldname === 'video');
+      const videoThumbFile = files?.find(
+        (f) => f.fieldname === 'videoThumbnail',
+      );
+      const audioFile = files?.find((f) => f.fieldname === 'audio');
+
+      if (imageFile) {
+        const processed = await this.fileService.processUploadedFile(imageFile);
+        imageUrl = processed?.url;
       }
-      if (payload.video) {
-        const processedVideo = await this.fileService.processUploadedFile(
-          payload.video,
-        );
-        videoUrl = processedVideo?.url;
+      if (videoFile) {
+        const processed = await this.fileService.processUploadedFile(videoFile);
+        videoUrl = processed?.url;
       }
-      if (payload.videoThumbnail) {
-        const processedThumb = await this.fileService.processUploadedFile(
-          payload.videoThumbnail,
-        );
-        videoThumbUrl = processedThumb?.url;
+      if (videoThumbFile) {
+        const processed =
+          await this.fileService.processUploadedFile(videoThumbFile);
+        videoThumbUrl = processed?.url;
       }
-      if (payload.audio) {
-        const processedAudio = await this.fileService.processUploadedFile(
-          payload.audio,
-        );
-        audioUrl = processedAudio?.url;
+      if (audioFile) {
+        const processed = await this.fileService.processUploadedFile(audioFile);
+        audioUrl = processed?.url;
       }
       //-------  external  API expects "content"---------
       let evaluationResult: any;

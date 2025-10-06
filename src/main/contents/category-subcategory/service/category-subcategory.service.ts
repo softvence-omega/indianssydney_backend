@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from '../dto/create-category-subcategory.dto';
-import {
-  UpdateCategoryDto,
-
-} from '../dto/update-category-subcategory.dto';
+import { UpdateCategoryDto } from '../dto/update-category-subcategory.dto';
 import { FileService } from 'src/lib/file/file.service';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { HandleError } from 'src/common/error/handle-error.decorator';
@@ -74,65 +71,67 @@ export class CategorySubcategoryService {
     if (!category) throw new AppError(404, 'Category not found');
     return successResponse(category);
   }
-  
-// ----------------------------- update category + subcategories -----------------------------
-@HandleError('Failed to update category and subcategories')
-async updateCategoryAndSubcategories(
-  id: string,
-  dto: UpdateCategoryDto,
-): Promise<TResponse> {
-  return this.prisma.$transaction(async (tx) => {
-    const category = await tx.category.findUnique({
-      where: { id },
-      include: { subCategories: true },
-    });
-    if (!category) throw new AppError(404, 'Category not found');
 
-    // Update category fields if provided
-    if (dto.name || dto.tamplate) {
-      await tx.category.update({
+  // ----------------------------- update category + subcategories -----------------------------
+  @HandleError('Failed to update category and subcategories')
+  async updateCategoryAndSubcategories(
+    id: string,
+    dto: UpdateCategoryDto,
+  ): Promise<TResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const category = await tx.category.findUnique({
         where: { id },
-        data: {
-          name: dto.name ?? category.name,
-          tamplate: dto.tamplate ?? category.tamplate,
-          ...(dto.name && { slug: generateSlug(dto.name) }),
-        },
+        include: { subCategories: true },
       });
-    }
+      if (!category) throw new AppError(404, 'Category not found');
 
-    // If subcategories provided, add only new ones
-    if (dto.subnames && dto.subnames.length > 0) {
-      // Existing subcategory names
-      const existingSubnames = category.subCategories.map((sub) => sub.subname);
-
-      // Filter out already existing subcategories
-      const newSubnames = dto.subnames.filter(
-        (sub) => !existingSubnames.includes(sub)
-      );
-
-      if (newSubnames.length > 0) {
-        await tx.subCategory.createMany({
-          data: newSubnames.map((sub) => ({
-            subname: sub,
-            subslug: generateSlug(sub),
-            categoryId: id,
-          })),
+      // Update category fields if provided
+      if (dto.name || dto.tamplate) {
+        await tx.category.update({
+          where: { id },
+          data: {
+            name: dto.name ?? category.name,
+            tamplate: dto.tamplate ?? category.tamplate,
+            ...(dto.name && { slug: generateSlug(dto.name) }),
+          },
         });
       }
-    }
 
-    // Return updated category with all subcategories
-    const updatedCategory = await tx.category.findUnique({
-      where: { id },
-      include: { subCategories: true },
+      // If subcategories provided, add only new ones
+      if (dto.subnames && dto.subnames.length > 0) {
+        // Existing subcategory names
+        const existingSubnames = category.subCategories.map(
+          (sub) => sub.subname,
+        );
+
+        // Filter out already existing subcategories
+        const newSubnames = dto.subnames.filter(
+          (sub) => !existingSubnames.includes(sub),
+        );
+
+        if (newSubnames.length > 0) {
+          await tx.subCategory.createMany({
+            data: newSubnames.map((sub) => ({
+              subname: sub,
+              subslug: generateSlug(sub),
+              categoryId: id,
+            })),
+          });
+        }
+      }
+
+      // Return updated category with all subcategories
+      const updatedCategory = await tx.category.findUnique({
+        where: { id },
+        include: { subCategories: true },
+      });
+
+      return successResponse(
+        updatedCategory,
+        'Category and subcategories updated successfully',
+      );
     });
-
-    return successResponse(
-      updatedCategory,
-      'Category and subcategories updated successfully'
-    );
-  });
-}
+  }
 
   // ----------------------------- remove category -----------------------------
   @HandleError('Failed to delete category and subcategories')
@@ -149,7 +148,7 @@ async updateCategoryAndSubcategories(
         select: { id: true },
       });
       const subCategoryIds = subCategories.map((sub) => sub.id);
-// ------------- Check if any content is linked to any subcategory------------
+      // ------------- Check if any content is linked to any subcategory------------
       let subCategoryContentCount = 0;
       if (subCategoryIds.length > 0) {
         subCategoryContentCount = await tx.content.count({
@@ -201,32 +200,43 @@ async updateCategoryAndSubcategories(
     return successResponse(subcategory);
   }
 
-  // slug get subcategory--
-@HandleError('Failed to fetch subcategory')
-  async findOneSubcategoryBySlug( subslug : string) {
-  const subcategory = await this.prisma.subCategory.findUnique({
-    where: {  subslug  },
-  });
+  // -------slug get subcategory-------------
+  @HandleError('Failed to fetch subcategory')
+  async findOneSubcategoryBySlug(subslug: string) {
+    if (!subslug) {
+      throw new AppError(400, 'Subcategory slug is required');
+    }
 
-  if (!subcategory) {
-    throw new AppError(404, `Subcategory with slug "${ subslug }" not found`);
+    const subcategory = await this.prisma.subCategory.findUnique({
+      where: { subslug },
+      include: {
+        category: {
+          select: { id: true, name: true, slug: true },
+        },
+        contents: {
+          select: { id: true, title: true, status: true },
+        },
+      },
+    });
+
+    if (!subcategory) {
+      throw new AppError(404, `Subcategory with slug "${subslug}" not found`);
+    }
+
+    return successResponse(subcategory, 'Subcategory fetched successfully');
   }
 
-  return successResponse(subcategory, 'Subcategory fetched successfully');
-}
+  // ----slug get category----
+  @HandleError('Failed to fetch category')
+  async findOnecategoryBySlug(slug: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { slug },
+    });
 
-// ----slug 
-@HandleError('Failed to fetch category')
-async findOnecategoryBySlug(slug: string) {
-  const category = await this.prisma.category.findUnique({
-    where: { slug },
-  });
+    if (!category) {
+      throw new AppError(404, `Category with slug "${slug}" not found`);
+    }
 
-  if (!category) {
-    throw new AppError(404, `Category with slug "${slug}" not found`);
+    return successResponse(category, 'Category fetched successfully');
   }
-
-  return successResponse(category, 'Category fetched successfully');
-}
-
 }

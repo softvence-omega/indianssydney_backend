@@ -3,7 +3,7 @@ import {
   CreateContentReactionDto,
   CreateContentCommentReactionDto,
 } from './../dto/create-content-comment.dto';
-// content/content.controller.ts
+
 import {
   Controller,
   Post,
@@ -70,6 +70,7 @@ export class ContentController {
     return this.contentService.createContentReaction({ ...dto, userId });
   }
 
+  // -----------   reate new content with files and additional data   ------------
   @ApiOperation({
     summary: 'Create new content with files and additional data',
   })

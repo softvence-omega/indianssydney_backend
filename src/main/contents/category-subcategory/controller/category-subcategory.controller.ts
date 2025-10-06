@@ -40,7 +40,7 @@ export class CategorySubcategoryController {
   findOneCategory(@Param('id') id: string) {
     return this.categorySubcategoryService.findOneCategory(id);
   }
-//  ------------ update category subcategory--------
+  //  ------------ update category subcategory--------
   @Patch(':id')
   @ApiBearerAuth()
   @ValidateAdmin()
@@ -49,11 +49,13 @@ export class CategorySubcategoryController {
 
     @Body() dto: UpdateCategoryDto,
   ) {
-    return this.categorySubcategoryService.updateCategoryAndSubcategories(id, { ...dto });
+    return this.categorySubcategoryService.updateCategoryAndSubcategories(id, {
+      ...dto,
+    });
   }
-// ------------- delete category -----------------
-@ApiBearerAuth()
-@ValidateAdmin()
+  // ------------- delete category -----------------
+  @ApiBearerAuth()
+  @ValidateAdmin()
   @Delete('category/:id')
   removeCategory(@Param('id') id: string) {
     return this.categorySubcategoryService.removeCategory(id);
@@ -70,12 +72,14 @@ export class CategorySubcategoryController {
   findOneSubcategory(@Param('id') id: string) {
     return this.categorySubcategoryService.findOneSubcategory(id);
   }
-
+@ApiOperation({ summary: 'Get subcategory by slug' })
   @Get('subcategory/slug/:slug')
-  findOneSubcategoryBySlug(@Param(' subslug ') subslug: string) {
+  findOneSubcategoryBySlug(@Param('slug') subslug: string) {
     return this.categorySubcategoryService.findOneSubcategoryBySlug(subslug);
   }
 
+
+  @ApiOperation({ summary: 'Get category by slug' })
   @Get('category/slug/:slug')
   findOnecategoryBySlug(@Param('slug') slug: string) {
     return this.categorySubcategoryService.findOnecategoryBySlug(slug);

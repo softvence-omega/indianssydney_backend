@@ -33,14 +33,6 @@ export class AdminManagementController {
     );
   }
 
-  // -----------Admin admin get recent  ------------
-  @ApiOperation({ summary: 'Admin Admin get recent  status-pentding' })
-  @ApiBearerAuth()
-  @ValidateAdmin()
-  @Get('recent-contents')
-  async getRecentContent() {
-    return this.adminManagementService.getRecentContent();
-  }
   // -----------Admin admin get all content with status pending ------------
   @ApiOperation({ summary: 'Admin Admin get all status-pentding' })
   @ApiBearerAuth()
@@ -67,24 +59,20 @@ export class AdminManagementController {
   async getAllContentDecline() {
     return this.adminManagementService.getDeclinedContents();
   }
+  // -----------Admin admin get recent  ------------
+  @ApiOperation({ summary: 'Admin Admin get recent  status-pentding' })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Get('recent-contents')
+  async getRecentContent() {
+    return this.adminManagementService.getRecentContent();
+  }
+
   // -------------------editor can be manage contibute user---------------
   @ApiOperation({
     summary:
       'Admin updates contributor application status . contibutor can apply for content create',
   })
-  @ApiBearerAuth()
-  @ValidateAdmin()
-  @Patch('contributor/:id/status')
-  async updateContributorStatus(
-    @Param('id') applicationId: string,
-    @Body() dto: ContributorApplyStatusDto,
-  ) {
-    return this.adminManagementService.updateContributorApplicationStatus(
-      applicationId,
-      dto.status,
-    );
-  }
-
   @ApiOperation({ summary: 'Admin updates contributor application status' })
   @ApiBearerAuth()
   @ValidateAdmin()
@@ -100,7 +88,7 @@ export class AdminManagementController {
   async getAnalyticsTopCategory() {
     return this.adminManagementService.getAnalyticsTopCategory();
   }
-  // ----------analylis olangauge ---
+  // ----------analylis langauge ---
   @ApiOperation({ summary: 'Admin Analytics top langauge' })
   @ApiBearerAuth()
   @ValidateAdmin()
@@ -115,5 +103,21 @@ export class AdminManagementController {
   @Get('analytics/top-content')
   async getAnalyticsTopContent() {
     return this.adminManagementService.getAnalyticsTopContent();
+  }
+  // ------------------manage contibute user  approve/decline/pending ---------------
+  @ApiOperation({
+    summary: 'Admin manage contibute user  approve/decline/pending',
+  })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Patch('contributor/:id/status')
+  async updateContributorStatus(
+    @Param('id') applicationId: string,
+    @Body() dto: ContributorApplyStatusDto,
+  ) {
+    return this.adminManagementService.updateContributorApplicationStatus(
+      applicationId,
+      dto.status,
+    );
   }
 }

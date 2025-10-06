@@ -43,6 +43,7 @@ model Content {
   ContentComments  ContentComment[]
   ContentReactions ContentReaction[]
   statusHistories  ContentStatusHistory[]
+  ReportContents  ReportContent[]
 
   @@map("contents")
 }

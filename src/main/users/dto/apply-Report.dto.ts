@@ -10,16 +10,17 @@ export class CreateReportDto {
   files?: Express.Multer.File[];
 
   @ApiProperty({
-    example: 'The news page of the article',
-    required: true,
-  })
-  @IsString()
-  contentTitle: string;
-
-  @ApiProperty({
     example: 'This is fake article with copyright issues',
     required: true,
   })
   @IsString()
   reason: string;
+
+  @ApiProperty({
+    example: 'b014564b-4712-4832-b600-8fe33f8d5b40',
+    required: true,
+  })
+  @IsString()
+  contentId: string;  
+
 }

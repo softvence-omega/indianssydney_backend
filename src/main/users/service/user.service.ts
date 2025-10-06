@@ -175,23 +175,33 @@ export class UserService {
     createReportDto: CreateReportDto,
     userId: string,
   ): Promise<TResponse<any>> {
-    const { files, ...reportData } = createReportDto;
+    const { files, contentId, reason } = createReportDto;
+
+    if (!contentId) {
+      throw new AppError(400, 'Content ID is required');
+    }
 
     if (!files || !files.length) {
       throw new AppError(400, 'At least one screenshot is required');
     }
 
-    // process images
+    const content = await this.prisma.content.findUnique({
+      where: { id: contentId },
+    });
+
+    if (!content) {
+      throw new AppError(404, 'Content not found');
+    }
+
     const fileInstances = await Promise.all(
       files.map((file) => this.fileService.processUploadedFile(file)),
     );
 
     const report = await this.prisma.reportContent.create({
       data: {
-        ...reportData,
-        user: {
-          connect: { id: userId },
-        },
+        reason,
+        contentId,
+        userId,
         images: {
           create: fileInstances.map((file) => ({
             imageUrl: file.url,
@@ -200,6 +210,7 @@ export class UserService {
       },
       include: {
         images: true,
+        content: true,
       },
     });
 

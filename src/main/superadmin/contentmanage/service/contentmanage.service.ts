@@ -265,6 +265,7 @@ export class ContentmanageService {
   async getAllReports() {
     const reports = await this.prisma.reportContent.findMany({
       include: {
+        // 👤 Reporter (the user who reported)
         user: {
           select: {
             id: true,
@@ -274,12 +275,37 @@ export class ContentmanageService {
             role: true,
           },
         },
+        // 🧾 Reported content info
+        content: {
+          select: {
+            id: true,
+            title: true,
+            paragraph: true,
+            contentType: true,
+            createdAt: true,
+            // 👤 Content owner info
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                profilePhoto: true,
+                role: true,
+              },
+            },
+          },
+        },
+       
         images: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
     return successResponse(reports, 'All reports retrieved successfully');
   }
+
   // -------hate space maintain-------
   @HandleError('Failed to get all hate space', 'HateSpace')
   async getAllHateSpace() {
