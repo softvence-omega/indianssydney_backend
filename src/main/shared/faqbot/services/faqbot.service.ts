@@ -17,7 +17,7 @@ export class FaqbotService {
     const apiUrl = 'http://3.105.232.50:8000/files/faq-chatbot';
 
     try {
-      // 1️⃣ Call external FAQ chatbot API
+      // Send the message to the external FAQ bot API
       const response = await firstValueFrom(
         this.httpService.post(apiUrl, {
           user_message: createFaqbotDto.user_message,
@@ -26,30 +26,28 @@ export class FaqbotService {
 
       const botResponse = response.data.response;
 
-      // 2️⃣ Save user message + bot response in DB
-      const savedMessage = await this.prisma.faqBot.create({
+      // Save conversation to DB
+      await this.prisma.faqBot.create({
         data: {
           user_message: createFaqbotDto.user_message,
-          bot_response: botResponse, // Save bot response
+          response: botResponse,
         },
       });
 
+      // Return clean response (matches your example)
       return {
-        id: savedMessage.id,
-        user_message: savedMessage.user_message,
-        bot_response: savedMessage.bot_response,
+        response: botResponse,
         success: true,
+        error_message: null,
       };
     } catch (error) {
       // Save user message even if bot API fails
-      const savedMessage = await this.prisma.faqBot.create({
+      await this.prisma.faqBot.create({
         data: { user_message: createFaqbotDto.user_message },
       });
 
       return {
-        id: savedMessage.id,
-        user_message: savedMessage.user_message,
-        bot_response: null,
+        response: null,
         success: false,
         error_message: error.message,
       };
