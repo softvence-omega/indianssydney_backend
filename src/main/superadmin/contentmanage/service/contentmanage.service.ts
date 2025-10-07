@@ -19,6 +19,13 @@ export class ContentmanageService {
     const updated = await this.prisma.content.update({
       where: { id },
       data: { status },
+      select: {
+        status: true,
+        image: true,
+        userId: true,
+        title: true,
+        subTitle: true,
+      },
     });
 
     // Create a notification in DB
@@ -29,6 +36,15 @@ export class ContentmanageService {
         message: `Content status updated to ${status}`,
         meta: {
           contentId: id,
+          authorId: updated.userId,
+          contentSubtitle: updated.subTitle,
+          contentImage: updated.image,
+          contentTitle: updated.title,
+          contentStatus: updated.status,
+          newStatus: status,
+          previousStatus: updated.status,
+          updatedAt: new Date().toISOString(),
+
           status,
           date: new Date().toISOString(),
         },

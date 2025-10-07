@@ -68,7 +68,7 @@ export class ContentController {
   }
 
   // -----------   Add content  Reaction   ------------
-  @ApiOperation({ summary: 'add conent reaction with  on a content' })
+  @ApiOperation({ summary: 'add content reaction with  on a content' })
   @ApiBearerAuth()
   @ValidateAuth()
   @Post('/content-reaction')

@@ -1,3 +1,4 @@
+import { LiveEvent } from './../../../node_modules/.prisma/client/index.d';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -84,16 +85,16 @@ export class NotificationGateway
         return client.disconnect(true);
       }
 
-    const payloadForSocketClient: PayloadForSocketClient = {
-    sub: user.id,
-    email: user.email || '',
-    emailToggle: Boolean(user.notificationToggle?.email) || false,
-    userUpdates: Boolean(user.notificationToggle?.userUpdates) || false,
-    scheduling: Boolean(user.notificationToggle?.scheduling) || false,
-    userRegistration: Boolean(user.notificationToggle?.userRegistration) || false,
-    contentStatus: Boolean(user.notificationToggle?.contentStatus) || false,
-};
-
+      const payloadForSocketClient: PayloadForSocketClient = {
+        sub: user.id,
+        email: user.email || '',
+        emailToggle: Boolean(user.notificationToggle?.email) || false,
+        userUpdates: Boolean(user.notificationToggle?.userUpdates) || false,
+        scheduling: Boolean(user.notificationToggle?.scheduling) || false,
+        userRegistration:
+          Boolean(user.notificationToggle?.userRegistration) || false,
+        contentStatus: Boolean(user.notificationToggle?.contentStatus) || false,
+      };
 
       client.data = { user: payloadForSocketClient };
       this.subscribeClient(user.id, client);

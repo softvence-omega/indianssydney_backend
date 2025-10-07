@@ -48,6 +48,8 @@ export class NotificationSettingController {
     );
   }
 
+  @ApiBearerAuth()
+  @ValidateUser()
   @ApiOperation({ summary: 'get all notifications for USER ' })
   @Get('all-notifications')
   async getAllNotifications() {

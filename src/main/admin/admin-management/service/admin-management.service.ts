@@ -16,7 +16,7 @@ export class AdminManagementService {
       where: { id: contentId },
       include: {
         user: {
-          //  show content owner
+        
           select: {
             id: true,
             fullName: true,
@@ -35,7 +35,7 @@ export class AdminManagementService {
       throw new BadRequestException('Content not found');
     }
 
-    // update content
+    // -------- update content
     const updated = await this.prisma.content.update({
       where: { id: contentId },
       data: { status: newStatus },
@@ -133,7 +133,7 @@ export class AdminManagementService {
       },
     });
   }
-
+// ------------------------ get declined contents--------------
   @HandleError('Failed to get declined contents', 'contentmanage')
   async getDeclinedContents(): Promise<any> {
     return this.prisma.content.findMany({

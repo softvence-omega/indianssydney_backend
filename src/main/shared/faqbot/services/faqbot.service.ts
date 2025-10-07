@@ -14,7 +14,7 @@ export class FaqbotService {
   ) {}
 
   async create(createFaqbotDto: CreateFaqbotDto) {
-    const apiUrl = 'http://3.105.232.50:8000/files/faq-chatbot';
+    const apiUrl = 'https://ai.australiancanvas.com/files/faq-chatbot';
 
     try {
       // Send the message to the external FAQ bot API

@@ -18,7 +18,7 @@ export class AicontentService {
   // ---------- AI Paragraph Generation ----------
   @HandleError('Failed to generate AI paragraph', 'AI paragraph generation')
   async paragraphCreate(dto: CreateAiParagraphDto) {
-    const apiUrl = 'http://3.105.232.50:8000/files/content-generation';
+    const apiUrl = 'https://ai.australiancanvas.com/files/content-generation';
 
     try {
       const response = await firstValueFrom(
@@ -59,7 +59,7 @@ export class AicontentService {
   // ---------- SEO Tag Generation ----------
   @HandleError('Failed to generate SEO tags', 'SEO tag generation')
   async seoTagCreate(dto: CreateAiCategoryDto) {
-    const apiUrl = 'http://3.105.232.50:8000/files/seo-tags';
+    const apiUrl = 'https://ai.australiancanvas.com/files/seo-tags';
 
     try {
       const response = await firstValueFrom(

@@ -35,7 +35,7 @@ export class AuthController {
   ) {
     const result = (await this.authService.login(body)) as any;
 
-    // Set HTTP-only cookie
+    //------- Set HTTP-only cookie---------
     res.cookie('token', result?.data?.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

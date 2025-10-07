@@ -126,7 +126,7 @@ export class ContentService {
       //   try {
       //     const response = await firstValueFrom(
       //       this.httpService.post(
-      //         'http://3.105.232.50:8000/files/content-evaluation',
+      //         'https://ai.australiancanvas.com/files/content-evaluation',
       //         { content: payload.paragraph },
       //       ),
       //     );
@@ -146,7 +146,7 @@ export class ContentService {
           // TODO FIXED: proper query param usage
           const response = await firstValueFrom(
             this.httpService.post(
-              `http://3.105.232.50:8000/files/compare-text?text=${encodeURIComponent(
+              `https://ai.australiancanvas.com/files/compare-text?text=${encodeURIComponent(
                 payload.paragraph,
               )}`,
               {},

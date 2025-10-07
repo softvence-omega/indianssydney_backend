@@ -83,7 +83,7 @@ export class CommunityService {
   // -------create comment ----
   @HandleError('Failed to add comment', 'Comment')
   async createComment(payload: CreateCommentDto & { userId: string }) {
-    const apiUrl = 'http://3.105.232.50:8000/files/hatespeech';
+    const apiUrl = 'https://ai.australiancanvas.com/files/hatespeech';
 
     let hateSpeechResult = {
       hate_speech_detect: false,

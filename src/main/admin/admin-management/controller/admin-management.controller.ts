@@ -42,7 +42,7 @@ export class AdminManagementController {
     return this.adminManagementService.getPendingContents();
   }
 
-  // ------------------sttus Approve-----------------------
+  // ------------------status Approve-----------------------
   @ApiOperation({ summary: 'Admin Admin get all status-pentding' })
   @ApiBearerAuth()
   @ValidateAdmin()

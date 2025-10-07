@@ -8,13 +8,11 @@ import {
 import { Response } from 'express';
 import { errorResponse } from '../utils/response.util';
 
-
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-
     let status: number;
     let message: string | string[];
     let errorData: unknown = null;

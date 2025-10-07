@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import FormData from 'form-data';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
-import { FileService } from 'src/lib/file/file.service';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { AppError } from 'src/common/error/handle-error.app';
 import { TResponse } from 'src/common/utils/response.util';
 import { CreateAustraliaLawDto } from '../dto/create-australia-law.dto';
 import { UpdateAustraliaLawDto } from '../dto/update-australia-law.dto';
-import { HttpService } from '@nestjs/axios';
+
 interface ExternalApiResponse {
   description?: string;
   files: string[] | { url: string }[];
@@ -17,12 +16,10 @@ interface ExternalApiResponse {
 @Injectable()
 export class AustraliaLawService {
   private readonly externalApi =
-    'http://3.105.232.50:8000/files/upload_multiple';
+    'https://ai.australiancanvas.com/files/upload-multiple';
 
   constructor(
-    private readonly fileService: FileService,
     private readonly prisma: PrismaService,
-    private readonly httpService: HttpService,
   ) {}
 
   @HandleError('Error creating Australia law')
@@ -34,7 +31,7 @@ export class AustraliaLawService {
       throw new AppError(400, 'At least one file is required');
     }
 
-    // Validate file types and sizes
+    // -------  Validate file types and sizes. ------
     for (const file of files) {
       if (!file.mimetype.includes('pdf')) {
         throw new AppError(400, 'Only PDF files are allowed');
@@ -45,38 +42,38 @@ export class AustraliaLawService {
     }
 
     try {
-      // Prepare form-data for external API
+   
       const form = new FormData();
       if (dto.description) form.append('description', dto.description);
-      files.forEach((file) =>
-        form.append('files', file.buffer, file.originalname),
-      );
 
-      console.log('FormData:', form);
+      for (const file of files) {
+        form.append('files', file.buffer, {
+          filename: file.originalname,
+          contentType: file.mimetype,
+        });
+      }
 
-      // Upload to external API
+//  ---     upload files to external api.  ---
       const { data } = await axios.post<ExternalApiResponse>(
         this.externalApi,
         form,
         {
-          headers: {
-            ...form.getHeaders(),
-          },
+          headers: form.getHeaders(),
         },
       );
 
-      console.log('External API response:', data);
+      console.log(' External API response:', data);
 
-      // Validate external API response
-      if (!data || !data.files) {
+      // --  Validate API response--
+      if (!data || !data.files || !Array.isArray(data.files)) {
         throw new AppError(500, 'Invalid response from external API');
       }
 
-      // Save external API response in DB
+      // ------ Save record in database
       const australiaLaw = await this.prisma.australiaLaw.create({
         data: {
-          description: data.description ?? dto.description,
-          files: JSON.stringify(data.files || []),
+          description: data.description ?? dto.description ?? '',
+          files: JSON.stringify(data.files),
         },
       });
 
@@ -86,39 +83,69 @@ export class AustraliaLawService {
         data: australiaLaw,
       };
     } catch (error) {
-      console.error('Error in createAustraliaLaw:', error);
+      console.error(' Error in createAustraliaLaw:', error?.message || error);
       throw new AppError(
         500,
-        `Failed to create Australia law: ${error.message}`,
+        `Failed to create Australia law: ${
+          error?.response?.data?.message || error.message
+        }`,
       );
     }
   }
 
-  async findAll() {
-    const records = await this.prisma.australiaLaw.findMany();
-    return records.map((r) => ({
-      ...r,
-      files: JSON.parse(r.files || '[]'),
-    }));
+  // --------- Find all records---------
+  async findAll(): Promise<TResponse<any>> {
+    const records = await this.prisma.australiaLaw.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      success: true,
+      message: 'Records fetched successfully',
+      data: records.map((r) => ({
+        ...r,
+        files: JSON.parse(r.files || '[]'),
+      })),
+    };
   }
 
-  async findOne(id: string) {
+  // ----  Find one record. ---
+  async findOne(id: string): Promise<TResponse<any>> {
     const record = await this.prisma.australiaLaw.findUnique({ where: { id } });
     if (!record) throw new AppError(404, 'Record not found');
-    return { ...record, files: JSON.parse(record.files || '[]') };
+    return {
+      success: true,
+      message: 'Record fetched successfully',
+      data: { ...record, files: JSON.parse(record.files || '[]') },
+    };
   }
 
-  async update(id: string, dto: UpdateAustraliaLawDto) {
-    const { files, ...updateData } = dto;
+  // ----- Update record. ---
+  async update(
+    id: string,
+    dto: UpdateAustraliaLawDto,
+  ): Promise<TResponse<any>> {
     const updated = await this.prisma.australiaLaw.update({
       where: { id },
-      data: updateData,
+      data: {
+        description: dto.description,
+        ...(dto.files ? { files: JSON.stringify(dto.files) } : {}),
+      },
     });
-    return { success: true, data: updated };
+    return {
+      success: true,
+      message: 'Record updated successfully',
+      data: updated,
+    };
   }
 
-  async remove(id: string) {
+  //  ---- Delete record. --
+  async remove(id: string): Promise<TResponse<any>> {
     await this.prisma.australiaLaw.delete({ where: { id } });
-    return { success: true, message: 'Record deleted successfully' };
+    return {
+      success: true,
+      message: 'Record deleted successfully',
+      data: null,
+    };
   }
 }

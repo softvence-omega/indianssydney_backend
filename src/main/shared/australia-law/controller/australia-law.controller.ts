@@ -28,14 +28,21 @@ export class AustraliaLawController {
     FilesInterceptor(
       'files',
       5,
-      new MulterService().createMulterOptions('./temp', 'temp', FileType.PDF),
+      new MulterService().createMulterOptions('./temp', 'temp', FileType.ANY),
     ),
   )
   async createAustraliaLaw(
     @Body() dto: CreateAustraliaLawDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    if (files && files.length) dto.files = files;
+    console.log('DTO:', dto);
+    console.log(
+      'Uploaded Files:',
+      files?.map((f) => f.originalname),
+    );
+
+    if (!files?.length) throw new Error('No files uploaded');
+
     return this.australiaLawService.createAustraliaLaw(dto, files);
   }
 
@@ -50,10 +57,7 @@ export class AustraliaLawController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateAustraliaLawDto,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateAustraliaLawDto) {
     return this.australiaLawService.update(id, dto);
   }
 
