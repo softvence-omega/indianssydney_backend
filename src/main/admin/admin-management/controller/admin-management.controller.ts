@@ -42,6 +42,7 @@ export class AdminManagementController {
     return this.adminManagementService.getPendingContents();
   }
 
+
   // ------------------status Approve-----------------------
   @ApiOperation({ summary: 'Admin Admin get all status-pentding' })
   @ApiBearerAuth()
@@ -67,6 +68,33 @@ export class AdminManagementController {
   async getRecentContent() {
     return this.adminManagementService.getRecentContent();
   }
+
+  // Pending grouped by content type
+@ApiOperation({ summary: 'Admin get all pending contents grouped by type' })
+@ApiBearerAuth()
+@ValidateAdmin()
+@Get('pending-by-type')
+async getPendingGrouped() {
+  return this.adminManagementService.getPendingContentsByType();
+}
+
+// Approved grouped by content type
+@ApiOperation({ summary: 'Admin get all approved contents grouped by type' })
+@ApiBearerAuth()
+@ValidateAdmin()
+@Get('approved-by-type')
+async getApprovedGrouped() {
+  return this.adminManagementService.getApprovedContentsByType();
+}
+
+// Declined grouped by content type
+@ApiOperation({ summary: 'Admin get all declined contents grouped by type' })
+@ApiBearerAuth()
+@ValidateAdmin()
+@Get('declined-by-type')
+async getDeclinedGrouped() {
+  return this.adminManagementService.getDeclinedContentsByType();
+}
 
   // -------------------editor can be manage contibute user---------------
   @ApiOperation({
@@ -104,9 +132,9 @@ export class AdminManagementController {
   async getAnalyticsTopContent() {
     return this.adminManagementService.getAnalyticsTopContent();
   }
-  // ------------------manage contibute user  approve/decline/pending ---------------
+  // ------------------manage contribute user  approve/decline/pending ---------------
   @ApiOperation({
-    summary: 'Admin manage contibute user  approve/decline/pending',
+    summary: 'Admin manage contribute user  approve/decline/pending',
   })
   @ApiBearerAuth()
   @ValidateAdmin()

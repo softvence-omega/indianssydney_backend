@@ -16,7 +16,6 @@ export class AdminManagementService {
       where: { id: contentId },
       include: {
         user: {
-        
           select: {
             id: true,
             fullName: true,
@@ -133,7 +132,7 @@ export class AdminManagementService {
       },
     });
   }
-// ------------------------ get declined contents--------------
+  // ------------------------ get declined contents--------------
   @HandleError('Failed to get declined contents', 'contentmanage')
   async getDeclinedContents(): Promise<any> {
     return this.prisma.content.findMany({
@@ -280,5 +279,99 @@ export class AdminManagementService {
         },
       },
     });
+  }
+
+  // ------------------------- get pending contents by contentType -------------------------
+  @HandleError(
+    'Failed to get pending contents by content type',
+    'contentmanage',
+  )
+  async getPendingContentsByType(): Promise<any> {
+    const contents = await this.prisma.content.findMany({
+      where: { status: Status.PENDING, isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
+        subCategory: { select: { id: true, subname: true, subslug: true } },
+      },
+    });
+
+    // Group by contentType
+    const grouped = contents.reduce(
+      (acc, content) => {
+        const type = content.contentType;
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(content);
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
+
+    return grouped;
+  }
+
+  // ------------------------- get approved contents by contentType -------------------------
+  @HandleError(
+    'Failed to get approved contents by content type',
+    'contentmanage',
+  )
+  async getApprovedContentsByType(): Promise<any> {
+    const contents = await this.prisma.content.findMany({
+      where: { status: Status.APPROVE, isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
+        subCategory: { select: { id: true, subname: true, subslug: true } },
+      },
+    });
+
+    const grouped = contents.reduce(
+      (acc, content) => {
+        const type = content.contentType;
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(content);
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
+
+    return grouped;
+  }
+
+  // ------------------------- get declined contents by contentType -------------------------
+  @HandleError(
+    'Failed to get declined contents by content type',
+    'contentmanage',
+  )
+  async getDeclinedContentsByType(): Promise<any> {
+    const contents = await this.prisma.content.findMany({
+      where: { status: Status.Declined, isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: { select: { id: true, name: true, slug: true } },
+        subCategory: { select: { id: true, subname: true, subslug: true } },
+      },
+    });
+
+    const grouped = contents.reduce(
+      (acc, content) => {
+        const type = content.contentType;
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(content);
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
+
+    return grouped;
   }
 }

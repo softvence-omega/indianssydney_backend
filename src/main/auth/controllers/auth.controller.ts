@@ -20,6 +20,7 @@ export class AuthController {
     private readonly authGoogleService: AuthGoogleService,
   ) {}
 
+//  -------------- User Registration --------------
   @ApiOperation({ summary: 'User Registration with Email' })
   @Post('register')
   async register(@Body() body: RegisterDto) {
@@ -65,6 +66,7 @@ export class AuthController {
     };
   }
 
+  // -------------- Reset otp --------------
 @ApiOperation({ summary: 'User Registration reset-verify-otp' })
   @Post('reset-verify-otp')
   async resetverifyOtp(@Body() payload: VerifyOtpAuthDto) {
@@ -91,7 +93,7 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ summary: 'reset-password' })
+  @ApiOperation({ summary:'reset-password' })
   @Post('reset-password')
   async resetPassword(@Body() payload: ResetPasswordAuthDto) {
     const result = await this.authService.resetPassword(payload);

@@ -73,6 +73,34 @@ export class ContentmanageController {
     return this.contentmanageService.getDeclinedContents();
   }
 
+  // Pending grouped by content type
+@ApiOperation({ summary: 'Admin get all pending contents grouped by type' })
+@ApiBearerAuth()
+@ValidateSuperAdmin()
+@Get('pending-by-type-superadmin')
+async getPendingContentsByTypesuperadmin() {
+  return this.contentmanageService.getPendingContentsByTypesuperadmin();
+}
+
+// Approved grouped by content type
+@ApiOperation({ summary: 'Admin get all approved contents grouped by type' })
+@ApiBearerAuth()
+@ValidateSuperAdmin()
+@Get('approved-by-type-superadmin')
+async getApprovedContentsByTypesuperadmin() {
+  return this.contentmanageService.getApprovedContentsByTypesuperadmin();
+}
+
+// Declined grouped by content type
+@ApiOperation({ summary: 'super admin get all declined contents grouped by type' })
+@ApiBearerAuth()
+ @ValidateSuperAdmin()
+@Get('declined-by-type-superadmin')
+async getDeclinedContentsByTypesuperadmin() {
+  return this.contentmanageService.getDeclinedContentsByTypesuperadmin();
+}
+
+
   // -------------------------payment plane create---------------------------------
   @ApiOperation({ summary: 'Super Admin create payment plan' })
   @ApiBearerAuth()
@@ -156,6 +184,7 @@ export class ContentmanageController {
 async getAllHateSpace() {
   return this.contentmanageService.getAllHateSpace();
 }
+
 
 @Patch(':id/soft-delete')
 @ApiOperation({ summary: 'Soft delete a content' })
