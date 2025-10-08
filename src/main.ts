@@ -20,7 +20,7 @@ async function bootstrap() {
     'https://the-australian-canvas.vercel.app',
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://indianssydney-backend.onrender.com',
+    'https://api.australiancanvas.com',
     'https://australiancanvas.com',
     'http://localhost:5000',
   ];
