@@ -8,11 +8,10 @@ import mime from 'mime-types';
 const s3 = new S3({
   region: 'us-east-1',
   credentials: {
-    accessKeyId: '***REMOVED***',
-    secretAccessKey: '9Hir0MxGWAuVYycl5+oPiT8SpyurOlrF1cT7FOt+',
+    accessKeyId: process.env.ACCESS_KEY as string,
+    secretAccessKey: process.env.ACCESS_SECRET as string,
   },
 });
-
 
 const uploadFileToS3 = async (
   filePath: string,
