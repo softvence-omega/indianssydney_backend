@@ -28,7 +28,6 @@ export class ContentmanageService {
       },
     });
 
-    // Create a notification in DB
     const notification = await this.prisma.notification.create({
       data: {
         type: 'contentStatus',
@@ -40,25 +39,17 @@ export class ContentmanageService {
           contentSubtitle: updated.subTitle,
           contentImage: updated.image,
           contentTitle: updated.title,
-          contentStatus: updated.status,
-          newStatus: status,
           previousStatus: updated.status,
+          newStatus: status,
           updatedAt: new Date().toISOString(),
-
-          status,
-          date: new Date().toISOString(),
         },
       },
     });
 
-    // If APPROVE → notify all users
     if (status === Status.APPROVE) {
-      const users = await this.prisma.user.findMany({
-        select: { id: true },
-      });
+      const users = await this.prisma.user.findMany({ select: { id: true } });
       const userIds = users.map((u) => u.id);
 
-      // Create UserNotification records
       await this.prisma.userNotification.createMany({
         data: userIds.map((userId) => ({
           userId,
@@ -67,33 +58,26 @@ export class ContentmanageService {
         skipDuplicates: true,
       });
 
-      // Push via WebSocket
       await this.notificationGateway.notifyAllUsers('contentStatus', {
         title: notification.title,
         message: notification.message,
         meta: notification.meta,
       } as any);
     } else {
-      // Else → only notify content owner
-      const content = await this.prisma.content.findUnique({
-        where: { id },
-        select: { userId: true },
-      });
-
-      if (content?.userId) {
+      if (updated.userId) {
         await this.prisma.userNotification.create({
           data: {
-            userId: content.userId,
+            userId: updated.userId,
             notificationId: notification.id,
           },
         });
 
         await this.notificationGateway.notifySingleUser(
-          content.userId,
+          updated.userId,
           'contentStatus',
           {
             title: notification.title,
-            body: notification.message,
+            message: notification.message,
             meta: notification.meta,
           } as any,
         );

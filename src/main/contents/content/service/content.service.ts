@@ -788,7 +788,8 @@ export class ContentService {
             where: {
               categoryId: category.id,
               isDeleted: false,
-              status: 'APPROVE', // Filter for approved contents only
+              status: 'APPROVE',
+              contentType: 'ARTICLE',
             },
             include: {
               user: {
@@ -805,11 +806,11 @@ export class ContentService {
                 // Include for stats calculation
                 include: { reactions: true },
               },
-              ContentReactions: true, // Include for stats
+              ContentReactions: true,
               additionalContents: { orderBy: { order: 'asc' } },
             },
             orderBy: { createdAt: 'desc' },
-            take: 7, // Limit to 7 per category
+            take: 7,
           });
 
           // Enrich each content with stats (like in findAllContent)
@@ -872,7 +873,7 @@ export class ContentService {
               slug: category.slug,
             },
             contents: enrichedContents, // Now limited to 7, with stats
-            totalContentsInCategory: enrichedContents.length, // Bonus: count for UI
+            totalContentsInCategory: enrichedContents.length,
           };
         }),
       );
@@ -883,7 +884,6 @@ export class ContentService {
       );
     } catch (error) {
       console.error('getHomePageContent error:', error);
-      // Re-throw with HandleError decorator handling
       throw error;
     }
   }

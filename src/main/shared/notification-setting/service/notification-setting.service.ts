@@ -94,17 +94,17 @@ export class NotificationSettingService {
   }
 
   @HandleError('Failed to get all notifications')
-  async getAllNotifications(): Promise<TResponse<any>> {
+  async getAllNotifications(userId: string): Promise<TResponse<any>> {
     const notifications = await this.prisma.userNotification.findMany({
+      where: { userId }, // ✅ filter by logged-in user
       orderBy: { createdAt: 'desc' },
       include: {
         notification: true,
       },
     });
-  
+
     const notificationLength = notifications.length;
-    
-    // Format the response
+
     const formattedNotifications = notifications.map((un) => ({
       id: un.notification.id,
       type: un.notification.type,
@@ -117,7 +117,16 @@ export class NotificationSettingService {
 
     return successResponse(
       { count: notificationLength, notifications: formattedNotifications },
-      'All notifications retrieved successfully',
+      'User notifications retrieved successfully',
     );
+  }
+  @HandleError('Failed to delete all notifications')
+  async deleteAllNotifications(userId: string): Promise<TResponse<any>> {
+    const result = await this.prisma.userNotification.deleteMany({
+      where: {
+        userId: userId,
+      },
+    });
+    return successResponse(result, 'All notifications deleted successfully');
   }
 }

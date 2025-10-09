@@ -34,7 +34,7 @@ export class NotificationSettingController {
   async getAllNotificationSetting(): Promise<TResponse<any>> {
     return await this.notificationSettingService.getAllNotificationSetting();
   }
-
+  // ------   update notification setting. -------
   @ValidateAuth()
   @ApiBearerAuth()
   @Patch()
@@ -48,14 +48,15 @@ export class NotificationSettingController {
     );
   }
 
+  // -------get all notification their own notification------
   @ApiBearerAuth()
   @ValidateUser()
-  @ApiOperation({ summary: 'get all notifications for USER ' })
+  @ApiOperation({ summary: 'Get all notifications for the logged-in user' })
   @Get('all-notifications')
-  async getAllNotifications() {
-    return this.notificationSettingService.getAllNotifications();
+  async getAllNotifications(@GetUser('userId') userId: string) {
+    return this.notificationSettingService.getAllNotifications(userId);
   }
-
+  // ----------delete all notification setting------------
   @ApiBearerAuth()
   @ValidateUser()
   @Delete('delete-notification')

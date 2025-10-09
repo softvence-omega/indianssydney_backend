@@ -31,7 +31,7 @@ export class MulterService {
     prefix: string,
     fileType: FileType = FileType.IMAGE,
     fileSizeLimit = 10 * 1024 * 1024,
-    customMimeTypes?: string[], // Optional override
+    customMimeTypes?: string[],
   ): MulterOptions {
     const allowedMimeTypes =
       fileType === FileType.ANY

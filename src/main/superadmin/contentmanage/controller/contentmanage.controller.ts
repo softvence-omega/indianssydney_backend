@@ -191,7 +191,7 @@ async getAllHateSpace() {
 async softDelete(@Param('id') id: string) {
   return this.contentmanageService.softDeleteContent(id);
 }
-// -------Apioperation for hate command---
+
 
 // --------- Get all hate comments ---------
   @ApiOperation({ summary: 'Super Admin get all comments flagged as hate speech' })

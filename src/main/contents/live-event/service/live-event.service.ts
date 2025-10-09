@@ -12,11 +12,9 @@ export class LiveEventService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
-
     private readonly notificationGateway: NotificationGateway,
   ) {}
 
-  // ---------------- Create ----------------
   // ---------------- Create Live Event ----------------
   @HandleError('Failed to create live event')
   async createLiveEvent(userId: string, dto: CreateLiveEventDto) {
@@ -24,70 +22,66 @@ export class LiveEventService {
       throw new AppError(400, 'Recommendation image is required');
     }
 
-    // Process thumbnail file
     const fileInstance = await this.fileService.processUploadedFile(
       dto.thumbnail,
     );
 
     const { thumbnail, tags, ...restDto } = dto;
+    const normalizedTags = Array.isArray(tags)
+      ? tags
+      : typeof tags === 'string'
+        ? (tags as string).split(',').map((t) => t.trim())
+        : [];
 
-    // Normalize tags
-    let normalizedTags: string[] = [];
-    if (Array.isArray(tags)) {
-      normalizedTags = tags;
-    } else if (typeof tags === 'string') {
-      normalizedTags = (tags as string).split(',').map((tag) => tag.trim());
-    }
-
-    // Create live event
-    const liveEvent = await this.prisma.liveEvent.create({
-      data: {
-        ...restDto,
-        userId,
-        tags: normalizedTags,
-        thumbnail: fileInstance.url,
-      },
-    });
-
-    // ---------------- Create notification ----------------
-    const notification = await this.prisma.notification.create({
-      data: {
-        type: 'LiveEvent',
-        title: 'New Live Event Created',
-        message: `${restDto.title} is now live!`,
-        meta: {
-          liveEventId: liveEvent.id,
-          title: restDto.title,
-          thumbnail: fileInstance.url,
+    const result = await this.prisma.$transaction(async (tx) => {
+      const liveEvent = await tx.liveEvent.create({
+        data: {
+          ...restDto,
           userId,
-          date: new Date().toISOString(),
+          tags: normalizedTags,
+          thumbnail: fileInstance.url,
         },
-      },
+      });
+
+      const notification = await tx.notification.create({
+        data: {
+          type: 'LiveEvent',
+          title: 'New Live Event Created',
+          message: `${restDto.title} is now live!`,
+          meta: {
+            liveEventId: liveEvent.id,
+            title: restDto.title,
+            thumbnail: fileInstance.url,
+            userId,
+            date: new Date().toISOString(),
+          },
+        },
+      });
+
+      const users = await tx.user.findMany({ select: { id: true } });
+      const userIds = users.map((u) => u.id);
+
+      await tx.userNotification.createMany({
+        data: userIds.map((uId) => ({
+          userId: uId,
+          notificationId: notification.id,
+        })),
+        skipDuplicates: true,
+      });
+
+      await this.notificationGateway.notifyAllUsers('liveEvent', {
+        title: notification.title,
+        message: notification.message,
+        meta: notification.meta,
+      } as any);
+
+      return liveEvent;
     });
-
-    // ---------------- Notify all users via WebSocket ----------------
-    const users = await this.prisma.user.findMany({ select: { id: true } });
-    const userIds = users.map((u) => u.id);
-
-    await this.prisma.userNotification.createMany({
-      data: userIds.map((userId) => ({
-        userId,
-        notificationId: notification.id,
-      })),
-      skipDuplicates: true,
-    });
-
-    // Push via WebSocket
-    await this.notificationGateway.notifyAllUsers('liveEvent', {
-      title: notification.title,
-      message: notification.message,
-      meta: notification.meta,
-    } as any);
 
     return {
       success: true,
       message: 'Live event created successfully',
-      data: liveEvent,
+      data: result,
     };
   }
 
