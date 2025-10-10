@@ -22,8 +22,7 @@ export class S3FileService {
       },
     });
   }
-
-  async processUploadedFile(
+async processUploadedFile(
     file: Express.Multer.File,
   ): Promise<{ url: string; key: string }> {
     //------- Validate file object------------
