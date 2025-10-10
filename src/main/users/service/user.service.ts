@@ -226,41 +226,28 @@ export class UserService {
   ): Promise<TResponse<any>> {
     const { files, contentId, reason } = createReportDto;
 
-    if (!contentId) {
-      throw new AppError(400, 'Content ID is required');
-    }
-
-    if (!files || !files.length) {
+    if (!contentId) throw new AppError(400, 'Content ID is required');
+    if (!files || !files.length)
       throw new AppError(400, 'At least one screenshot is required');
-    }
 
     const content = await this.prisma.content.findUnique({
       where: { id: contentId },
     });
+    if (!content) throw new AppError(404, 'Content not found');
 
-    if (!content) {
-      throw new AppError(404, 'Content not found');
-    }
-
-    const fileInstances = await Promise.all(
-      files.map((file) => this.fileService.processUploadedFile(file)),
-    );
-
+    // Files now already have URLs from S3
     const report = await this.prisma.reportContent.create({
       data: {
         reason,
         contentId,
         userId,
         images: {
-          create: fileInstances.map((file) => ({
+          create: files.map((file) => ({
             imageUrl: file.url,
           })),
         },
       },
-      include: {
-        images: true,
-        content: true,
-      },
+      include: { images: true, content: true },
     });
 
     return successResponse(report, 'Report created successfully');

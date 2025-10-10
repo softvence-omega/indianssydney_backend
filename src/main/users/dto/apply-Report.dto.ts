@@ -7,7 +7,7 @@ export class CreateReportDto {
     format: 'binary',
     isArray: true,
   })
-  files?: Express.Multer.File[];
+  files?: { url: string; key: string }[];
 
   @ApiProperty({
     example: 'This is fake article with copyright issues',

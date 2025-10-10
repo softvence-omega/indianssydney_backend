@@ -18,7 +18,7 @@ export class CreateCommunityDto {
     description: 'Community post image file',
   })
   @IsOptional()
-  file?: Express.Multer.File;
+  file?: { url: string; key: string };
 
   @ApiProperty({
     type: 'string',
@@ -27,7 +27,7 @@ export class CreateCommunityDto {
     description: 'Community post video file',
   })
   @IsOptional()
-  video?: Express.Multer.File;
+  video?: { url: string; key: string };
 }
 
 // ----------- Create Post Reaction --------------

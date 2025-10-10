@@ -16,6 +16,7 @@ import { PaginationDto } from 'src/common/dto/pagination';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import uploadFileToS3 from 'src/lib/utils/uploadImageAWS';
 @Injectable()
 export class CommunityService {
   constructor(
@@ -25,64 +26,112 @@ export class CommunityService {
   ) {}
 
   // ----------- Create Community Post ------------
+  // @HandleError('Failed to create community post', 'communityPost')
+  // async create(
+  //   payload: CreateCommunityDto,
+  //   userId: string,
+  //   files: any,
+  // ): Promise<TResponse<any>> {
+  //   let thumbnailUrl: string | undefined;
+  //   let videoUrl: string | undefined;
+
+  //   // Process uploaded image
+  //   if (payload.file) {
+  //     const processedFile = await this.fileService.processUploadedFile(
+  //       payload.file,
+  //     );
+  //     thumbnailUrl = processedFile.url;
+  //   }
+
+  //   // Process uploaded video
+  //   if (payload.video) {
+  //     const processedVideo = await this.fileService.processUploadedFile(
+  //       payload.video,
+  //     );
+  //     videoUrl = processedVideo.url;
+  //   }
+
+  //   const data: any = {
+  //     description: payload.description,
+  //     userId,
+  //   };
+
+  //   if (thumbnailUrl) {
+  //     data.image = thumbnailUrl;
+  //   }
+
+  //   if (videoUrl) {
+  //     data.video = videoUrl;
+  //   }
+
+  //   //  Include user info in response
+  //   const communityPost = await this.prisma.communityPost.create({
+  //     data,
+  //     include: {
+  //       user: {
+  //         select: {
+  //           id: true,
+  //           fullName: true,
+  //           email: true,
+  //           profilePhoto: true,
+  //         },
+  //       },
+  //     },
+  //   });
+
+  //   return successResponse(
+  //     communityPost,
+  //     'Community post created successfully',
+  //   );
+  // }
+
+
   @HandleError('Failed to create community post', 'communityPost')
-  async create(
-    payload: CreateCommunityDto,
-    userId: string,
-    files: any,
-  ): Promise<TResponse<any>> {
-    let thumbnailUrl: string | undefined;
-    let videoUrl: string | undefined;
+async create(
+  payload: CreateCommunityDto,
+  userId: string,
+): Promise<TResponse<any>> {
+  let thumbnailUrl: string | undefined;
+  let videoUrl: string | undefined;
 
-    // Process uploaded image
-    if (payload.file) {
-      const processedFile = await this.fileService.processUploadedFile(
-        payload.file,
-      );
-      thumbnailUrl = processedFile.url;
-    }
+  // Use S3 URLs if files were uploaded
+  if (payload.file) {
+    thumbnailUrl = payload.file.url;
+  }
 
-    // Process uploaded video
-    if (payload.video) {
-      const processedVideo = await this.fileService.processUploadedFile(
-        payload.video,
-      );
-      videoUrl = processedVideo.url;
-    }
+  if (payload.video) {
+    videoUrl = payload.video.url;
+  }
 
-    const data: any = {
-      description: payload.description,
-      userId,
-    };
+  const data: any = {
+    description: payload.description,
+    userId,
+  };
 
-    if (thumbnailUrl) {
-      data.image = thumbnailUrl;
-    }
+  if (thumbnailUrl) data.image = thumbnailUrl;
+  if (videoUrl) data.video = videoUrl;
 
-    if (videoUrl) {
-      data.video = videoUrl;
-    }
-
-    //  Include user info in response
-    const communityPost = await this.prisma.communityPost.create({
-      data,
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            profilePhoto: true,
-          },
+  // Include user info in response
+  const communityPost = await this.prisma.communityPost.create({
+    data,
+    include: {
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          profilePhoto: true,
         },
       },
-    });
+    },
+  });
 
-    return successResponse(
-      communityPost,
-      'Community post created successfully',
-    );
-  }
+  return successResponse(
+    communityPost,
+    'Community post created successfully',
+  );
+}
+
   // -------create comment ----
   @HandleError('Failed to add comment', 'Comment')
   async createComment(payload: CreateCommentDto & { userId: string }) {
@@ -101,7 +150,7 @@ export class CommunityService {
 
       const data = response.data;
       hateSpeechResult = {
-        hate_speech_detect: Boolean(data.hate_speech_detect), // <-- Fix here
+        hate_speech_detect: Boolean(data.hate_speech_detect), 
         confidence: data.confidence,
         explanation: data.explanation,
       };

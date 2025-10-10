@@ -84,11 +84,11 @@ export class UserController {
     let s3Result: { url: string; key: string } | undefined;
 
     if (file) {
-      // ✅ Upload to S3
+      //  Upload to S3
       s3Result = await uploadFileToS3(file.path);
-      console.log('✅ Uploaded to S3:', s3Result.url);
+      console.log(' Uploaded to S3:', s3Result.url);
 
-      // ✅ Remove local file after successful upload
+      // Remove local file after successful upload
       try {
         const fs = await import('fs/promises');
         await fs.unlink(file.path);
@@ -144,27 +144,45 @@ export class UserController {
   }
 
   // ---------------------user report Contents----------------
-  @ApiOperation({ summary: 'Create Report with multiple screenshots' })
-  @ApiBearerAuth()
-  @ValidateAuth()
-  @Post('create-report')
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(
-    FilesInterceptor(
-      'files',
-      5,
-      new MulterService().createMulterOptions('./temp', 'temp', FileType.IMAGE),
-    ),
-  )
-  async create(
-    @Body() createReportDto: CreateReportDto,
-    @UploadedFiles() files: Express.Multer.File[],
-    @GetUser('userId') userId: string,
-  ) {
-    if (files && files.length) {
-      createReportDto.files = files;
+ @ApiOperation({ summary: 'Create Report with multiple screenshots' })
+@ApiBearerAuth()
+@ValidateAuth()
+@Post('create-report')
+@ApiConsumes('multipart/form-data')
+@UseInterceptors(
+  FilesInterceptor(
+    'files', // note: plural for multiple files
+    5, // max files, adjust as needed
+    new MulterService().createMulterOptions('./uploads', 'content', FileType.ANY),
+  ),
+)
+async create(
+  @Body() createReportDto: CreateReportDto,
+  @UploadedFiles() files: Express.Multer.File[],
+  @GetUser('userId') userId: string,
+) {
+  let s3Files: { url: string; key: string }[] = [];
+
+  if (files && files.length) {
+    // Upload all files to S3 and delete local copies
+    for (const file of files) {
+      const s3Result = await uploadFileToS3(file.path);
+      s3Files.push(s3Result);
+
+      // Delete local file
+      try {
+        const fs = await import('fs/promises');
+        await fs.unlink(file.path);
+      } catch (err) {
+        console.warn('⚠️ Failed to delete local file:', err);
+      }
     }
 
-    return this.userService.createReport(createReportDto, userId);
+    // Pass S3 URLs to DTO
+    createReportDto.files = s3Files.map((f) => ({ url: f.url, key: f.key }));
   }
+
+  return this.userService.createReport(createReportDto, userId);
+}
+
 }
