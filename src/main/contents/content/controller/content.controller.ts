@@ -30,10 +30,17 @@ import {
   ValidateAuth,
   ValidateContibutor,
 } from 'src/common/jwt/jwt.decorator';
-import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import {
+  AnyFilesInterceptor,
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
 import { AdditionalFieldDto } from '../dto/additional-field.dto';
 import { UpdateContentDto } from '../dto/update-content.dto';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @ApiTags('Contents ALL Here News,Article')
 @Controller('content')
@@ -80,14 +87,14 @@ export class ContentController {
   }
 
   // -----------   reate new content with files and additional data   ------------
-  @ApiOperation({
-    summary: 'Create new content with files and additional data',
-  })
-  @ApiBearerAuth()
-  @ValidateContibutor()
-  @Post()
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: CreateContentDto })
+  // @ApiOperation({
+  //   summary: 'Create new content with files and additional data',
+  // })
+  // @ApiBearerAuth()
+  // @ValidateContibutor()
+  // @Post()
+  // @ApiConsumes('multipart/form-data')
+  // @ApiBody({ type: CreateContentDto })
   // @UseInterceptors(
   //   AnyFilesInterceptor(
   //     new MulterService().createMulterOptions(
@@ -108,6 +115,177 @@ export class ContentController {
   //       ),
   //     ),
   //   )
+  // async createContent(
+  //   @Body() body: any,
+  //   @GetUser('userId') userId: string,
+  //   @UploadedFiles() files: Express.Multer.File[],
+  // ) {
+  //   console.log('Request Body:', body);
+  //   console.log(
+  //     'Uploaded Files:',
+  //     files.map((f) => ({
+  //       fieldname: f.fieldname,
+  //       originalname: f.originalname,
+  //       path: f.path,
+  //     })),
+  //   );
+  //   console.log('User ID from Auth:', userId);
+
+  //   const dto: CreateContentDto = {
+  //     title: body.title,
+  //     subTitle: body.subTitle,
+  //     subcategorysslug: body.subcategorysslug,
+  //     categorysslug: body.categorysslug,
+  //     paragraph: body.paragraph,
+  //     shortQuote: body.shortQuote,
+  //     imageCaption: body.imageCaption,
+  //     youtubeVideoUrl: body.youtubeVideoUrl,
+  //     tags:
+  //       typeof body.tags === 'string'
+  //         ? body.tags.split(',').map((t: string) => t.trim())
+  //         : body.tags || [],
+  //     contentType: body.contentType,
+  //     categoryId: body.categoryId,
+  //     subCategoryId: body.subCategoryId,
+  //     image: files.find((f) => f.fieldname === 'image'),
+  //     videoThumbnail: files.find((f) => f.fieldname === 'videoThumbnail'),
+  //     video: files.find((f) => f.fieldname === 'video'),
+  //     audio: files.find((f) => f.fieldname === 'audio'),
+  //     additionalFields: [],
+  //   };
+
+  //   // Parse additionalFields from JSON string or form-data
+  //   if (body.additionalFields && typeof body.additionalFields === 'string') {
+  //     try {
+  //       dto.additionalFields = JSON.parse(body.additionalFields) || [];
+  //       if (dto.additionalFields && dto.additionalFields.length > 0) {
+  //         for (const field of dto.additionalFields) {
+  //           // Validate that only image, audio, or video types have a file
+  //           if (
+  //             !['image', 'audio', 'video'].includes(field.type) &&
+  //             field.file
+  //           ) {
+  //             console.warn(
+  //               `Invalid file for field type ${field.type}, timestamp: ${field.timestamp}. Ignoring file.`,
+  //             );
+  //             field.file = undefined;
+  //           }
+  //           if (
+  //             ['image', 'audio', 'video'].includes(field.type) &&
+  //             field.file
+  //           ) {
+  //             const fileName =
+  //               typeof field.file === 'string'
+  //                 ? field.file
+  //                 : field.file.originalname;
+  //             const file = files.find(
+  //               (f) =>
+  //                 f.originalname === fileName ||
+  //                 f.fieldname === `additional_${field.timestamp}[value]`,
+  //             );
+  //             if (file) {
+  //               field.file = file;
+  //             } else {
+  //               console.warn(
+  //                 `File not found for additional field: ${fileName}, timestamp: ${field.timestamp}`,
+  //               );
+  //               field.file = undefined;
+  //             }
+  //           }
+  //         }
+  //       }
+  //     } catch (error) {
+  //       throw new BadRequestException('Invalid additionalFields JSON format');
+  //     }
+  //   } else {
+  //     const additionalGroups = new Map<string, Partial<AdditionalFieldDto>>();
+  //     for (const key in body) {
+  //       const match = key.match(/^additional_(\d+)\[(\w+)\]$/);
+  //       if (match) {
+  //         const timestamp = match[1];
+  //         const subkey = match[2];
+
+  //         if (!additionalGroups.has(timestamp)) {
+  //           additionalGroups.set(timestamp, { timestamp });
+  //         }
+
+  //         const group = additionalGroups.get(timestamp)!;
+  //         if (subkey === 'type') {
+  //           group.type = body[key];
+  //         } else if (subkey === 'value') {
+  //           group.value = body[key];
+  //         }
+  //       }
+  //     }
+
+  //     for (const file of files) {
+  //       const match = file.fieldname.match(/^additional_(\d+)\[value\]$/);
+  //       if (match) {
+  //         const timestamp = match[1];
+  //         const group = additionalGroups.get(timestamp);
+  //         if (group && ['image', 'audio', 'video'].includes(group.type!)) {
+  //           group.file = file;
+  //           group.value = file.filename;
+  //         } else if (group) {
+  //           console.warn(
+  //             `Ignoring file for invalid field type ${group.type}, timestamp: ${timestamp}`,
+  //           );
+  //         }
+  //       }
+  //     }
+
+  //     dto.additionalFields = Array.from(additionalGroups.values())
+  //       .filter((group): group is AdditionalFieldDto => !!group.type)
+  //       .sort((a, b) => Number(a.timestamp) - Number(b.timestamp));
+  //   }
+
+  //   console.log('DTO Additional Fields:', dto.additionalFields);
+
+  //   if (
+  //     !dto.title ||
+  //     !dto.contentType ||
+  //     !dto.categoryId ||
+  //     !dto.subCategoryId
+  //   ) {
+  //     throw new BadRequestException(
+  //       `Missing required fields: ${[
+  //         !dto.title && 'title',
+  //         !dto.contentType && 'contentType',
+  //         !dto.categoryId && 'categoryId',
+  //         !dto.subCategoryId && 'subCategoryId',
+  //       ]
+  //         .filter(Boolean)
+  //         .join(', ')}`,
+  //     );
+  //   }
+
+  //   return this.contentService.create(dto, userId, files);
+  // }
+
+  // content.controller.ts
+  @ApiOperation({
+    summary: 'Create new content with files and additional data',
+  })
+  @ApiBearerAuth()
+  @ValidateContibutor()
+  @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: CreateContentDto })
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(
+            null,
+            `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`,
+          );
+        },
+      }),
+    }),
+  )
   async createContent(
     @Body() body: any,
     @GetUser('userId') userId: string,
@@ -153,7 +331,6 @@ export class ContentController {
         dto.additionalFields = JSON.parse(body.additionalFields) || [];
         if (dto.additionalFields && dto.additionalFields.length > 0) {
           for (const field of dto.additionalFields) {
-            // Validate that only image, audio, or video types have a file
             if (
               !['image', 'audio', 'video'].includes(field.type) &&
               field.file
@@ -165,22 +342,16 @@ export class ContentController {
             }
             if (
               ['image', 'audio', 'video'].includes(field.type) &&
-              field.file
+              field.timestamp
             ) {
-              const fileName =
-                typeof field.file === 'string'
-                  ? field.file
-                  : field.file.originalname;
               const file = files.find(
-                (f) =>
-                  f.originalname === fileName ||
-                  f.fieldname === `additional_${field.timestamp}[value]`,
+                (f) => f.fieldname === `additional_${field.timestamp}[value]`,
               );
               if (file) {
                 field.file = file;
               } else {
                 console.warn(
-                  `File not found for additional field: ${fileName}, timestamp: ${field.timestamp}`,
+                  `File not found for additional field, timestamp: ${field.timestamp}`,
                 );
                 field.file = undefined;
               }
@@ -389,13 +560,19 @@ export class ContentController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UpdateContentDto })
   @UseInterceptors(
-    AnyFilesInterceptor(
-      new MulterService().createMulterOptions(
-        './temp',
-        'content',
-        FileType.ANY,
-      ),
-    ),
+    AnyFilesInterceptor({
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(
+            null,
+            `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`,
+          );
+        },
+      }),
+    }),
   )
   async updateContent(
     @Param('id') id: string,
@@ -406,21 +583,116 @@ export class ContentController {
     console.log('Update Body:', body);
     console.log(
       'Update Files:',
-      files.map((f) => ({ fieldname: f.fieldname, name: f.originalname })),
+      files.map((f) => ({
+        fieldname: f.fieldname,
+        originalname: f.originalname,
+        path: f.path,
+      })),
     );
+    console.log('User ID from Auth:', userId);
 
     const dto: UpdateContentDto = {
-      ...body,
+      title: body.title,
+      subTitle: body.subTitle,
+      subcategorysslug: body.subcategorysslug,
+      categorysslug: body.categorysslug,
+      paragraph: body.paragraph,
+      shortQuote: body.shortQuote,
+      imageCaption: body.imageCaption,
+      youtubeVideoUrl: body.youtubeVideoUrl,
       tags:
         typeof body.tags === 'string'
           ? body.tags.split(',').map((t: string) => t.trim())
-          : body.tags,
+          : body.tags || [],
+      contentType: body.contentType,
+      categoryId: body.categoryId,
+      subCategoryId: body.subCategoryId,
       image: files.find((f) => f.fieldname === 'image'),
-      video: files.find((f) => f.fieldname === 'video'),
       videoThumbnail: files.find((f) => f.fieldname === 'videoThumbnail'),
+      video: files.find((f) => f.fieldname === 'video'),
       audio: files.find((f) => f.fieldname === 'audio'),
       additionalFields: [],
     };
+
+    // Parse additionalFields from JSON string or form-data
+    if (body.additionalFields && typeof body.additionalFields === 'string') {
+      try {
+        dto.additionalFields = JSON.parse(body.additionalFields) || [];
+        if (dto.additionalFields && dto.additionalFields.length > 0) {
+          for (const field of dto.additionalFields) {
+            if (
+              !['image', 'audio', 'video'].includes(field.type) &&
+              field.file
+            ) {
+              console.warn(
+                `Invalid file for field type ${field.type}, timestamp: ${field.timestamp}. Ignoring file.`,
+              );
+              field.file = undefined;
+            }
+            if (
+              ['image', 'audio', 'video'].includes(field.type) &&
+              field.timestamp
+            ) {
+              const file = files.find(
+                (f) => f.fieldname === `additional_${field.timestamp}[value]`,
+              );
+              if (file) {
+                field.file = file;
+              } else {
+                console.warn(
+                  `File not found for additional field, timestamp: ${field.timestamp}`,
+                );
+                field.file = undefined;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        throw new BadRequestException('Invalid additionalFields JSON format');
+      }
+    } else {
+      const additionalGroups = new Map<string, Partial<AdditionalFieldDto>>();
+      for (const key in body) {
+        const match = key.match(/^additional_(\d+)\[(\w+)\]$/);
+        if (match) {
+          const timestamp = match[1];
+          const subkey = match[2];
+
+          if (!additionalGroups.has(timestamp)) {
+            additionalGroups.set(timestamp, { timestamp });
+          }
+
+          const group = additionalGroups.get(timestamp)!;
+          if (subkey === 'type') {
+            group.type = body[key];
+          } else if (subkey === 'value') {
+            group.value = body[key];
+          }
+        }
+      }
+
+      for (const file of files) {
+        const match = file.fieldname.match(/^additional_(\d+)\[value\]$/);
+        if (match) {
+          const timestamp = match[1];
+          const group = additionalGroups.get(timestamp);
+          if (group && ['image', 'audio', 'video'].includes(group.type!)) {
+            group.file = file;
+            group.value = file.filename;
+          } else if (group) {
+            console.warn(
+              `Ignoring file for invalid field type ${group.type}, timestamp: ${timestamp}`,
+            );
+          }
+        }
+      }
+
+      dto.additionalFields = Array.from(additionalGroups.values())
+        .filter((group): group is AdditionalFieldDto => !!group.type)
+        .sort((a, b) => Number(a.timestamp) - Number(b.timestamp));
+    }
+
+    console.log('DTO Additional Fields:', dto.additionalFields);
 
     return this.contentService.update(id, dto, userId, files);
   }
