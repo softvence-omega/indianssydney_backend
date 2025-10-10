@@ -1,0 +1,19 @@
+model LiveEvent {
+  id          String   @id @default(uuid())
+  title       String
+  subTitle    String
+  thumbnail   String?
+  tags        String[]
+  startTime   DateTime
+  endTime     DateTime
+  youtubeLiveUrl String
+  isDeleted   Boolean @default(false)
+  // ------------relation----------------
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

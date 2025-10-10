@@ -1,0 +1,63 @@
+model CommunityPost {
+  id          String         @id @default(uuid())
+  description String
+  image     String?
+  video       String?
+  comments    Comment[]
+  reactions   PostReaction[]
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @default(now()) @updatedAt
+}
+
+model Comment {
+  id              String            @id @default(uuid())
+  content         String
+  userId          String
+  isDeleted       Boolean  @default(false)
+  status         CommentStatus     @default(PENDING)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions       CommentReaction[]
+  CommunityPost   CommunityPost?    @relation(fields: [communityPostId], references: [id])
+  communityPostId String?
+  // Hate speech fields
+  hate_speech_detect Boolean? 
+  confidence        Float?
+  explanation       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+}
+
+model PostReaction {
+  id              String        @id @default(uuid())
+  type            ReactionType
+  userId          String
+  communityPostId String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communitypost   CommunityPost @relation(fields: [communityPostId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
+}
+
+model CommentReaction {
+  id        String       @id @default(uuid())
+  type      ReactionType
+  userId    String
+  commentId String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @default(now()) @updatedAt
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVE
+  Declined
+}

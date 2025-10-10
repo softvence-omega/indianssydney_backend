@@ -1,0 +1,15 @@
+model totalPageview{
+id  String @id  @default(uuid())
+ count     Int      @default(1)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+
+
+model UserActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  page      String
+  duration  Int? 
+  createdAt DateTime @default(now())
+}

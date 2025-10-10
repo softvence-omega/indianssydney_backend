@@ -1,0 +1,14 @@
+model ChooseCatrogy {
+  id          String      @id @default(uuid())
+  contenttype ContentType
+  description String
+  caticon     String
+
+  @@map("chooose-category")
+}
+
+enum ContentType {
+  ARTICLE
+  PODCAST
+  VIDEO
+}

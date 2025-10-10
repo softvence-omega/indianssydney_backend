@@ -1,0 +1,31 @@
+model ReportContent {
+    id           String        @id @default(uuid())
+    reason       String
+    contentId    String
+    isDeleted  Boolean       @default(false)
+    content      Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
+    userId       String
+    user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    images       ScreenShort[] 
+    status       ReportStatus  @default(PENDING)
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+}
+
+model ScreenShort {
+    id        String        @id @default(uuid())
+    reportId  String
+    report    ReportContent @relation(fields: [reportId], references: [id], onDelete: Cascade)
+    imageUrl  String
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    @@map("screenshort_images")
+}
+
+enum  ReportStatus  {
+    PENDING
+    REVIEWED
+    RESOLVED
+    REJECTED
+}
