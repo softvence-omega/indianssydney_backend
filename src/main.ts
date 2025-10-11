@@ -1,21 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+// import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ENVEnum } from './common/enum/env.enum';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filter/http-exception.filter';
 import * as bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import { setupSwagger } from './swagger/swagger.setup';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // --------------Swagger config with Bearer Auth------------------
-  const config = new DocumentBuilder()
-    .setTitle('indianssydney backend')
-    .setDescription('Team indianssydney API description')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  // const config = new DocumentBuilder()
+  //   .setTitle('indianssydney backend')
+  //   .setDescription('Team indianssydney API description')
+  //   .setVersion('1.0')
+  //   .addBearerAuth()
+  //   .build();
   const allowedOrigins = [
     'https://the-australian-canvas.vercel.app',
     'http://localhost:3000',
@@ -24,11 +26,10 @@ async function bootstrap() {
     'https://australiancanvas.com',
     'http://localhost:5000',
   ];
-
+  app.use(cookieParser());
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin) {
-        // allow requests like Postman or curl
         callback(null, true);
         return;
       }
@@ -52,12 +53,13 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   // --------swagger api----
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  // const document = SwaggerModule.createDocument(app, config);
+  // SwaggerModule.setup('docs', app, document);
   // ---------------webhook raw body parser----------------
   // Stripe requires the raw body to construct the event.
   app.use('/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
   const configService = app.get(ConfigService);
+  setupSwagger(app);
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? '5000', 10);
   await app.listen(port);
   console.log(`🚀 Server running on http://localhost:${port}`);
