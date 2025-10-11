@@ -638,19 +638,18 @@ export class ContentService {
         0,
       ) || 0;
 
-    // average comment length
+    // ---------- Comment  average comment length ----------
     const avgCommentLength =
       commentCount > 0 ? totalCommentLength / commentCount : 0;
 
     return successResponse(
       {
         ...content,
-        // content stats
         likeCount,
         dislikeCount,
         reactionCount: content.ContentReactions?.length || 0,
 
-        // comment stats
+        // - ---------  comment stats. -------------
         commentCount,
         commentReactionCount,
         commentLikeCount,
@@ -699,7 +698,7 @@ export class ContentService {
     });
   }
 
-  // -------------------------------create content comment---------------
+  // -------------------------------create content comment. ---------------
 
   @HandleError('Failed to add comment', 'Comment')
   async createContentComment(
@@ -1204,6 +1203,7 @@ export class ContentService {
         categorysslug: categorysslug,
         isDeleted: false,
         status: 'APPROVE',
+        contentType: 'ARTICLE',
       },
       include: {
         user: {
@@ -1234,6 +1234,7 @@ export class ContentService {
         subcategorysslug: subcategorysslug,
         isDeleted: false,
         status: 'APPROVE',
+        contentType: 'ARTICLE',
       },
       include: {
         user: {
