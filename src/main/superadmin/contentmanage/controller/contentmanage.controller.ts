@@ -10,7 +10,10 @@ import {
 import { ContentmanageService } from '../service/contentmanage.service';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
+import {
+  ValidateAdmin,
+  ValidateSuperAdmin,
+} from 'src/common/jwt/jwt.decorator';
 import { ContentStatusChangeDto } from '../dto/superadmin-contentmanage.dto';
 import { PaymentPlanDto } from '../dto/payment-plane.dto';
 import { UpdateReportStatusDto } from '../dto/report.status.dto';
@@ -74,32 +77,33 @@ export class ContentmanageController {
   }
 
   // Pending grouped by content type
-@ApiOperation({ summary: 'Admin get all pending contents grouped by type' })
-@ApiBearerAuth()
-@ValidateSuperAdmin()
-@Get('pending-by-type-superadmin')
-async getPendingContentsByTypesuperadmin() {
-  return this.contentmanageService.getPendingContentsByTypesuperadmin();
-}
+  @ApiOperation({ summary: 'Admin get all pending contents grouped by type' })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Get('pending-by-type-superadmin')
+  async getPendingContentsByTypesuperadmin() {
+    return this.contentmanageService.getPendingContentsByTypesuperadmin();
+  }
 
-// Approved grouped by content type
-@ApiOperation({ summary: 'Admin get all approved contents grouped by type' })
-@ApiBearerAuth()
-@ValidateSuperAdmin()
-@Get('approved-by-type-superadmin')
-async getApprovedContentsByTypesuperadmin() {
-  return this.contentmanageService.getApprovedContentsByTypesuperadmin();
-}
+  // Approved grouped by content type
+  @ApiOperation({ summary: 'Admin get all approved contents grouped by type' })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Get('approved-by-type-superadmin')
+  async getApprovedContentsByTypesuperadmin() {
+    return this.contentmanageService.getApprovedContentsByTypesuperadmin();
+  }
 
-// Declined grouped by content type
-@ApiOperation({ summary: 'super admin get all declined contents grouped by type' })
-@ApiBearerAuth()
- @ValidateSuperAdmin()
-@Get('declined-by-type-superadmin')
-async getDeclinedContentsByTypesuperadmin() {
-  return this.contentmanageService.getDeclinedContentsByTypesuperadmin();
-}
-
+  // Declined grouped by content type
+  @ApiOperation({
+    summary: 'super admin get all declined contents grouped by type',
+  })
+  @ApiBearerAuth()
+  @ValidateAdmin()
+  @Get('declined-by-type-superadmin')
+  async getDeclinedContentsByTypesuperadmin() {
+    return this.contentmanageService.getDeclinedContentsByTypesuperadmin();
+  }
 
   // -------------------------payment plane create---------------------------------
   @ApiOperation({ summary: 'Super Admin create payment plan' })
@@ -142,7 +146,7 @@ async getDeclinedContentsByTypesuperadmin() {
   // ---------get all report super admin---------------------
   @ApiOperation({ summary: 'Super Admin get all reports with user profiles' })
   @ApiBearerAuth()
-  @ValidateSuperAdmin()
+  @ValidateAdmin()
   @Get('reports')
   async getAllReports() {
     return this.contentmanageService.getAllReports();
@@ -150,15 +154,15 @@ async getDeclinedContentsByTypesuperadmin() {
   // ---------get single report super admin---------------------
   @ApiOperation({ summary: 'Super Admin get single report with user profiles' })
   @ApiBearerAuth()
-  @ValidateSuperAdmin()
+  @ValidateAdmin()
   @Get('reports/:id')
   async getSingleReport(@Param('id') id: string) {
     return this.contentmanageService.getSingleReport(id);
   }
   //  soft delete report content
   @ApiOperation({ summary: 'Soft delete a report content' })
-  @ApiBearerAuth() 
-  @ValidateSuperAdmin()
+  @ApiBearerAuth()
+  @ValidateAdmin()
   @Patch('reports/:id/soft-delete')
   async softDeleteReportContent(@Param('id') id: string) {
     return this.contentmanageService.softDeleteReportContent(id);
@@ -167,34 +171,37 @@ async getDeclinedContentsByTypesuperadmin() {
   // ------report status update------
   @ApiOperation({ summary: 'Super Admin update report status' })
   @ApiBearerAuth()
-  @ValidateSuperAdmin()
+  @ValidateAdmin()
   @Patch('reports/:id/status')
   async updateReportStatus(
     @Param('id') reportId: string,
     @Body() updateReportStatusDto: UpdateReportStatusDto,
   ) {
-    return this.contentmanageService.updateReportStatus(reportId, updateReportStatusDto.status);
+    return this.contentmanageService.updateReportStatus(
+      reportId,
+      updateReportStatusDto.status,
+    );
   }
 
-// ---------get all hate space ---------------------
-@ApiOperation({ summary: 'Super Admin get all hate space' })
-@ApiBearerAuth()
-@ValidateSuperAdmin()
-@Get('hate-space')
-async getAllHateSpace() {
-  return this.contentmanageService.getAllHateSpace();
-}
+  // ---------get all hate space ---------------------
+  @ApiOperation({ summary: 'Super Admin get all hate space' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('hate-space')
+  async getAllHateSpace() {
+    return this.contentmanageService.getAllHateSpace();
+  }
 
+  @Patch(':id/soft-delete')
+  @ApiOperation({ summary: 'Soft delete a content' })
+  async softDelete(@Param('id') id: string) {
+    return this.contentmanageService.softDeleteContent(id);
+  }
 
-@Patch(':id/soft-delete')
-@ApiOperation({ summary: 'Soft delete a content' })
-async softDelete(@Param('id') id: string) {
-  return this.contentmanageService.softDeleteContent(id);
-}
-
-
-// --------- Get all hate comments ---------
-  @ApiOperation({ summary: 'Super Admin get all comments flagged as hate speech' })
+  // --------- Get all hate comments ---------
+  @ApiOperation({
+    summary: 'Super Admin get all comments flagged as hate speech',
+  })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Get('hate-comments')
@@ -203,7 +210,9 @@ async softDelete(@Param('id') id: string) {
   }
 
   // --------- Approve a hate comment ---------
-  @ApiOperation({ summary: 'Super Admin approve a comment flagged as hate speech' })
+  @ApiOperation({
+    summary: 'Super Admin approve a comment flagged as hate speech',
+  })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Patch('hate-comments/:id/approve')
@@ -212,12 +221,13 @@ async softDelete(@Param('id') id: string) {
   }
 
   // --------- Soft delete a hate comment ---------
-  @ApiOperation({ summary: 'Super Admin soft delete a comment flagged as hate speech' })
+  @ApiOperation({
+    summary: 'Super Admin soft delete a comment flagged as hate speech',
+  })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Patch('hate-comments/:id/soft-delete')
   async softDeleteHateComment(@Param('id') id: string) {
     return this.contentmanageService.softDeleteHateComment(id);
   }
-
 }
