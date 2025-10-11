@@ -42,7 +42,7 @@ import { UpdateContentDto } from '../dto/update-content.dto';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
-@ApiTags('Contents ALL Here News,Article')
+@ApiTags('Contents ALL Here News,Article,poadcast,video')
 @Controller('content')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
@@ -508,23 +508,44 @@ export class ContentController {
     return this.contentService.incrementView(id);
   }
 
-  //  get content by category & sub-cateory slug
-  @ApiOperation({ summary: 'Get contents by category slug' })
+  // //  get content by category & sub-cateory slug
+  // @ApiOperation({ summary: 'Get contents by category slug' })
+  // @Get('category/:categorySlug')
+  // async getContentByCategorySlug(@Param('categorySlug') categorySlug: string) {
+  //   return this.contentService.getContentByCategorySlug(categorySlug);
+  // }
+
+  // //  get content by sub-category slug
+  // @ApiOperation({ summary: 'Get contents by sub-category slug' })
+  // @ApiTags('Get by content sub-category slug')
+  // @Get('subcategory/:ContentsubCategorySlug')
+  // async getContentBySubCategorySlug(
+  //   @Param('sContentsubCategorySlug') ContentsubCategorySlug: string,
+  // ) {
+  //   return this.contentService.getContentBySubCategorySlug(
+  //     ContentsubCategorySlug,
+  //   );
+  // }
+
+  // ----get content with content category slug---
+  @ApiOperation({ summary: 'Get contents by content category slug' })
+  @ApiTags('Get by content category slug')
   @Get('category/:categorySlug')
-  async getContentByCategorySlug(
-    @Param('ContentcategorySlug') ContentcategorySlug: string,
+  async getContentByContentCategorySlug(
+    @Param('categorysslug') categorysslug: string,
   ) {
-    return this.contentService.getContentByCategorySlug(ContentcategorySlug);
+    return this.contentService.getContentByContentCategorySlug(categorysslug);
   }
-  //  get content by sub-category slug
-  @ApiOperation({ summary: 'Get contents by sub-category slug' })
-  @ApiTags('Get by content sub-category slug')
-  @Get('subcategory/:ContentsubCategorySlug')
-  async getContentBySubCategorySlug(
-    @Param('sContentsubCategorySlug') ContentsubCategorySlug: string,
+
+  // get content by content sub category slug
+  @ApiOperation({ summary: 'Get contents by content sub category slug' })
+  @ApiTags('Get by content sub category slug')
+  @Get('ubcategory/:ContentsubCategorySlug')
+  async getContentByContentSubCategorySlug(
+    @Param('subcategorysslug') subcategorysslug: string,
   ) {
-    return this.contentService.getContentBySubCategorySlug(
-      ContentsubCategorySlug,
+    return this.contentService.getContentByContentSubCategorySlug(
+      subcategorysslug,
     );
   }
 

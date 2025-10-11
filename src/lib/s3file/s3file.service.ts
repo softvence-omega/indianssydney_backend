@@ -35,7 +35,7 @@ async processUploadedFile(
       );
     }
 
-    // Validate file type and size
+    //-----  Validate file type and size ------
     const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'audio/mpeg'];
     const mimeType = file.mimetype;
     if (!allowedTypes.includes(mimeType)) {
