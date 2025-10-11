@@ -26,6 +26,8 @@ import { CreateLiveEventDto } from '../dto/create-live-event.dto';
 import { UpdateLiveEventDto } from '../dto/update-live-event.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileType, MulterService } from 'src/lib/multer/multer.service';
+import uploadFileToS3 from 'src/lib/utils/uploadImageAWS';
+import { promises as fs } from 'fs';
 
 @ApiTags('Live Events for registered users')
 @ApiBearerAuth()
@@ -34,18 +36,18 @@ import { FileType, MulterService } from 'src/lib/multer/multer.service';
 export class LiveEventController {
   constructor(private readonly liveEventService: LiveEventService) {}
 
-  @ApiOperation({ summary: 'contributor  create live stream' })
+  @ApiOperation({ summary: 'Contributor create live stream' })
   @ApiBearerAuth()
   @ValidateContibutor()
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
-      'thumbnail',
+      'thumbnail', // <-- match the form-data field
       new MulterService().createMulterOptions(
-        './temp',
-        'live-events',
-        FileType.IMAGE,
+        './uploads',
+        'content',
+        FileType.ANY,
       ),
     ),
   )
@@ -54,10 +56,23 @@ export class LiveEventController {
     @Body() dto: CreateLiveEventDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (file) dto.thumbnail = file;
+    if (file) {
+      // Upload thumbnail to S3
+      const s3Result = await uploadFileToS3(file.path);
+
+      // Assign S3 URL to DTO for service
+      dto.thumbnail = file;
+      dto['thumbnailS3'] = s3Result.url;
+
+      try {
+        await fs.unlink(file.path);
+      } catch (err) {
+        console.warn('⚠️ Failed to delete temp thumbnail file:', err);
+      }
+    }
+
     return this.liveEventService.createLiveEvent(userId, dto);
   }
-
   @Get()
   async getLiveEvents() {
     return this.liveEventService.getLiveEvents();
@@ -83,21 +98,35 @@ export class LiveEventController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
-      'thumbnail',
+      'thumbnail', // Must match the form-data field
       new MulterService().createMulterOptions(
-        './temp',
+        './uploads',
         'live-events',
         FileType.IMAGE,
       ),
     ),
   )
-  //---------------- update live event---------
   async updateLiveEvent(
     @Param('id') id: string,
     @Body() dto: UpdateLiveEventDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (file) dto.thumbnail = file;
+    if (file) {
+      // Upload thumbnail to S3
+      const s3Result = await uploadFileToS3(file.path);
+
+      // Pass S3 URL to service
+      dto.thumbnail = file; // keep the file for compatibility
+      dto['thumbnailS3'] = s3Result.url; // new property for S3 URL
+
+      // Delete local temp file
+      try {
+        await fs.unlink(file.path);
+      } catch (err) {
+        console.warn('⚠️ Failed to delete temp thumbnail:', err);
+      }
+    }
+
     return this.liveEventService.updateLiveEvent(id, dto);
   }
 }

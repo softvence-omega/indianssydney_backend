@@ -19,6 +19,7 @@ import {
 } from '../dto/setting.dto';
 import { AppError } from 'src/common/error/handle-error.app';
 import { FileService } from 'src/lib/file/file.service';
+import uploadFileToS3 from 'src/lib/utils/uploadImageAWS';
 
 @Injectable()
 export class SettingsService {
@@ -208,27 +209,22 @@ export class SettingsService {
 
   // --------------------------------- Ads --------------------------------------
   @HandleError('Failed to create ad', 'Ads')
-  async createAds(payload: CreateAdsDto) {
-    if (!payload.file) {
-      throw new AppError(400, 'Recommendation image is required');
+  async createAds(dto: CreateAdsDto, s3Result: { url: string; key: string }) {
+    if (!s3Result?.url) {
+      throw new AppError(400, 'Ad image upload failed');
     }
 
-    let fileInstance: any;
-    if (payload.file) {
-      fileInstance = await this.fileService.processUploadedFile(payload.file);
-    }
-
-    const data = await this.prisma.ads.create({
+    const ad = await this.prisma.ads.create({
       data: {
-        title: payload.title,
-        link: payload.link,
-        adsimage: fileInstance.url,
-        subtitle: payload.subtitle,
-        adsposition: payload.adsposition,
+        title: dto.title,
+        subtitle: dto.subtitle,
+        link: dto.link,
+        adsposition: dto.adsposition,
+        adsimage: s3Result.url, // use S3 URL here
       },
     });
 
-    return successResponse(data, 'Ad created successfully');
+    return successResponse(ad, 'Ad created successfully');
   }
 
   @HandleError('Failed to get ads', 'Ads')
@@ -244,12 +240,7 @@ export class SettingsService {
   }
 
   @HandleError('Failed to update ad', 'Ads')
-  async updateAd(id: string, payload: UpdateAdsDto) {
-    let fileInstance: any;
-    if (payload.file) {
-      fileInstance = await this.fileService.processUploadedFile(payload.file);
-    }
-
+  async updateAd(id: string, payload: UpdateAdsDto & { fileS3?: string }) {
     const data = await this.prisma.ads.update({
       where: { id },
       data: {
@@ -257,7 +248,7 @@ export class SettingsService {
         ...(payload.link && { link: payload.link }),
         ...(payload.subtitle && { subtitle: payload.subtitle }),
         ...(payload.adsposition && { adsposition: payload.adsposition }),
-        ...(fileInstance && { adsimage: fileInstance.url }),
+        ...(payload.fileS3 && { adsimage: payload.fileS3 }),
       },
     });
 

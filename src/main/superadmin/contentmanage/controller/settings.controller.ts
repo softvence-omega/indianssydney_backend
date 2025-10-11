@@ -31,6 +31,9 @@ import {
   UpdatePrivacyPolicyDto,
   UpdateTermsConditionsDto,
 } from '../dto/setting.dto';
+import uploadFileToS3 from 'src/lib/utils/uploadImageAWS';
+import { promises as fs } from 'fs';
+import { AppError } from 'src/common/error/handle-error.app';
 
 @ApiTags('Super Admin Settings')
 @ApiBearerAuth()
@@ -133,14 +136,13 @@ export class SettingsController {
   getFaqSection(@Param('id') id: string) {
     return this.settingsService.getFaqSection(id);
   }
-// settings.controller.ts
-@Patch('faq/:id')
-@ValidateSuperAdmin()
-@ApiOperation({ summary: 'Update FAQ Section by ID' })
-updateFaqSection(@Param('id') id: string, @Body() dto: UpdateFaqSectionDto) {
-  return this.settingsService.updateFaqSection(id, dto);
-}
-
+  // settings.controller.ts
+  @Patch('faq/:id')
+  @ValidateSuperAdmin()
+  @ApiOperation({ summary: 'Update FAQ Section by ID' })
+  updateFaqSection(@Param('id') id: string, @Body() dto: UpdateFaqSectionDto) {
+    return this.settingsService.updateFaqSection(id, dto);
+  }
 
   @Delete('faq/:id')
   @ValidateSuperAdmin()
@@ -181,8 +183,7 @@ updateFaqSection(@Param('id') id: string, @Body() dto: UpdateFaqSectionDto) {
     return this.settingsService.deleteLanguage(id);
   }
   // -------------------- Ads --------------------
-
-  @ApiOperation({ summary: 'Create a new recommendation for admin' })
+  @ApiOperation({ summary: 'Create a new advertisement (Admin only)' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
   @Post('ads-create')
@@ -190,15 +191,33 @@ updateFaqSection(@Param('id') id: string, @Body() dto: UpdateFaqSectionDto) {
   @UseInterceptors(
     FileInterceptor(
       'file',
-      new MulterService().createMulterOptions('./temp', 'ads', FileType.IMAGE),
+      new MulterService().createMulterOptions(
+        './uploads',
+        'content',
+        FileType.ANY,
+      ),
     ),
   )
   async createAds(
     @Body() dto: CreateAdsDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (file) dto.file = file;
-    return this.settingsService.createAds(dto);
+    if (!file) {
+      throw new AppError(400, 'Ad image is required');
+    }
+
+    // Upload file to S3
+    const s3Result = await uploadFileToS3(file.path);
+
+    // Delete local temp file
+    try {
+      await fs.unlink(file.path);
+    } catch (err) {
+      console.warn('⚠️ Failed to delete temp ad file:', err);
+    }
+
+    // Call service with DTO and S3 result
+    return this.settingsService.createAds(dto, s3Result);
   }
 
   @Get('ads')
@@ -213,22 +232,40 @@ updateFaqSection(@Param('id') id: string, @Body() dto: UpdateFaqSectionDto) {
     return this.settingsService.getAd(id);
   }
 
+  //----------- Update Ads------
   @Patch('ads/:id')
   @ValidateSuperAdmin()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
-      'file',
-      new MulterService().createMulterOptions('./temp', 'ads', FileType.IMAGE),
+      'file', // Must match the form-data field
+      new MulterService().createMulterOptions(
+        './uploads',
+        'content',
+        FileType.ANY,
+      ),
     ),
   )
   @ApiOperation({ summary: 'Update Ad by ID' })
-  updateAd(
+  async updateAd(
     @Param('id') id: string,
     @Body() dto: CreateAdsDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (file) dto.file = file;
+    if (file) {
+      // Upload file to S3
+      const s3Result = await uploadFileToS3(file.path);
+      dto.file = file; 
+      dto['fileS3'] = s3Result.url; 
+
+      // Delete temporary local file
+      try {
+        await fs.unlink(file.path);
+      } catch (err) {
+        console.warn('⚠️ Failed to delete temp ad file:', err);
+      }
+    }
+
     return this.settingsService.updateAd(id, dto);
   }
 

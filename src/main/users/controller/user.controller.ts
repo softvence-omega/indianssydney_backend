@@ -92,13 +92,13 @@ export class UserController {
       try {
         const fs = await import('fs/promises');
         await fs.unlink(file.path);
-        console.log('🗑️ Local file deleted:', file.path);
+        console.log(' Local file deleted:', file.path);
       } catch (err) {
-        console.warn('⚠️ Failed to delete local file:', err);
+        console.warn(' Failed to delete local file:', err);
       }
     }
 
-    // ✅ Pass s3Result to service
+    // Pass s3Result to service
     return await this.userService.updateProfile(userId, dto, s3Result);
   }
 
