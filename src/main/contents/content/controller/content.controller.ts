@@ -468,9 +468,16 @@ export class ContentController {
   }
 
   // --------- get content by seach with query ---
-  @ApiOperation({ summary: 'Get contents by search' })
-  @Get('content-search')
-  async getContentBySearch(@Query('query') query: string) {
+
+  @ApiOperation({
+    summary: 'Search contents by body query',
+    description:
+      'Search contents by body quer LIKE {"query": "travel"} "query": "travel"',
+  })
+
+  
+  @Post('content-search')
+  async getContentBySearch(@Body('query') query: string) {
     return this.contentService.getContentBySearch(query);
   }
 
@@ -573,6 +580,7 @@ export class ContentController {
   }
 
   // ----------------------- remove bookmark from a content --------------
+
   @ApiOperation({ summary: 'Remove bookmark from a content' })
   @ApiBearerAuth()
   @ValidateAuth()

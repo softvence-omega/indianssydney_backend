@@ -159,7 +159,7 @@ export class ContentmanageController {
   async getSingleReport(@Param('id') id: string) {
     return this.contentmanageService.getSingleReport(id);
   }
-  //  soft delete report content
+  //---------------   soft delete report content. ----------
   @ApiOperation({ summary: 'Soft delete a report content' })
   @ApiBearerAuth()
   @ValidateAdmin()
@@ -183,7 +183,7 @@ export class ContentmanageController {
     );
   }
 
-  // ---------get all hate space ---------------------
+  // ---------Get all hate space ---------------------
   @ApiOperation({ summary: 'Super Admin get all hate space' })
   @ApiBearerAuth()
   @ValidateSuperAdmin()
