@@ -15,6 +15,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ContentService } from '../service/content.service';
 import { CreateContentDto } from '../dto/create-content.dto';
@@ -466,6 +467,13 @@ export class ContentController {
     return this.contentService.findAllContent();
   }
 
+  // --------- get content by seach with query ---
+  @ApiOperation({ summary: 'Get contents by search' })
+  @Get('content-search')
+  async getContentBySearch(@Query('query') query: string) {
+    return this.contentService.getContentBySearch(query);
+  }
+
   // ----------  get comment all comment content   ----------------
   // @ApiOperation({ summary: 'Get all content comments' })
   // @ApiBearerAuth()
@@ -486,7 +494,9 @@ export class ContentController {
   ) {
     return this.contentService.createContentCommentReaction({ ...dto, userId });
   }
+
   // ------------ soft delete content---------
+
   @ApiOperation({ summary: 'delete content soft' })
   @ApiBearerAuth()
   @ValidateContibutor()
@@ -496,6 +506,7 @@ export class ContentController {
   }
 
   // ------------Get single content by id-----------------------
+
   @ApiOperation({ summary: 'Get a single content by ID' })
   @Get(':id')
   async findOne(@Param('id') id: string) {
@@ -527,7 +538,7 @@ export class ContentController {
   //   );
   // }
 
-  // ----get content with content category slug---
+  // ---- Get content with content category slug. ---
   @ApiOperation({ summary: 'Get contents by content category slug' })
   @ApiTags('Get by content category slug')
   @Get('category/:categorySlug')
@@ -537,7 +548,7 @@ export class ContentController {
     return this.contentService.getContentByContentCategorySlug(categorysslug);
   }
 
-  // get content by content sub category slug
+  //-----------  get content by content sub category slug---------------
   @ApiOperation({ summary: 'Get contents by content sub category slug' })
   @ApiTags('Get by content sub category slug')
   @Get('ubcategory/:ContentsubCategorySlug')
@@ -549,7 +560,7 @@ export class ContentController {
     );
   }
 
-  // bookmark content
+  //--------------  bookmark content ----------------
   @ApiOperation({ summary: 'Bookmark a content' })
   @ApiBearerAuth()
   @ValidateAuth()
@@ -561,7 +572,7 @@ export class ContentController {
     return this.contentService.bookmarkContent(contentId, userId);
   }
 
-  // remove bookmark from a content
+  // ----------------------- remove bookmark from a content --------------
   @ApiOperation({ summary: 'Remove bookmark from a content' })
   @ApiBearerAuth()
   @ValidateAuth()

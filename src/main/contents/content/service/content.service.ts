@@ -1465,6 +1465,51 @@ export class ContentService {
     return successResponse(contents, 'Video contents fetched successfully');
   }
 
+  //  -----------------get content by query ----------------
+  @HandleError('Failed to fetch contents by query', 'query')
+  async getContentBySearch(query: string): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: {
+        title: {
+          contains: query,
+          mode: 'insensitive',
+        },
+        subTitle: {
+          contains: query,
+          mode: 'insensitive',
+        },
+        category: {
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        subCategory: {
+          subname: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        contentType: {
+       
+        },
+        isDeleted: false,
+        status: 'APPROVE',
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return successResponse(contents, 'Contents fetched successfully');
+  }
+
   // ------------------ get content by getContentByTypeBy ARTICLE-----------------
 
   @HandleError('Failed to fetch contents by content type', 'article')
