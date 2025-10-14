@@ -20,6 +20,7 @@ jobs:
         run: |
           docker compose -f compose.yml build
           docker save indianssydney_backend-server -o server.tar
+          chmod 644 server.tar
 
       - name: Copy image and source to server via SSH
         uses: appleboy/scp-action@v0.1.7
