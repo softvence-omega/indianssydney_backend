@@ -22,7 +22,7 @@ export class S3FileService {
       },
     });
   }
-async processUploadedFile(
+  async processUploadedFile(
     file: Express.Multer.File,
   ): Promise<{ url: string; key: string }> {
     //------- Validate file object------------
@@ -36,7 +36,33 @@ async processUploadedFile(
     }
 
     //-----  Validate file type and size ------
-    const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'audio/mpeg'];
+    const allowedTypes = [
+      // Images
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'image/bmp',
+      'image/tiff',
+      'image/heic',
+      'image/heif',
+      'image/avif',
+
+      // Videos
+      'video/mp4',
+      'video/webm',
+      'video/ogg',
+      'video/mov',
+
+      // Audio
+      'audio/mpeg',
+      'audio/mp3',
+      'audio/wav',
+      'audio/ogg',
+      'audio/aac',
+      'audio/flac',
+    ];
     const mimeType = file.mimetype;
     if (!allowedTypes.includes(mimeType)) {
       throw new BadRequestException(`Invalid file type: ${mimeType}`);
