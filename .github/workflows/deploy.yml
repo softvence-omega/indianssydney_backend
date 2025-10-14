@@ -22,25 +22,20 @@ jobs:
           docker save indianssydney_backend-server -o server.tar
           chmod 644 server.tar
 
-      - name: Copy image and source to server via SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: 'server.tar,compose.yml'
-          target: '/home/${{ secrets.SERVER_USER }}/backend/indianssydney_backend/'
+      - name: Copy image and compose file to server
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp -o StrictHostKeyChecking=no server.tar compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/backend/indianssydney_backend/
 
       - name: Deploy on server
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             cd ~/backend/indianssydney_backend
             echo "Loading Docker image..."
             docker load -i server.tar
             echo "Starting Docker containers..."
             docker compose up -d --build
             docker image prune -f
+          EOF
