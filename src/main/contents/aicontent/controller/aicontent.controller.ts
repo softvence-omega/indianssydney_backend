@@ -11,7 +11,7 @@ export class AicontentController {
 
   // ---------- Paragraph ----------
   @Post('paragraph')
-  @ApiOperation({ summary: 'Generate AI Paragraph' })
+  @ApiOperation({ summary: 'Generate AI Paragraph document' })
   async createParagraph(@Body() dto: CreateAiParagraphDto) {
     return this.service.paragraphCreate(dto);
   }

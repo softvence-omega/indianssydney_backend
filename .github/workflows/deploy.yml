@@ -1,0 +1,45 @@
+name: CI/CD Deploy with Docker Compose
+
+on:
+  push:
+    branches:
+      - main   
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Save Docker Image
+        run: |
+          docker compose -f docker-compose.yml build
+          docker save indians-sydney-server -o server.tar
+
+      - name: Copy image and source to server via SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "server.tar,docker-compose.yml"
+          target: "/home/${{ secrets.SERVER_USER }}/indians-sydney"
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/indians-sydney
+            echo "Loading Docker image..."
+            docker load -i server.tar
+            echo "Starting Docker containers..."
+            docker compose up -d --build
+            docker image prune -f
