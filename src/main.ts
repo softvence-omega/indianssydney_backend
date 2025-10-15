@@ -17,21 +17,43 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  const allowedOrigins = [
-    'https://the-australian-canvas.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://api.australiancanvas.com',
-    'https://australiancanvas.com',
-    'http://localhost:5000',
-  ];
+  // const allowedOrigins = [
+  //   'https://the-australian-canvas.vercel.app',
+  //   'http://localhost:3000',
+  //   'http://localhost:5173',
+  //   'https://api.australiancanvas.com',
+  //   'https://australiancanvas.com',
+  //   'http://localhost:5000',
+  // ];
+
+  // app.enableCors({
+  //   origin: allowedOrigins || '*',
+  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  //   allowedHeaders: '*',
+  //   exposedHeaders: '*',
+  //   credentials: true,
+  // });
 
   app.enableCors({
-    origin: allowedOrigins || '*',
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'https://the-australian-canvas.vercel.app',
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://api.australiancanvas.com',
+        'https://australiancanvas.com',
+        'http://localhost:5000',
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: '*',
-    exposedHeaders: '*',
     credentials: true,
+    allowedHeaders: 'Content-Type, Authorization',
   });
 
   app.useGlobalPipes(
