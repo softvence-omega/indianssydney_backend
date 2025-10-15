@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filter/http-exception.filter';
 import * as bodyParser from 'body-parser';
+import { credential } from 'firebase-admin';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -26,10 +27,11 @@ async function bootstrap() {
   ];
 
   app.enableCors({
-    origin: '*',
+    origin: allowedOrigins || '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: '*',
     exposedHeaders: '*',
+    credentials: true,
   });
 
   app.useGlobalPipes(
