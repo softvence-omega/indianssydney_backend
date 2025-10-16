@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateTestawDto {
+export class Additionaldto {
   @ApiProperty({
     description: 'Image file to upload',
     type: 'string',

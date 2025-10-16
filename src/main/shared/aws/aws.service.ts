@@ -50,4 +50,22 @@ export class awsService {
       throw err;
     }
   }
+
+  async uploadFileToS3(file: Express.Multer.File) {
+    const crypto = await import('crypto');
+    const randomName = crypto.randomBytes(16).toString('hex');
+    const ext = file.originalname.split('.').pop();
+    const fileKey = `uploads/${randomName}.${ext}`;
+
+    const params: aws.S3.PutObjectRequest = {
+      Bucket: this.bucketName,
+      Key: fileKey,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read',
+    };
+
+    const uploadResult = await this.s3.upload(params).promise();
+    return uploadResult;
+  }
 }

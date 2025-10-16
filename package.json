@@ -20,8 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.907.0",
+    "@aws-sdk/client-s3": "^3.911.0",
     "@aws-sdk/lib-storage": "^3.907.0",
+    "@aws-sdk/s3-request-presigner": "^3.911.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
