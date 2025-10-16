@@ -40,9 +40,10 @@ async function bootstrap() {
         'https://the-australian-canvas.vercel.app',
         'http://localhost:3000',
         'http://localhost:5173',
-        'https://api.australiancanvas.com',
+        'https://api.australiancanvas.com/docs',
         'https://australiancanvas.com',
         'http://localhost:5000',
+        'https://indianssydney-backend.onrender.com/docs'
       ];
 
       if (!origin || allowedOrigins.includes(origin)) {
