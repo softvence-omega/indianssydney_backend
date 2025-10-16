@@ -21,7 +21,7 @@ import { Additionaldto } from '../uploadadditional.dto';
 export class AdditionalS3Controller  {
   constructor(private readonly AdditionalS3Service :AdditionalS3Service  ) {}
 
-  @Post()
+  @Post('upload-s3-additional')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
