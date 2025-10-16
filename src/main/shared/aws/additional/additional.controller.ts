@@ -17,9 +17,9 @@ import uploadFileToS3 from 'src/lib/utils/uploadImageAWS';
 import { AdditionalS3Service } from './additional.service';
 import { Additionaldto } from '../uploadadditional.dto';
 
-@Controller('aws-additional file upload s3')
-export class AdditionalS3Controller  {
-  constructor(private readonly AdditionalS3Service :AdditionalS3Service  ) {}
+@Controller('aws-additional')
+export class AdditionalS3Controller {
+  constructor(private readonly AdditionalS3Service: AdditionalS3Service) {}
 
   @Post('upload-s3-additional')
   @ApiConsumes('multipart/form-data')
@@ -42,7 +42,7 @@ export class AdditionalS3Controller  {
     }
 
     //  Upload to AWS S3
-    const s3Result = await uploadFileToS3(file?.path)
+    const s3Result = await uploadFileToS3(file?.path);
     console.log(' Uploaded to S3:', s3Result.url);
 
     return {
@@ -61,7 +61,4 @@ export class AdditionalS3Controller  {
   findOne(@Param('id') id: string) {
     return this.AdditionalS3Service.findOne(+id);
   }
-
-
-
 }
