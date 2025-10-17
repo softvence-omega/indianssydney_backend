@@ -214,19 +214,126 @@ export class CommunityService {
     );
   }
 
+  // // ----------- Add Post Reaction ------------
+  // @HandleError('Failed to add post reaction', 'PostReaction')
+  // async createPostReaction(
+  //   payload: CreatePostReactionDto & { userId: string },
+  // ) {
+  //   const postreaction = await this.prisma.postReaction.create({
+  //     data: {
+  //       type: payload.type,
+  //       userId: payload.userId,
+  //       communityPostId: payload.communityPostId,
+  //     },
+  //   });
+  //   return successResponse(postreaction, 'Post reaction added successfully');
+  // }
+
+  // // ----------- Add Comment Reaction ------------
+  // @HandleError('Failed to add comment reaction', 'CommentReaction')
+  // async createCommentReaction(
+  //   payload: CreateCommentReactionDto & { userId: string },
+  // ) {
+  //   const commentreaction = await this.prisma.commentReaction.create({
+  //     data: {
+  //       type: payload.type,
+  //       userId: payload.userId,
+  //       commentId: payload.commentId,
+  //     },
+  //   });
+  //   return successResponse(
+  //     commentreaction,
+  //     'Comment reaction added successfully',
+  //   );
+  // }
+
   // ----------- Add Post Reaction ------------
   @HandleError('Failed to add post reaction', 'PostReaction')
   async createPostReaction(
     payload: CreatePostReactionDto & { userId: string },
   ) {
-    const postreaction = await this.prisma.postReaction.create({
-      data: {
-        type: payload.type,
-        userId: payload.userId,
-        communityPostId: payload.communityPostId,
-      },
+    const { type, userId, communityPostId } = payload;
+
+    return this.prisma.$transaction(async (tx) => {
+      // Check if the post exists
+      const post = await tx.communityPost.findUnique({
+        where: { id: communityPostId },
+      });
+      if (!post) {
+        throw new Error('Community post not found');
+      }
+
+      // Find existing reaction by the user for this post
+      const existingReaction = await tx.postReaction.findFirst({
+        where: {
+          userId,
+          communityPostId,
+        },
+      });
+
+      // Initialize count updates
+      let likeCountDelta = 0;
+      let dislikeCountDelta = 0;
+
+      if (existingReaction) {
+        if (existingReaction.type === type) {
+          // Same reaction type: remove it (toggle off)
+          await tx.postReaction.delete({
+            where: { id: existingReaction.id },
+          });
+          if (type === 'LIKE') {
+            likeCountDelta = -1;
+          } else {
+            dislikeCountDelta = -1;
+          }
+        } else {
+          // Different reaction type: remove existing and add new
+          await tx.postReaction.delete({
+            where: { id: existingReaction.id },
+          });
+          await tx.postReaction.create({
+            data: {
+              type,
+              userId,
+              communityPostId,
+            },
+          });
+          if (type === 'LIKE') {
+            likeCountDelta = 1;
+            dislikeCountDelta = existingReaction.type === 'DISLIKE' ? -1 : 0;
+          } else {
+            dislikeCountDelta = 1;
+            likeCountDelta = existingReaction.type === 'LIKE' ? -1 : 0;
+          }
+        }
+      } else {
+        // No existing reaction: add new
+        await tx.postReaction.create({
+          data: {
+            type,
+            userId,
+            communityPostId,
+          },
+        });
+        if (type === 'LIKE') {
+          likeCountDelta = 1;
+        } else {
+          dislikeCountDelta = 1;
+        }
+      }
+
+      // Note: Reaction counts are calculated dynamically from reactions table
+
+      // Fetch the updated reaction for response
+      const postReaction = await tx.postReaction.findFirst({
+        where: { userId, communityPostId, type },
+      });
+
+      return successResponse(
+        postReaction,
+        'Post reaction updated successfully',
+      );
     });
-    return successResponse(postreaction, 'Post reaction added successfully');
   }
 
   // ----------- Add Comment Reaction ------------
@@ -234,20 +341,90 @@ export class CommunityService {
   async createCommentReaction(
     payload: CreateCommentReactionDto & { userId: string },
   ) {
-    const commentreaction = await this.prisma.commentReaction.create({
-      data: {
-        type: payload.type,
-        userId: payload.userId,
-        commentId: payload.commentId,
-      },
+    const { type, userId, commentId } = payload;
+
+    return this.prisma.$transaction(async (tx) => {
+      // Check if the comment exists
+      const comment = await tx.comment.findUnique({
+        where: { id: commentId },
+      });
+      if (!comment) {
+        throw new Error('Comment not found');
+      }
+
+      // Find existing reaction by the user for this comment
+      const existingReaction = await tx.commentReaction.findFirst({
+        where: {
+          userId,
+          commentId,
+        },
+      });
+
+      // Initialize count updates
+      let likeCountDelta = 0;
+      let dislikeCountDelta = 0;
+
+      if (existingReaction) {
+        if (existingReaction.type === type) {
+          // Same reaction type: remove it (toggle off)
+          await tx.commentReaction.delete({
+            where: { id: existingReaction.id },
+          });
+          if (type === 'LIKE') {
+            likeCountDelta = -1;
+          } else {
+            dislikeCountDelta = -1;
+          }
+        } else {
+          // Different reaction type: remove existing and add new
+          await tx.commentReaction.delete({
+            where: { id: existingReaction.id },
+          });
+          await tx.commentReaction.create({
+            data: {
+              type,
+              userId,
+              commentId,
+            },
+          });
+          if (type === 'LIKE') {
+            likeCountDelta = 1;
+            dislikeCountDelta = existingReaction.type === 'DISLIKE' ? -1 : 0;
+          } else {
+            dislikeCountDelta = 1;
+            likeCountDelta = existingReaction.type === 'LIKE' ? -1 : 0;
+          }
+        }
+      } else {
+        // No existing reaction: add new
+        await tx.commentReaction.create({
+          data: {
+            type,
+            userId,
+            commentId,
+          },
+        });
+        if (type === 'LIKE') {
+          likeCountDelta = 1;
+        } else {
+          dislikeCountDelta = 1;
+        }
+      }
+
+      // Note: Comment reaction counts are calculated dynamically from reactions table
+
+      // Fetch the updated reaction for response
+      const commentReaction = await tx.commentReaction.findFirst({
+        where: { userId, commentId, type },
+      });
+
+      return successResponse(
+        commentReaction,
+        'Comment reaction updated successfully',
+      );
     });
-    return successResponse(
-      commentreaction,
-      'Comment reaction added successfully',
-    );
   }
 
-  // ----------- get all posts for Community ------------
   @HandleError('Failed to fetch community posts', 'communityPost')
   async findAll(query: PaginationDto): Promise<TResponse<any>> {
     const page = query.page || 1;
@@ -258,66 +435,55 @@ export class CommunityService {
       skip: (page - 1) * limit,
       take: limit,
       include: {
+        user: true, // include post author
         comments: {
           include: {
-            user: true, // include user info
-            reactions: true,
+            user: true, // include comment author
+            reactions: true, // comment reactions
           },
         },
-        reactions: true,
+        reactions: true, // post reactions
       },
     });
 
-    const formattedPosts = posts.map((post) => {
-      const postLikeCount = post.reactions.filter(
-        (r) => r.type === 'LIKE',
-      ).length;
-      const postDislikeCount = post.reactions.filter(
-        (r) => r.type === 'DISLIKE',
-      ).length;
-
-      return {
-        id: post.id,
-        description: post.description,
-        image: post.image,
-        video: post.video,
-        userId: post.userId,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        postReactions: post.reactions,
-        postLikeCount,
-        postDislikeCount,
-        commentCount: post.comments.length,
-        comments: post.comments.map((comment) => {
-          const commentLikeCount = comment.reactions.filter(
-            (r) => r.type === 'LIKE',
-          ).length;
-          const commentDislikeCount = comment.reactions.filter(
-            (r) => r.type === 'DISLIKE',
-          ).length;
-
-          return {
-            id: comment.id,
-            content: comment.content,
-            user: {
-              id: comment.user.id,
-              name: comment.user.fullName,
-              email: comment.user.email,
-              avatar: comment.user.profilePhoto,
-            },
-            createdAt: comment.createdAt,
-            updatedAt: comment.updatedAt,
-            commentReactions: comment.reactions,
-            commentLikeCount,
-            commentDislikeCount,
-            commentReactionCount: comment.reactions.length,
-            hate_speech_detect: comment.hate_speech_detect,
-            confidence: comment.confidence,
-            explanation: comment.explanation,
-          };
-        }),
-      };
-    });
+    const formattedPosts = posts.map((post) => ({
+      id: post.id,
+      description: post.description,
+      image: post.image,
+      video: post.video,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      user: {
+        id: post.user.id,
+        name: post.user.fullName,
+        email: post.user.email,
+        avatar: post.user.profilePhoto,
+      },
+      postLikeCount: post.reactions.filter((r) => r.type === 'LIKE').length,
+      postDislikeCount: post.reactions.filter((r) => r.type === 'DISLIKE')
+        .length,
+      commentCount: post.comments.length,
+      comments: post.comments.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        user: {
+          id: comment.user.id,
+          name: comment.user.fullName,
+          email: comment.user.email,
+          avatar: comment.user.profilePhoto,
+        },
+        commentLikeCount: comment.reactions.filter((r) => r.type === 'LIKE')
+          .length,
+        commentDislikeCount: comment.reactions.filter(
+          (r) => r.type === 'DISLIKE',
+        ).length,
+        hate_speech_detect: comment.hate_speech_detect,
+        confidence: comment.confidence,
+        explanation: comment.explanation,
+      })),
+    }));
 
     return successResponse(
       formattedPosts,

@@ -39,7 +39,7 @@ export class AicontentService {
         },
       });
 
-      // Simplified response
+      //-----------  Simplified response. ------------
       return {
         success: true,
         paragraph: saved.paragraph,
