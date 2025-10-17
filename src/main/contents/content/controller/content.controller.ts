@@ -474,8 +474,6 @@ export class ContentController {
     description:
       'Search contents by body quer LIKE {"query": "travel"} "query": "travel"',
   })
-
-  
   @Post('content-search')
   async getContentBySearch(@Body('query') query: string) {
     return this.contentService.getContentBySearch(query);
@@ -526,44 +524,26 @@ export class ContentController {
     return this.contentService.incrementView(id);
   }
 
-  // //  get content by category & sub-cateory slug
-  // @ApiOperation({ summary: 'Get contents by category slug' })
-  // @Get('category/:categorySlug')
-  // async getContentByCategorySlug(@Param('categorySlug') categorySlug: string) {
-  //   return this.contentService.getContentByCategorySlug(categorySlug);
-  // }
-
-  // //  get content by sub-category slug
-  // @ApiOperation({ summary: 'Get contents by sub-category slug' })
-  // @ApiTags('Get by content sub-category slug')
-  // @Get('subcategory/:ContentsubCategorySlug')
-  // async getContentBySubCategorySlug(
-  //   @Param('sContentsubCategorySlug') ContentsubCategorySlug: string,
-  // ) {
-  //   return this.contentService.getContentBySubCategorySlug(
-  //     ContentsubCategorySlug,
-  //   );
-  // }
-
-  // ---- Get content with content category slug. ---
+  // -------------- get content by content category slug ----------------
+  // -------------- Get content by category slug ----------------
   @ApiOperation({ summary: 'Get contents by content category slug' })
-  @ApiTags('Get by content category slug')
+  @ApiTags('Contents')
   @Get('category/:categorySlug')
   async getContentByContentCategorySlug(
-    @Param('categorysslug') categorysslug: string,
+    @Param('categorySlug') categorySlug: string,
   ) {
-    return this.contentService.getContentByContentCategorySlug(categorysslug);
+    return this.contentService.getContentByContentCategorySlug(categorySlug);
   }
 
-  //-----------  get content by content sub category slug---------------
-  @ApiOperation({ summary: 'Get contents by content sub category slug' })
-  @ApiTags('Get by content sub category slug')
-  @Get('ubcategory/:ContentsubCategorySlug')
+  // -------------- Get content by subcategory slug ----------------
+  @ApiOperation({ summary: 'Get contents by content subcategory slug' })
+  @ApiTags('Contents')
+  @Get('subcategory/:subcategorySlug')
   async getContentByContentSubCategorySlug(
-    @Param('subcategorysslug') subcategorysslug: string,
+    @Param('subcategorySlug') subcategorySlug: string,
   ) {
     return this.contentService.getContentByContentSubCategorySlug(
-      subcategorysslug,
+      subcategorySlug,
     );
   }
 
@@ -573,7 +553,7 @@ export class ContentController {
   @ValidateAuth()
   @Post('bookmark/:contentId')
   async bookmarkContent(
-    @Param('contentId') contentId: string,
+    @Body('contentId') contentId: string,
     @GetUser('userId') userId: string,
   ) {
     return this.contentService.bookmarkContent(contentId, userId);

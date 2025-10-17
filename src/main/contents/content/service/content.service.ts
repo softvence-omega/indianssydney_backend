@@ -1163,44 +1163,11 @@ export class ContentService {
     }
   }
 
-  // // -----Get content by category slug---
-  // @HandleError('Failed to fetch contents by category slug', 'content')
-  // async getContentByCategorySlug(categorySlug: string) {
-  //   const contents = await this.prisma.content.findMany({
-  //     where: {
-  //       category: {
-  //         slug: categorySlug,
-  //       },
-  //       isDeleted: false,
-  //       status: 'APPROVE',
-  //     },
-  //     include: {
-  //       user: {
-  //         select: {
-  //           id: true,
-  //           fullName: true,
-  //           email: true,
-  //           profilePhoto: true,
-  //         },
-  //       },
-  //       category: true,
-  //       subCategory: true,
-  //       additionalContents: {
-  //         orderBy: { order: 'asc' },
-  //       },
-  //     },
-  //     orderBy: { createdAt: 'desc' },
-  //   });
-
-  //   return successResponse(contents, 'Contents fetched successfully');
-  // }
-
-  // -----getContentByContentCategorySlug------
-
-  async getContentByContentCategorySlug(categorysslug: string) {
+  // ------------------- Get content by category slug -------------------
+  async getContentByContentCategorySlug(categorySlug: string) {
     const contents = await this.prisma.content.findMany({
       where: {
-        categorysslug: categorysslug,
+        categorysslug: { equals: categorySlug, mode: 'insensitive' },
         isDeleted: false,
         status: 'APPROVE',
         contentType: 'ARTICLE',
@@ -1223,15 +1190,17 @@ export class ContentService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return successResponse(contents, 'Contents fetched successfully');
+    return successResponse(
+      contents,
+      'Contents fetched successfully by category',
+    );
   }
 
-  // --getContentByContentSubCategorySlug--
-
-  async getContentByContentSubCategorySlug(subcategorysslug: string) {
+  // ------------------- Get content by subcategory slug -------------------
+  async getContentByContentSubCategorySlug(subcategorySlug: string) {
     const contents = await this.prisma.content.findMany({
       where: {
-        subcategorysslug: subcategorysslug,
+        subcategorysslug: { equals: subcategorySlug, mode: 'insensitive' },
         isDeleted: false,
         status: 'APPROVE',
         contentType: 'ARTICLE',
@@ -1254,47 +1223,10 @@ export class ContentService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return successResponse(contents, 'Contents fetched successfully');
-  }
-
-  // -----Get content by subcategory slug---
-  @HandleError('Failed to fetch contents by category slug', 'content')
-  async getContentBySubCategorySlug(categorySlug: string) {
-    const category = await this.prisma.category.findUnique({
-      where: { slug: categorySlug },
-    });
-
-    if (!category) {
-      throw new NotFoundException(
-        `Category not found for slug: ${categorySlug}`,
-      );
-    }
-
-    const contents = await this.prisma.content.findMany({
-      where: {
-        categoryId: category.id,
-        isDeleted: false,
-        status: 'APPROVE',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            profilePhoto: true,
-          },
-        },
-        category: true,
-        subCategory: true,
-        additionalContents: {
-          orderBy: { order: 'asc' },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return successResponse(contents, 'Contents fetched successfully');
+    return successResponse(
+      contents,
+      'Contents fetched successfully by subcategory',
+    );
   }
 
   // ------------- Get homepage content by category with limit 7 each -------------
@@ -1342,7 +1274,7 @@ export class ContentService {
             take: 7,
           });
 
-          // Enrich each content with stats (like in findAllContent)
+          //------  Enrich each content with stats (like in findAllContent)--------
           const enrichedContents = contents.map((content) => {
             const likeCount = content.ContentReactions.filter(
               (r) => r.type === 'LIKE',
@@ -1441,7 +1373,7 @@ export class ContentService {
     return successResponse(contents, 'Podcast contents fetched successfully');
   }
 
-  // ------------------ get content by getContentByTypeBy VIDEO-----------------
+  // ------------------ get content by getContent ByTypeBy VIDEO-----------------
 
   @HandleError('Failed to fetch contents by content type', 'video')
   async getContentByTypeByVIDEO(): Promise<TResponse<any>> {
@@ -1465,72 +1397,69 @@ export class ContentService {
     return successResponse(contents, 'Video contents fetched successfully');
   }
 
-  //  -----------------get content by query ----------------
- @HandleError('Failed to fetch contents by query', 'query')
-async getContentBySearch(query: string): Promise<TResponse<any>> {
-  const contents = await this.prisma.content.findMany({
-    where: {
-      AND: [
-        {
-          OR: [
-            {
-              title: {
-                contains: query,
-                mode: 'insensitive',
-              },
-            },
-            {
-              subTitle: {
-                contains: query,
-                mode: 'insensitive',
-              },
-            },
-            {
-              category: {
-                name: {
+  //  -----------------Get content by query ----------------
+  @HandleError('Failed to fetch contents by query', 'query')
+  async getContentBySearch(query: string): Promise<TResponse<any>> {
+    const contents = await this.prisma.content.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                title: {
                   contains: query,
                   mode: 'insensitive',
                 },
               },
-            },
-            {
-              subCategory: {
-                subname: {
+              {
+                subTitle: {
                   contains: query,
                   mode: 'insensitive',
                 },
               },
-            },
-
-          ],
+              {
+                category: {
+                  name: {
+                    contains: query,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                subCategory: {
+                  subname: {
+                    contains: query,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          },
+          { isDeleted: false },
+          { status: 'APPROVE' },
+        ],
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+          },
         },
-        { isDeleted: false },
-        { status: 'APPROVE' },
-      ],
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          profilePhoto: true,
+        category: true,
+        subCategory: true,
+        additionalContents: {
+          orderBy: { order: 'asc' },
         },
       },
-      category: true,
-      subCategory: true,
-      additionalContents: {
-        orderBy: { order: 'asc' },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+      orderBy: { createdAt: 'desc' },
+    });
 
-  return successResponse(contents, 'Contents fetched successfully');
-}
-
-
-  // ------------------ get content by getContentByTypeBy ARTICLE-----------------
+    return successResponse(contents, 'Contents fetched successfully');
+  }
+  // ------------------ Get content by getContent ByType By ARTICLE-----------------
 
   @HandleError('Failed to fetch contents by content type', 'article')
   async getContentByTypeByARTICLE(): Promise<TResponse<any>> {

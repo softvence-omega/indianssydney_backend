@@ -56,43 +56,49 @@ export class AicontentService {
     }
   }
 
-  // ---------- SEO Tag Generation ----------
   @HandleError('Failed to generate SEO tags', 'SEO tag generation')
   async seoTagCreate(dto: CreateAiCategoryDto) {
     const apiUrl = 'https://ai.australiancanvas.com/files/seo-tags';
 
     try {
-      const response = await firstValueFrom(
+      // Send all optional data to AI API
+      const { data: apiData } = await firstValueFrom(
         this.httpService.post(apiUrl, {
           category: dto.category,
           subcategory: dto.subcategory,
+          title: dto.title || '',
+          sub_title: dto.sub_title || '',
+          content: dto.content || '',
         }),
       );
-
-      const apiData = response.data;
 
       const saved = await this.prisma.aiSeoTag.create({
         data: {
           category: dto.category,
           subcategory: dto.subcategory,
-          tags: apiData.tags,
-          metaKeywords: apiData.meta_keywords,
-          titleSuggestions: apiData.title_suggestions,
-          metaDescription: apiData.meta_description,
-          longTailKeywords: apiData.long_tail_keywords,
-          hashtags: apiData.hashtags,
-          contentKeywords: apiData.content_keywords,
-          success: apiData.success,
-          errorMessage: apiData.error_message,
+          title: dto.title || null,
+          sub_title: dto.sub_title || null,
+          content: dto.content || null,
+          tags: apiData.tags || [],
+          metaKeywords: apiData.meta_keywords || [],
+          titleSuggestions: apiData.title_suggestions || [],
+          metaDescription: apiData.meta_description || null,
+          longTailKeywords: apiData.long_tail_keywords || [],
+          hashtags: apiData.hashtags || [],
+          contentKeywords: apiData.content_keywords || [],
+          success: apiData.success ?? true,
+          errorMessage: apiData.error_message || null,
           rawResponse: apiData,
         },
       });
 
-      // Simplified response
       return {
         success: true,
         category: saved.category,
         subcategory: saved.subcategory,
+        title: saved.title,
+        sub_title: saved.sub_title,
+        content: saved.content,
         tags: saved.tags,
         metaKeywords: saved.metaKeywords,
         titleSuggestions: saved.titleSuggestions,
@@ -102,17 +108,36 @@ export class AicontentService {
         contentKeywords: saved.contentKeywords,
       };
     } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Unknown error';
+
+      await this.prisma.aiSeoTag.create({
+        data: {
+          category: dto.category,
+          subcategory: dto.subcategory,
+          title: dto.title || null,
+          sub_title: dto.sub_title || null,
+          content: dto.content || null,
+          success: false,
+          errorMessage,
+          rawResponse: error.response?.data || {},
+        },
+      });
+
       return {
         success: false,
         category: dto.category,
         subcategory: dto.subcategory,
+        title: dto.title || null,
+        sub_title: dto.sub_title || null,
+        content: dto.content || null,
         tags: [],
         metaKeywords: [],
         titleSuggestions: [],
         longTailKeywords: [],
         hashtags: [],
         contentKeywords: [],
-        errorMessage: error.message,
+        errorMessage,
       };
     }
   }

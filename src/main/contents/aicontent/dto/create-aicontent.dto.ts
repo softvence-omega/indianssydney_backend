@@ -1,13 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-
-
- export class CreateAiCategoryDto {
+export class CreateAiCategoryDto {
   @ApiProperty({ description: 'Category name', example: 'hello world' })
   @IsString()
   @IsNotEmpty()
@@ -18,8 +12,33 @@ import {
   @IsNotEmpty()
   subcategory: string;
 
-}
+  @ApiProperty({
+    description: 'Title name',
+    example: 'Upgrade Your Dropbox Plan',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  title?: string;
 
+  @ApiProperty({
+    description: 'Subtitle',
+    example: 'Discover Dropbox premium features',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  sub_title?: string;
+
+  @ApiProperty({
+    description: 'Main content text',
+    example: 'Dropbox offers flexible storage plans...',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  content?: string;
+}
 
 // ------------- crate ai pragraph dto---------
 
@@ -31,6 +50,4 @@ export class CreateAiParagraphDto {
   @IsOptional()
   @IsString()
   paragraph?: string;
-
 }
-

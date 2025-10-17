@@ -1,34 +1,38 @@
 model AiParagraphGeneration {
-  id                 String   @id @default(uuid())
-  paragraph          String?               // the user's input paragraph (e.g., "make the world")
-  originalParagraph  String?               // original_paragraph field from API (if different)
-  generatedContent   String   @db.Text      // generated_content (large text)
-  wordCount          Int?
-  success            Boolean  @default(false)
-  errorMessage       String?               // nullable
-  rawResponse        Json?                 // store the full API JSON if you want
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                String   @id @default(uuid())
+  paragraph         String?
+  originalParagraph String?
+  generatedContent  String   @db.Text
+  wordCount         Int?
+  success           Boolean  @default(false)
+  errorMessage      String?
+  rawResponse       Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([createdAt])
   @@map("ai_paragraph_generations")
 }
+
 model AiSeoTag {
-  id                String   @id @default(uuid())
-  category          String
-  subcategory       String
-  tags              String[]         
-  metaKeywords      String[]         @map("meta_keywords")
-  titleSuggestions  String[]         @map("title_suggestions")
-  metaDescription   String?          @map("meta_description")
-  longTailKeywords  String[]         @map("long_tail_keywords")
-  hashtags          String[]
-  contentKeywords   String[]         @map("content_keywords")
-  success           Boolean          @default(false)
-  errorMessage      String?          @map("error_message")
-  rawResponse       Json?            // store full API response for reference
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id               String   @id @default(uuid())
+  category         String
+  subcategory      String
+  title            String?
+  sub_title        String?  @map("sub_title")
+  content          String?
+  tags             String[]
+  metaKeywords     String[] @map("meta_keywords")
+  titleSuggestions String[] @map("title_suggestions")
+  metaDescription  String?  @map("meta_description")
+  longTailKeywords String[] @map("long_tail_keywords")
+  hashtags         String[]
+  contentKeywords  String[] @map("content_keywords")
+  success          Boolean  @default(false)
+  errorMessage     String?  @map("error_message")
+  rawResponse      Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([category, subcategory])
   @@map("ai_seo_tags")
