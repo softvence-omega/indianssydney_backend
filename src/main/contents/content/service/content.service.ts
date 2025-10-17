@@ -1548,4 +1548,50 @@ export class ContentService {
     });
     return !!bookmark;
   }
+
+  // ----  recommended articles------
+  @HandleError('Failed to fetch recommended articles', 'content')
+  async getRecommendedArticles(contentId: string) {
+    const content = await this.prisma.content.findUnique({
+      where: {
+        id: contentId,
+        isDeleted: false,
+        status: 'APPROVE',
+        contentType: 'ARTICLE',
+      },
+    });
+
+    if (!content) {
+      return [];
+    }
+
+    const category = await this.prisma.category.findUnique({
+      where: { id: content.categoryId },
+    });
+
+    if (!category) {
+      return [];
+    }
+
+    const recommendedArticles = await this.prisma.content.findMany({
+      where: {
+        categoryId: category.id,
+        contentType: 'ARTICLE',
+        isDeleted: false,
+        status: 'APPROVE',
+        NOT: { id: contentId },
+      },
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, profilePhoto: true },
+        },
+        category: true,
+        subCategory: true,
+        additionalContents: { orderBy: { order: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+    return recommendedArticles;
+  }
 }

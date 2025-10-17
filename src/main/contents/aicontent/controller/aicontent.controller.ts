@@ -31,7 +31,7 @@ export class AicontentController {
   async getAiParagraph() {
     return this.service.getAiParagraph();
   }
-  // -------get seotag------
+  // -------get seo tag------
 
   @Get('seo')
   @ApiOperation({ summary: 'Get SEO all data here generate' })
