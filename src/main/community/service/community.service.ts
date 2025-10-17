@@ -85,52 +85,51 @@ export class CommunityService {
   //   );
   // }
 
-
   @HandleError('Failed to create community post', 'communityPost')
-async create(
-  payload: CreateCommunityDto,
-  userId: string,
-): Promise<TResponse<any>> {
-  let thumbnailUrl: string | undefined;
-  let videoUrl: string | undefined;
+  async create(
+    payload: CreateCommunityDto,
+    userId: string,
+  ): Promise<TResponse<any>> {
+    let thumbnailUrl: string | undefined;
+    let videoUrl: string | undefined;
 
-  // Use S3 URLs if files were uploaded
-  if (payload.file) {
-    thumbnailUrl = payload.file.url;
-  }
+    // Use S3 URLs if files were uploaded
+    if (payload.file) {
+      thumbnailUrl = payload.file.url;
+    }
 
-  if (payload.video) {
-    videoUrl = payload.video.url;
-  }
+    if (payload.video) {
+      videoUrl = payload.video.url;
+    }
 
-  const data: any = {
-    description: payload.description,
-    userId,
-  };
+    const data: any = {
+      description: payload.description,
+      userId,
+    };
 
-  if (thumbnailUrl) data.image = thumbnailUrl;
-  if (videoUrl) data.video = videoUrl;
+    if (thumbnailUrl) data.image = thumbnailUrl;
+    if (videoUrl) data.video = videoUrl;
 
-  // Include user info in response
-  const communityPost = await this.prisma.communityPost.create({
-    data,
-    include: {
-      user: {
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          profilePhoto: true,
+    // Include user info in response
+    const communityPost = await this.prisma.communityPost.create({
+      data,
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profilePhoto: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return successResponse(
-    communityPost,
-    'Community post created successfully',
-  );
-}
+    return successResponse(
+      communityPost,
+      'Community post created successfully',
+    );
+  }
 
   // -------create comment ----
   @HandleError('Failed to add comment', 'Comment')
@@ -150,7 +149,7 @@ async create(
 
       const data = response.data;
       hateSpeechResult = {
-        hate_speech_detect: Boolean(data.hate_speech_detect), 
+        hate_speech_detect: Boolean(data.hate_speech_detect),
         confidence: data.confidence,
         explanation: data.explanation,
       };
@@ -248,7 +247,7 @@ async create(
     );
   }
 
-  // -----------  for Community ------------
+  // ----------- get all posts for Community ------------
   @HandleError('Failed to fetch community posts', 'communityPost')
   async findAll(query: PaginationDto): Promise<TResponse<any>> {
     const page = query.page || 1;
@@ -261,7 +260,7 @@ async create(
       include: {
         comments: {
           include: {
-            user: true,
+            user: true, // include user info
             reactions: true,
           },
         },
@@ -270,7 +269,6 @@ async create(
     });
 
     const formattedPosts = posts.map((post) => {
-      // Post like/dislike counts
       const postLikeCount = post.reactions.filter(
         (r) => r.type === 'LIKE',
       ).length;
@@ -301,12 +299,21 @@ async create(
           return {
             id: comment.id,
             content: comment.content,
-            user: comment.user,
+            user: {
+              id: comment.user.id,
+              name: comment.user.fullName,
+              email: comment.user.email,
+              avatar: comment.user.profilePhoto,
+            },
             createdAt: comment.createdAt,
             updatedAt: comment.updatedAt,
             commentReactions: comment.reactions,
             commentLikeCount,
             commentDislikeCount,
+            commentReactionCount: comment.reactions.length,
+            hate_speech_detect: comment.hate_speech_detect,
+            confidence: comment.confidence,
+            explanation: comment.explanation,
           };
         }),
       };
