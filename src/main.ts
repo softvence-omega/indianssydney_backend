@@ -43,7 +43,8 @@ async function bootstrap() {
         'https://api.australiancanvas.com/docs',
         'https://australiancanvas.com',
         'http://localhost:5000',
-        'https://indianssydney-backend.onrender.com/docs'
+        'https://indianssydney-backend.onrender.com',
+        'https://indiansydny.vercel.app'
       ];
 
       if (!origin || allowedOrigins.includes(origin)) {
