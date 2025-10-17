@@ -37,6 +37,7 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
+        'https://indiansydny.vercel.app',
         'https://the-australian-canvas.vercel.app',
         'http://localhost:3000',
         'http://localhost:5173',
@@ -44,7 +45,7 @@ async function bootstrap() {
         'https://australiancanvas.com',
         'http://localhost:5000',
         'https://indianssydney-backend.onrender.com',
-        'https://indiansydny.vercel.app'
+       
       ];
 
       if (!origin || allowedOrigins.includes(origin)) {
