@@ -427,68 +427,68 @@ export class ContentmanageService {
     };
   }
   // -------hate space maintain-------
-//  @HandleError('Failed to get all hate space', 'HateSpace')
-// async getAllHateSpace() {
-//   const hateSpace = await this.prisma.content.findMany({
-//     where: {
-//       evaluationResult: { not: null },
-//       isDeleted: false,
-//     },
-//     include: {
-//       user: {
-//         select: {
-//           id: true,
-//           fullName: true,
-//           email: true,
-//           profilePhoto: true,
-//           role: true,
-//         },
-//       },
-//     },
-//   });
+  //  @HandleError('Failed to get all hate space', 'HateSpace')
+  // async getAllHateSpace() {
+  //   const hateSpace = await this.prisma.content.findMany({
+  //     where: {
+  //       evaluationResult: { not: null },
+  //       isDeleted: false,
+  //     },
+  //     include: {
+  //       user: {
+  //         select: {
+  //           id: true,
+  //           fullName: true,
+  //           email: true,
+  //           profilePhoto: true,
+  //           role: true,
+  //         },
+  //       },
+  //     },
+  //   });
 
-//   const formatted = hateSpace
-//     .map((content) => {
-//       let evaluation: any = null;
+  //   const formatted = hateSpace
+  //     .map((content) => {
+  //       let evaluation: any = null;
 
-//       try {
-//         evaluation = content.compareResult ? JSON.parse(content.compareResult) : null;
+  //       try {
+  //         evaluation = content.compareResult ? JSON.parse(content.compareResult) : null;
 
-//         // Handle nested compareResult if it exists
-//         if (evaluation?.compareResult) {
-//           evaluation.compareResult = JSON.parse(evaluation.compareResult);
-//         }
-//       } catch (err) {
-//         evaluation = {
-//           evaluation_result: { percentage: 0, lines: [] },
-//           success: false,
-//         };
-//       }
+  //         // Handle nested compareResult if it exists
+  //         if (evaluation?.compareResult) {
+  //           evaluation.compareResult = JSON.parse(evaluation.compareResult);
+  //         }
+  //       } catch (err) {
+  //         evaluation = {
+  //           evaluation_result: { percentage: 0, lines: [] },
+  //           success: false,
+  //         };
+  //       }
 
-//       return {
-//         title: content.title,
-//         subTitle: content.subTitle,
-//         author: content.user
-//           ? {
-//               id: content.user.id,
-//               fullName: content.user.fullName || 'Unknown User',
-//               profilePhoto: content.user.profilePhoto || null,
-//               role: content.user.role,
-//             }
-//           : null,
-//         percentage: evaluation?.evaluation_result?.percentage ?? 0,
-//         lines: evaluation?.evaluation_result?.lines ?? [],
-//       };
-//     })
-//     // Filter out content with percentage >= 98
-//     .filter((c) => c.percentage < 98);
+  //       return {
+  //         title: content.title,
+  //         subTitle: content.subTitle,
+  //         author: content.user
+  //           ? {
+  //               id: content.user.id,
+  //               fullName: content.user.fullName || 'Unknown User',
+  //               profilePhoto: content.user.profilePhoto || null,
+  //               role: content.user.role,
+  //             }
+  //           : null,
+  //         percentage: evaluation?.evaluation_result?.percentage ?? 0,
+  //         lines: evaluation?.evaluation_result?.lines ?? [],
+  //       };
+  //     })
+  //     // Filter out content with percentage >= 98
+  //     .filter((c) => c.percentage < 98);
 
-//   return {
-//     success: true,
-//     message: 'All hate space retrieved successfully',
-//     data: formatted,
-//   };
-// }
+  //   return {
+  //     success: true,
+  //     message: 'All hate space retrieved successfully',
+  //     data: formatted,
+  //   };
+  // }
 
   // -------soft deleted content---------
   @HandleError('Failed to soft delete content', 'Content')
@@ -547,10 +547,9 @@ export class ContentmanageService {
   @HandleError('Failed to get all hate comments', 'HateComment')
   async getAllHateComments() {
     const comments = await this.prisma.communityPost.findMany({
-
       include: {
         comments: {
-         select: {
+          select: {
             id: true,
             hate_speech_detect: true,
             confidence: true,
@@ -565,11 +564,10 @@ export class ContentmanageService {
                 profilePhoto: true,
                 role: true,
               },
-            }
+            },
+          },
         },
       },
-   
-    },
     });
 
     return {
