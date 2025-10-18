@@ -424,7 +424,7 @@ export class CommunityService {
       );
     });
   }
-
+// -----------  Get All Community Posts ------------
   @HandleError('Failed to fetch community posts', 'communityPost')
   async findAll(query: PaginationDto): Promise<TResponse<any>> {
     const page = query.page || 1;
@@ -435,14 +435,14 @@ export class CommunityService {
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        user: true, // include post author
+        user: true, 
         comments: {
           include: {
-            user: true, // include comment author
-            reactions: true, // comment reactions
+            user: true, 
+            reactions: true,
           },
         },
-        reactions: true, // post reactions
+        reactions: true, 
       },
     });
 

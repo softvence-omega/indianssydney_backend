@@ -114,6 +114,16 @@ export class OverviewDashboardController {
     const result = await this.overviewDashboardService.editorContentActivity();
     return { success: true, data: result };
   }
+  // -----------------Top Tags-----------------------
+  @ApiTags('Analytics Dashboard Super admin')
+  @ApiOperation({ summary: 'Get top tags data for super admin' })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('analytics-dashboard/top-tags')
+  async getAnalyticsDashboardTopTags() {
+    const result = await this.overviewDashboardService.analyticsDashboardTags();
+    return { success: true, data: result };
+  }
   @ApiTags('Analytics Dashboard Super admin')
   @ApiOperation({ summary: 'Get analytics dashboard data for super admin' })
   @ApiBearerAuth()
@@ -123,6 +133,7 @@ export class OverviewDashboardController {
     const result = await this.overviewDashboardService.analyticsDashboardTags();
     return { success: true, data: result };
   }
+  // -----------------Content Metrics-----------------------
   @ApiTags('Analytics Dashboard Super admin')
   @ApiOperation({ summary: 'Get Content Metrics data for super admin' })
   @ApiBearerAuth()
@@ -132,7 +143,7 @@ export class OverviewDashboardController {
     const result = await this.overviewDashboardService.contentMetrics();
     return { success: true, data: result };
   }
-
+// -----------------Engagement-Personalization-----------------------
   @ApiTags('Analytics Dashboard Super admin')
   @ApiOperation({
     summary: 'Get User Engagement & Personalization AI data for super admin',
@@ -145,6 +156,10 @@ export class OverviewDashboardController {
     enum: ['week', 'month', 'quarter', 'all'],
     example: 'month',
   })
+  @ApiOperation({
+    summary:
+      'Get analytics Engagement-Personalization dashboard data for super admin',
+  })
   @ValidateSuperAdmin()
   @Get('Engagement-Personalization')
   async getUserEngagementPersonalization(@Query() query: EngagementQueryDto) {
@@ -156,13 +171,27 @@ export class OverviewDashboardController {
     return { success: true, data: result };
   }
 
+  // ---------- Community Moderation AI (Last 24h)--
+  @ApiTags('Analytics Dashboard Super admin')
+  @ApiOperation({
+    summary: 'Community Moderation AI  data for super admin',
+  })
+  @ApiBearerAuth()
+  @ValidateSuperAdmin()
+  @Get('community-moderation')
+  async getCommunityModerationAI() {
+    const result =
+      await this.overviewDashboardService.getCommunityModerationAIOverview();
+    return { success: true, data: result };
+  }
+
   // @ApiTags('Analytics Dashboard Super admin')
   // @ApiOperation({ summary: 'Community Moderation AI  data for super admin' })
   // @ApiBearerAuth()
   // @ValidateSuperAdmin()
   // @Get('community-moderation ')
   // async getCommunityModerationAI () {
-    
+
   //   const result = await this.overviewDashboardService.getCommunityModerationAI();
   //   return { success: true, data: result };
   // }
