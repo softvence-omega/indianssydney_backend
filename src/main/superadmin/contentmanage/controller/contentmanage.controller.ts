@@ -184,13 +184,15 @@ export class ContentmanageController {
   }
 
   // ---------Get all hate space ---------------------
-  @ApiOperation({ summary: 'Super Admin get all hate space' })
-  @ApiBearerAuth()
-  @ValidateSuperAdmin()
-  @Get('hate-space')
-  async getAllHateSpace() {
-    return this.contentmanageService.getAllHateSpace();
-  }
+  // @ApiOperation({
+  //   summary: 'Super Admin get all content flagged as hate speech',
+  // })
+  // @ApiBearerAuth()
+  // @ValidateSuperAdmin()
+  // @Get('hate-space-contents')
+  // async getAllHateSpace() {
+  //   return this.contentmanageService.getAllHateSpace();
+  // }
 
   @Patch(':id/soft-delete')
   @ApiOperation({ summary: 'Soft delete a content' })

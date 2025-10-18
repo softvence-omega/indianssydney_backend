@@ -526,51 +526,50 @@ export class OverviewDashboardService {
 
   // ------------------ getCommunityModerationAI -------------------
   @HandleError('Failed to get community moderation AI overview')
-async getCommunityModerationAIOverview() {
-  // Fetch all community posts with comments
-  const communityPosts = await this.prisma.communityPost.findMany({
-    select: { comments: true },
-  });
+  async getCommunityModerationAIOverview() {
+    // Fetch all community posts with comments
+    const communityPosts = await this.prisma.communityPost.findMany({
+      select: { comments: true },
+    });
 
-  // Fetch AI moderation results from content
-  const contentResults = await this.prisma.content.findMany({
-    select: { compareResult: true },
-  });
+    // Fetch AI moderation results from content
+    const contentResults = await this.prisma.content.findMany({
+      select: { compareResult: true },
+    });
 
-  // Initialize counters
-  let articlesScanned = 0;
-  let flaggedForReview = 0;
-  let hateSpeechRemoved = 0;
+    // Initialize counters
+    let articlesScanned = 0;
+    let flaggedForReview = 0;
+    let hateSpeechRemoved = 0;
 
-  // Process community post comments
-  communityPosts.forEach(post => {
-    articlesScanned += 1; // Count the post itself
-    flaggedForReview += post.comments.filter(c => c.explanation).length;
-    hateSpeechRemoved += post.comments.filter(c => c.confidence).length;
-    articlesScanned += post.comments.length; // Count all comments
-  });
+    // Process community post comments
+    communityPosts.forEach((post) => {
+      articlesScanned += 1;
+      flaggedForReview += post.comments.filter((c) => c.explanation).length;
+      hateSpeechRemoved += post.comments.filter((c) => c.confidence).length;
+      articlesScanned += post.comments.length;
+    });
 
-  // Process AI moderation results from content
-  contentResults.forEach(item => {
-    articlesScanned += 1; // Count each content item
-    try {
-      const parsed = JSON.parse(item.compareResult || '{}');
+    // Process AI moderation results from content
+    contentResults.forEach((item) => {
+      articlesScanned += 1; // Count each content item
+      try {
+        const parsed = JSON.parse(item.compareResult || '{}');
 
-      if ((parsed.percentage_not_aligned ?? 0) > 0) flaggedForReview += 1;
-      if (parsed.hate_speech_removed) hateSpeechRemoved += 1;
-    } catch {
-      // Ignore invalid JSON
-    }
-  });
+        if ((parsed.percentage_not_aligned ?? 0) > 0) flaggedForReview += 1;
+        if (parsed.hate_speech_removed) hateSpeechRemoved += 1;
+      } catch {
+        // Ignore invalid JSON
+      }
+    });
 
-  return {
-    success: true,
-    data: {
-      articlesScanned,
-      flaggedForReview,
-      hateSpeechRemoved,
-    },
-  };
-}
-
+    return {
+      success: true,
+      data: {
+        articlesScanned,
+        flaggedForReview,
+        hateSpeechRemoved,
+      },
+    };
+  }
 }

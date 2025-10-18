@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { UserRoleEnum } from '../dto/change-role.dto';
+import { successResponse } from 'src/common/utilsResponse/response.util';
 
 @Injectable()
 export class UsermanageService {
@@ -37,4 +38,8 @@ export class UsermanageService {
     if (!user) throw new NotFoundException('User not found');
     return { message: `User role changed to ${role}`, user };
   }
+
+  // -------------ChnageReviewAlert---
+
+ 
 }

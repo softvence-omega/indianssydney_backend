@@ -8,18 +8,18 @@ model User {
   bio          String?
   // ------------------google -varify------------------------------------
 
-  googleId   String?   @unique
-  emailOtp   Int?
-  otpExpiry  DateTime?
-  isVerified Boolean   @default(false)
-
+  googleId       String?   @unique
+  emailOtp       Int?
+  otpExpiry      DateTime?
+  isVerified     Boolean   @default(false)
+  ReviewAlerts   Boolean   @default(false)
   // ---------------Password reset OTP----------------------
-  resetOtp        Int?
-  resetOtpExpiry  DateTime?
+  resetOtp       Int?
+  resetOtpExpiry DateTime?
 
-  isActive        Boolean   @default(true)
-  isDeleted       Boolean   @default(false)
-  isContibute     Boolean   @default(false)
+  isActive        Boolean          @default(true)
+  isDeleted       Boolean          @default(false)
+  isContibute     Boolean          @default(false)
   deletedAt       DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -29,24 +29,24 @@ model User {
   constents       Content[]
   comments        Comment[]
 
-  UserNotification      UserNotification[]
-  notificationToggle    NotificationToggle?
+  UserNotification   UserNotification[]
+  notificationToggle NotificationToggle?
 
   postReactions          PostReaction[]
   commentReactions       CommentReaction[]
   CommunityPost          CommunityPost[]
   ReportContent          ReportContent[]
   // -----------------Membership----------------------
-  Payment                 Payment[]
-  subscriptionEndsAt      DateTime?
-  isMembership            Boolean                  @default(false)
-  ApplytoContibute        ApplytoContibute?
+  Payment                Payment[]
+  subscriptionEndsAt     DateTime?
+  isMembership           Boolean                  @default(false)
+  ApplytoContibute       ApplytoContibute?
   // -------content reaction--------
-  contentComment          ContentComment[]
-  contentReaction         ContentReaction[]
-  contentCommentReaction  ContentCommentReaction[]
-  statusChanges           ContentStatusHistory[]
-  bookmarks               Bookmark[]
+  contentComment         ContentComment[]
+  contentReaction        ContentReaction[]
+  contentCommentReaction ContentCommentReaction[]
+  statusChanges          ContentStatusHistory[]
+  bookmarks              Bookmark[]
 
   @@map("users")
 }

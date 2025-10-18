@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterService, FileType } from 'src/lib/multer/multer.service';
-import { ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
+import { GetUser, ValidateAuth, ValidateSuperAdmin } from 'src/common/jwt/jwt.decorator';
 
 import { SettingsService } from '../service/settings.service';
 import {
@@ -34,6 +34,7 @@ import {
 import uploadFileToS3 from 'src/lib/utils/uploadImageAWS';
 import { promises as fs } from 'fs';
 import { AppError } from 'src/common/error/handle-error.app';
+import { get, patch } from 'axios';
 
 @ApiTags('Super Admin Settings')
 @ApiBearerAuth()
@@ -255,8 +256,8 @@ export class SettingsController {
     if (file) {
       // Upload file to S3
       const s3Result = await uploadFileToS3(file.path);
-      dto.file = file; 
-      dto['fileS3'] = s3Result.url; 
+      dto.file = file;
+      dto['fileS3'] = s3Result.url;
 
       // Delete temporary local file
       try {
@@ -275,4 +276,6 @@ export class SettingsController {
   deleteAd(@Param('id') id: string) {
     return this.settingsService.deleteAd(id);
   }
+
+  
 }

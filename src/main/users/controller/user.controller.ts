@@ -144,45 +144,59 @@ export class UserController {
   }
 
   // ---------------------user report Contents----------------
- @ApiOperation({ summary: 'Create Report with multiple screenshots' })
-@ApiBearerAuth()
-@ValidateAuth()
-@Post('create-report')
-@ApiConsumes('multipart/form-data')
-@UseInterceptors(
-  FilesInterceptor(
-    'files', // note: plural for multiple files
-    5, // max files, adjust as needed
-    new MulterService().createMulterOptions('./uploads', 'content', FileType.ANY),
-  ),
-)
-async create(
-  @Body() createReportDto: CreateReportDto,
-  @UploadedFiles() files: Express.Multer.File[],
-  @GetUser('userId') userId: string,
-) {
-  let s3Files: { url: string; key: string }[] = [];
+  @ApiOperation({ summary: 'Create Report with multiple screenshots' })
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @Post('create-report')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FilesInterceptor(
+      'files', // note: plural for multiple files
+      5, // max files, adjust as needed
+      new MulterService().createMulterOptions(
+        './uploads',
+        'content',
+        FileType.ANY,
+      ),
+    ),
+  )
+  async create(
+    @Body() createReportDto: CreateReportDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @GetUser('userId') userId: string,
+  ) {
+    let s3Files: { url: string; key: string }[] = [];
 
-  if (files && files.length) {
-    // Upload all files to S3 and delete local copies
-    for (const file of files) {
-      const s3Result = await uploadFileToS3(file.path);
-      s3Files.push(s3Result);
+    if (files && files.length) {
+      // Upload all files to S3 and delete local copies
+      for (const file of files) {
+        const s3Result = await uploadFileToS3(file.path);
+        s3Files.push(s3Result);
 
-      // Delete local file
-      try {
-        const fs = await import('fs/promises');
-        await fs.unlink(file.path);
-      } catch (err) {
-        console.warn('⚠️ Failed to delete local file:', err);
+        // Delete local file
+        try {
+          const fs = await import('fs/promises');
+          await fs.unlink(file.path);
+        } catch (err) {
+          console.warn('⚠️ Failed to delete local file:', err);
+        }
       }
+
+      // Pass S3 URLs to DTO
+      createReportDto.files = s3Files.map((f) => ({ url: f.url, key: f.key }));
     }
 
-    // Pass S3 URLs to DTO
-    createReportDto.files = s3Files.map((f) => ({ url: f.url, key: f.key }));
+    return this.userService.createReport(createReportDto, userId);
   }
 
-  return this.userService.createReport(createReportDto, userId);
-}
+  // --------Review Alerts---
 
+  @ApiBearerAuth()
+  @ValidateAuth()
+  @ApiOperation({ summary: 'Toggle Review Alerts for logged-in user' })
+  @Patch('toggle-review-alerts')
+  changeReviewAlert(@GetUser('userId') userId: string) {
+    return this.userService.changeReviewAlert(userId);
+  }
+  
 }

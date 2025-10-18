@@ -1,4 +1,9 @@
-import { BadRequestException, Body, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { HandleError } from 'src/common/error/handle-error.decorator';
 
 import { FileService } from 'src/lib/file/file.service';
@@ -251,5 +256,28 @@ export class UserService {
     });
 
     return successResponse(report, 'Report created successfully');
+  }
+
+  @HandleError('USER can be chnageReviewAlert user')
+  async changeReviewAlert(userId: string) {
+    // Find user by ID
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Toggle ReviewAlerts flag
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { ReviewAlerts: !user.ReviewAlerts },
+    });
+
+    return successResponse(
+      updatedUser,
+      `Review Alert has been ${updatedUser.ReviewAlerts ? 'enabled' : 'disabled'} successfully.`,
+    );
   }
 }
