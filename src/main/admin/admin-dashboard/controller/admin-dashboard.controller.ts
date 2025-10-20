@@ -59,11 +59,11 @@ export class AdminDashboardController {
     return { success: true, data: result };
   }
 
-  // -----content history----
+  // ----- --content history----
   @ApiBearerAuth()
   @ValidateAdmin()
   @Get('top-contributor')
-  @ApiOperation({ summary: 'Get content history topcontributor' })
+  @ApiOperation({ summary: 'Get content history topcontributor here now' })
   async getContentHistory() {
     const result = await this.adminDashboardService.contentHistory();
     return { success: true, data: result };

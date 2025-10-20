@@ -43,7 +43,7 @@ export class LiveEventController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
-      'thumbnail', // <-- match the form-data field
+      'thumbnail',
       new MulterService().createMulterOptions(
         './uploads',
         'content',
@@ -98,7 +98,7 @@ export class LiveEventController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor(
-      'thumbnail', // Must match the form-data field
+      'thumbnail',
       new MulterService().createMulterOptions(
         './uploads',
         'live-events',
@@ -116,14 +116,14 @@ export class LiveEventController {
       const s3Result = await uploadFileToS3(file.path);
 
       // Pass S3 URL to service
-      dto.thumbnail = file; // keep the file for compatibility
-      dto['thumbnailS3'] = s3Result.url; // new property for S3 URL
+      dto.thumbnail = file;
+      dto['thumbnailS3'] = s3Result.url;
 
       // Delete local temp file
       try {
         await fs.unlink(file.path);
       } catch (err) {
-        console.warn('⚠️ Failed to delete temp thumbnail:', err);
+        console.warn('Failed to delete temp thumbnail:', err);
       }
     }
 
