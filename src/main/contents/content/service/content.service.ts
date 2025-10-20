@@ -1037,7 +1037,7 @@ export class ContentService {
         try {
           const response = await firstValueFrom(
             this.httpService.post(
-              `https://ai.australiancanvas.com/files/compare-text?text=${encodeURIComponent(
+              `https://ai.australiancanvas.com/files/compare-text?html_text=${encodeURIComponent(
                 payload.paragraph,
               )}`,
               {},
