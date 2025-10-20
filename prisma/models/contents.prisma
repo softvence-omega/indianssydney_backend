@@ -23,7 +23,7 @@ model Content {
   videoThumbnail   String?
   // ai model evaluation fields
   evaluationResult String?
-  compareResult    String?
+  compareResult    Json?
   
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
