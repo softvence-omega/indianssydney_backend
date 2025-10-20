@@ -424,7 +424,7 @@ export class OverviewDashboardService {
     const aiPerformance = contents
       .map((item) => {
         try {
-          const parsed = JSON.parse(item.compareResult || '{}');
+          const parsed = JSON.parse(String(item.compareResult || '{}'));
           return parsed.percentage_not_aligned ?? null;
         } catch {
           return null;
@@ -554,7 +554,7 @@ export class OverviewDashboardService {
     contentResults.forEach((item) => {
       articlesScanned += 1; // Count each content item
       try {
-        const parsed = JSON.parse(item.compareResult || '{}');
+        const parsed = JSON.parse(String(item.compareResult || '{}'));
 
         if ((parsed.percentage_not_aligned ?? 0) > 0) flaggedForReview += 1;
         if (parsed.hate_speech_removed) hateSpeechRemoved += 1;
