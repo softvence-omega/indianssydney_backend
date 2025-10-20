@@ -37,7 +37,7 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        'https://ndianssydney.netlify.app',
+        'https://indianssydney-frontend-nextjs.vercel.app',
         'https://indiansydny.vercel.app',
         'https://the-australian-canvas.vercel.app',
         'http://localhost:3000',
