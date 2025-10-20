@@ -67,7 +67,7 @@ export class S3FileService {
     if (!allowedTypes.includes(mimeType)) {
       throw new BadRequestException(`Invalid file type: ${mimeType}`);
     }
-    if (file.size > 2000 * 1024 * 1024) {
+    if (file.size > 9000 * 1024 * 1024) {
       throw new BadRequestException('File size exceeds 2GB');
     }
 
