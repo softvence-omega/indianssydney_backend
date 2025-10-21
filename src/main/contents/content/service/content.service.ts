@@ -356,7 +356,7 @@ export class ContentService {
   @HandleError('Failed to fetch user contents', 'content')
   async findOne(id: string): Promise<TResponse<any>> {
     const content = await this.prisma.content.findUnique({
-      where: { id, isDeleted: false, status: 'APPROVE' },
+      where: { id, isDeleted: false },
       include: {
         user: {
           select: { id: true, fullName: true, email: true, profilePhoto: true },
