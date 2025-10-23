@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import {
   Controller,
   Headers,
@@ -11,6 +12,8 @@ import { PrismaService } from 'src/lib/prisma/prisma.service';
 import { MailService } from 'src/lib/mail/mail.service';
 import Stripe from 'stripe';
 import { PaymentStatus } from '@prisma/client';
+
+console.log(process.env.STRIPE_SECRET_KEY);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
 
@@ -169,5 +172,4 @@ export class PaymentWebhookController {
       return res.status(500).send('Internal server error');
     }
   }
-  
 }

@@ -16,7 +16,6 @@ RUN npm install --ignore-scripts
 
 # Generate Prisma client
 RUN npx prisma generate
-
 # Copy the rest of the source code
 COPY . ./
 
@@ -24,7 +23,7 @@ COPY . ./
 RUN npm run build
 
 # Expose the port that the application listens on.
-EXPOSE 5055
+EXPOSE 5000
 
 # Run the application.
 CMD ["npm", "run", "start:prod"]
