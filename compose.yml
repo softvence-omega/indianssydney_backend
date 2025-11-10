@@ -5,45 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      NODE_ENV: 'production'
-      DATABASE_URL: 'postgresql://postgres:postgres@db:5432/indians'
-
-      FRONTEND_URL: 'https://api.australiancanvas.com'
-
-      JWT_SECRET: 'secret'
-      JWT_EXPIRES_IN: 90d
-
-      BASE_URL: 'https://api.australiancanvas.com'
-
-      APP_DOMAIN: 'https://api.australiancanvas.com'
-
-      PORT: 5050
-
-      MAIL_USER: 'shahin.softvence@gmail.com'
-      MAIL_PASS: 'hxyn gshj lbzt zwbd'
-
-      SUPER_ADMIN_EMAIL: 'codingx43@gmail.com'
-      SUPER_ADMIN_PASS: 'superadmin'
-
-      OAUTH_CLIENT_ID: '1074646902032-5ab3gkkggb7mrejjfnvr7ra65qos4o8s.apps.googleusercontent.com'
-      OAUTH_CLIENT_SECRET: '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'
-
-      STRIPE_SECRET_KEY: 'sk_test_51RooxHB1dqjNHGYOKAfSq68nLRVtvTflajqGNkuSJ6yhibpGidCPkdmzoBnuev4DwcK6jCwqjUQs1cYDRJEZdg4i00WOnFjiS5'
-      STRIPE_WEBHOOK_SECRET: 'whsec_Ur3kc74cxn0DMuqSEyhsHvR7JIQP9TQi'
-
-      PAYPAL_CLIENT_SECRET: 'ELJOBS1F9d_X_kPfa3OQI7VLQnOHoMYQtzFLVuVKfQmRYMkGS8VwS5PDw1vIbD8Mi__cH9LDlYJflxyr'
-      PAYPAL_CLIENT_ID: 'AQhHf77c1QqwgOxR8V1-wAzOZysAXOYv51jCwedc4DABVXM2PjlHMcmR0s16n7jEeHZH3ThyAOrmIwDx'
-
-      AGORA_CUSTOMER_ID: '1477f33546b0489caf01e3c460ffc700'
-      AGORA_SECRET: 'ee5031a115364163a97fdca89b19b971'
-
-      ACCESS_KEY: 'AKIAX3ULI3YKFVHU6TOD'
-      ACCESS_SECRET: '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'
-      BUCKET_NAME: 'indianssendy12'
-      BUCKET_REGION: 'us-east-1'
+    env_file:
+      - .env
     ports:
-      - 5050:5050
+      - 5000:5000
     depends_on:
       - db
     command: >
@@ -64,7 +29,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - '5442:5432'
+      - "5442:5432"
 
 volumes:
   db-data:
